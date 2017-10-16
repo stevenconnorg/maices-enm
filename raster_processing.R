@@ -21,9 +21,18 @@ dir_p.mosaics<-paste0(dir_pres,"/2.0/")
 dir_f.mosaics<-paste0(dir_fut,"/1.4/")
 
 dir_stacks<-paste0(dir_clim,"/stacks")
+dirlist<-as.list(ls())
+
+for (i in dirlist[[i]])
+  {
+  !if.exists(i){
+      dir.create(i,recursive=TRUE)
+              }
+  }
 
 load(paste0(dir_clim,"/raster_processing.RData"))
 
+list
 # 
 
 
@@ -215,7 +224,21 @@ plot(ind)
 save.image(paste0(dir_pres,"/raster_processing.RData"))
 
 # get topographic variables
+urltopo<-c("http://biogeo.ucdavis.edu/data/climate/worldclim/1_4/tiles/cur/")
+doctopo<-htmlParse(urltopo)
+#get <a> nodes.
+Anodes<-getNodeSet(doctopo,"//a")
 
+#make the full url
+urls<-grep("30s",sapply(Anodes, function(Anode) xmlGetAttr(Anode,"href")),value=TRUE)
+
+#Select the files of interest 
+r<-regexpr("wc.*?zip",urls)
+files<-regmatches(urls,r)
+mapply(function(x,y) download.file(x,y),urls,files)
+lapply(grep(".zip",files, value=TRUE),unzip)
+
+# http://www.worldclim.org/tiles.php
 altrasters<-Sys.glob(file.path("C:/Users/Steven Gonzalez/Desktop/Geo-7300/Data/climatological/present/raw/tiffs/alt*.tif"))
 alt.list<-list()
 for(i in 1:length(altrasters)) {alt.list[i]<-raster(altrasters[i])}
@@ -266,7 +289,8 @@ presfullstack<-stack(pres_rasts)
 save(presfullstack,file=paste0(dir_stacks,"/present_fullstack.RData"))
 writeRaster(presfullstack, paste0(dir_stacks,"/present_fullstack.grd"), bylayer=FALSE, format='GTiff',overwrite=FALSE)
 
-
+dir.create(paste0(dir_p.mosaics),"/crop")
+       
 bbox<-extent(r)
 # i<-pres_rasts[1]
 for(i in pres_rasts){ ##140:173
@@ -336,6 +360,9 @@ path = paste0(dir_f.mosaics)
 zfs<-list.files(path,pattern="zip",full.names=T)
 str(zfs)
 
+dir.create(paste0(dir_f.mosaics),"/crop/ensemble/50",recursive=TRUE)
+dir.create(paste0(dir_f.mosaics),"/crop/ensemble/70")
+       
 # unzip zip directories for each climatology into respective directories, crop, and write layers to 'crop' directory
 for(i in zfs){ ##140:173
   exdir= gsub(".zip","",i)
