@@ -107,7 +107,8 @@ writeOGR(maices,dsn=paste0(dir_dat,"/maices"),layer="maices",driver="ESRI Shapef
 
 
 # make presence/absence matrix
-memory.limit(size=56000)
+install.packages("letsR")
+library(letsR)
 xy<-cbind(maices@data$Longitud,maices@data$Latitud)
 PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima, resol = 0.01)
 plot(PA)
@@ -117,8 +118,7 @@ View(pam)
 pam[pam == 0 ] <- NA
 
 write.csv(pam,file=paste0(dir_out,"/pam.csv"))
-save.image(file=paste0(dir_out,"/clean_maices_obs.R"))
-
+save.image(file=paste0(dir_out,"/clean_maices_obs.RData"))
 
 #####################################
 # Indigenous vars processing and rasterization
@@ -137,7 +137,26 @@ pob_ind_2010@data$pcnt5<-(pob_ind_2010@data$NEI10 / pob_ind_2010@data$P3T10)*100
 pob_ind_2010@data$pcnt6<-(pob_ind_2010@data$NLI10 / pob_ind_2010@data$P3T10)*100
 pob_ind_2010@data$pcnt7<-(pob_ind_2010@data$NELI10 / pob_ind_2010@data$P3T10)*100
 pca<-prcomp(~pcnt1+pcnt2+pcnt3+pcnt4+pcnt5+pcnt6+pcnt7,data= pob_ind_2010@data,center=TRUE,scale=TRUE)
-colnames(pob_ind_2010@data)
+print(pca)
+plot(pca,type="l")
+screeplot(pca)
+summary(pca)
+
+# plot pca values from dataframe
+library(devtools)
+install_github("ggbiplot", "vqv")
+
+library(ggbiplot)
+g <- ggbiplot(pca, obs.scale = 1, var.scale = 1, 
+              # groups = ir.species, 
+              ellipse = TRUE, 
+              circle = TRUE)
+g <- g + scale_color_discrete(name = '')
+g <- g + theme(legend.direction = 'horizontal', 
+               legend.position = 'top')
+print(g)
+
+# join pca to original shape
 pob_ind_2010@data<-rownames_to_column(pob_ind_2010@data,var="id")
 scores<-as.data.frame(pca$x)
 scores<-rownames_to_column(scores,var="id")
@@ -146,27 +165,35 @@ scores<-rownames_to_column(scores,var="id")
 pob_ind_2010@data<-merge(x=pob_ind_2010@data,y=scores,by="id")
 colnames(pob_ind_2010@data)
 
-qtm(shp = pob_ind_2010, fill = c(paste0("PC",rep(1:7))), fill.palette = "-Blues",ncol=2) 
+# plot pc1 over geometry
+qtm(shp = pob_ind_2010, fill = c(paste0("PC1",rep(1:7))), fill.palette = "-Blues",ncol=2) 
 # crs(pob_ind_2010)
 # ind_wgs = spTransform(pob_ind_2010, CRS("+init=epsg:4326"))
 ind_wgs<-pob_ind_2010
 osm_tiles = tmaptools::read_osm(bbox(ind_wgs)) #
 
+# plot pc1 over geometry with osm tiles
 tm_shape(osm_tiles) + tm_raster() + tm_shape(ind_wgs) +
   tm_fill("PC1", fill.title = "Ethnolinguistic Component", scale = 0.8, alpha = 0.5) +
   tm_layout(legend.position = c(0.89,0.02))
 
-r<-raster(nrow=2304,ncol=3770)
-ind <- rasterize(pob_ind_2010, r, field = pob_ind_2010@data$pcnt, fun = "mean", 
-                 update = TRUE, updateValue = "NA")
 
-colnames(pob_ind_2010@data)
-plot(ind)
+# rasterize pca results for pc 1 and 2
+ethnlang1 <- rasterize(pob_ind_2010, r, field = pob_ind_2010@data$PC1, fun = "mean", 
+                 update = FALSE, updateValue = "NA")
+ethnlang2 <- rasterize(pob_ind_2010, r, field = pob_ind_2010@data$PC2, fun = "mean", 
+                       update = FALSE, updateValue = "NA")
+
+
+# plot rasters
+plot(ethnlang1)
+plot(ethnlang2)
+
 extent(cropstack)
 extent(ind)
 extent(ind) <- extent(cropstack)
 
-writeRaster(ind, paste0(dir_dat,"/ethn/ind_pct.tif"), bylayer=FALSE, format='GTiff',overwrite=TRUE)
+writeRaster(ethnlang1, paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif"), bylayer=FALSE, format='GTiff',overwrite=TRUE)
 plot(ind)
 
 save.image(paste0(dir_pres,"/raster_processing.RData"))
@@ -220,8 +247,8 @@ pres_rasts<-list.files(paste0(dir_p.mosaics),pattern="\\.tif$", full.names=TRUE)
 presfullstack<-stack(pres_rasts)
 
 # write to file
-save(presfullstack,file=paste0(dir_stacks,"/present_fullstack.R"))
-writeRaster(presfullstack, paste0(dir_stacks,"/present_fullstack.tif"), bylayer=FALSE, format='GTiff')
+save(presfullstack,file=paste0(dir_stacks,"/present_fullstack.RData"))
+writeRaster(presfullstack, paste0(dir_stacks,"/present_fullstack.grd"), bylayer=FALSE, format='GTiff',overwrite=FALSE)
 
 
 bbox<-extent(r)
@@ -349,80 +376,128 @@ save.image(paste0(dir_clim,"/raster_processing.RData"))
 #####################################
 # remove multicollinearity of full stack
 # need to run with more RAM
+grds<-list.files(dir_stacks,pattern=".grd")
 
-# read in stacks in not in environment
-stacknames<-list.files(dir_stacks,pattern="gri")
-stacktiffs<-paste0(dir_stacks,"/",stacknames[1:3])
-f50_cropstack<-stack(stacktiffs[1])
-f70_cropstack<-stack(stacktiffs[2])
-pres_cropstack<-stack(stacktiffs[3])
+f50cropstack<-stack(paste0(dir_stacks,"/",grds[1]))
+f70cropstack<-stack(paste0(dir_stacks,"/",grds[2]))
+pres_cropstack<-stack(paste0(dir_stacks,"/",grds[3]))
+
+library(SpaDES)
+layerNames(present_cropstack)
 
 install.packages(("virtualspecies"))
 library(virtualspecies)
-coll_vars_pres<-virtualspecies::removeCollinearity(pres_cropstack,multicollinearity.cutoff = 0.65,  sample.points = TRUE, plot = FALSE)
+coll_vars_pres<-virtualspecies::removeCollinearity(pres_cropstack,multicollinearity.cutoff = 0.7, select.variables = FALSE, sample.points = TRUE, nb.points = (pres_cropstack@ncols/2),plot = TRUE)
 save.image(paste0(dir_clim,"/raster_processing.RData"))
 print(coll_vars_pres)
-
-presmodstack<-stack(pres_cropstack[[2]],
-                    pres_files[1],
-                    pres_files[1],
-                    pres_files[1],
-                    pres_files[1],
-                    pres_files[1],
-                    pres_files[1],
-                    pres_files[1],
-                    pres_files[1],
-                    pres_files[1],
+coll_vars_pres
+# manually select raster layers to retain from climate pca, including other variables of interest
+presmodstack<-stack(paste0(dir_p.mosaics,"/crop/crop_bio5.tif"),
+                    paste0(dir_p.mosaics,"/crop/crop_bio6.tif"),
+                    paste0(dir_p.mosaics,"/crop/crop_bio18.tif"),
+                    paste0(dir_p.mosaics,"/crop/crop_bio3.tif"),
+                    paste0(dir_p.mosaics,"/crop/crop_bio17.tif"),
+                    paste0(dir_p.mosaics,"/crop/crop_bio4.tif"),
+                    paste0(dir_p.mosaics,"/crop/crop_bio15.tif"),
+                    paste0(dir_p.mosaics,"/crop/crop_bio8.tif"),
+                    paste0(dir_p.mosaics,"/crop/crop_bio9.tif"),
+                    paste0(dir_p.mosaics,"/crop/crop_bio2.tif"),
+                    paste0(dir_dat,"/topo/crop/crop_topo_roughness_mosaic.tif"),
+                    paste0(dir_dat,"/topo/crop/crop_topo_altitude_mosaic.tif"),
+                    paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif")
                     
 )
 
-ens50_files<-list.files(paste0(dir_f.mosaics,"/1.4/crop/ensemble/50/"))
-print(ens50_files)
+coll_vars_pres_mod<-virtualspecies::removeCollinearity(presmodstack,multicollinearity.cutoff = 0.7, select.variables = FALSE, sample.points = TRUE, nb.points = (presmodstack@ncols/2),plot = TRUE)
 
+presmodstack
 
-fut50modstack<-stack(ens50_files[1],
-                     ens50_files[1],
-                     ens50_files[1],
-                     ens50_files[1],
-                     ens50_files[1],
-                     ens50_files[1],
-                     ens50_files[1],
-                     ens50_files[1],
-                     ens50_files[1],
-                     ens50_files[1],
-                     ens50_files[1],
-                     ens50_files[1],
+f50modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_5_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_6_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_18_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_3_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_17_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_4_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_15_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_15_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_8_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_9_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_2_ensemble.tif"),
+                   paste0(dir_dat,"/topo/crop/crop_topo_roughness_mosaic.tif"),
+                   paste0(dir_dat,"/topo/crop/crop_topo_altitude_mosaic.tif"),
+                   paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif")
+                        
+                        
+                        )
+
+f70modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_5_ensemble.tif"),
+        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_6_ensemble.tif"),
+        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_18_ensemble.tif"),
+        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_3_ensemble.tif"),
+        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_17_ensemble.tif"),
+        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_4_ensemble.tif"),
+        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_15_ensemble.tif"),
+        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_8_ensemble.tif"),
+        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_9_ensemble.tif"),
+        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_2_ensemble.tif"),
+        paste0(dir_dat,"/topo/crop/crop_topo_roughness_mosaic.tif"),
+        paste0(dir_dat,"/topo/crop/crop_topo_altitude_mosaic.tif"),
+        paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif")
 )
+        
+  
+save(presmodstack,file=paste0(dir_stacks,"/present_modstack.RData"))
+writeRaster(presmodstack, paste0(dir_stacks,"/present_modstack.grd"), bylayer=FALSE, format='raster',overwrite=TRUE)
+
+save(f50modstack,file=paste0(dir_stacks,"/f50_modstack.RData"))
+writeRaster(f50modstack, paste0(dir_stacks,"/f50_modstack.grd"), bylayer=FALSE, format='raster',overwrite=TRUE)
+
+save(f70modstack,file=paste0(dir_stacks,"/f70_modstack.RData"))
+writeRaster(f70modstack, paste0(dir_stacks,"/f70_modstack.grd"), bylayer=FALSE, format='raster',overwrite=TRUE)
 
 
-ens70_files<-list.files(paste0(dir_f.mosaics,"/1.4/crop/ensemble/70/"))
-print(ens70_files)
+save.image(file=paste0(dir_clim,"/raster_processing.RData"))
 
 
-fut70modstack<-stack(ens70_files[1],
-                     ens70_files[1],
-                     ens70_files[1],
-                     ens70_files[1],
-                     ens70_files[1],
-                     ens70_files[1],
-                     ens70_files[1],
-                     ens70_files[1],
-                     ens70_files[1],
-                     ens70_files[1],
-                     ens70_files[1],
-                     ens70_files[1],
-                     
-)
-save(presmodstack,file=paste0(dir_dat,"/clim/stacks/present_modstack.R"))
-writeRaster(presmodstack, paste0(dir_dat,"/clim/stacks/present_modstack.tif"), bylayer=FALSE, format='GTiff')
 
-save(fut50modstack,file=paste0(dir_dat,"/clim/stacks/fut50_modstack.R"))
-writeRaster(fut50modstack, paste0(dir_dat,"/clim/stacks/fut50_modstack.tif"), bylayer=FALSE, format='GTiff')
 
-save(fut70modstack,file=paste0(dir_dat,"/clim/stacks/fut70_modstack.R"))
-writeRaster(fut70modstack, paste0(dir_dat,"/clim/stacks/fut70_modstack.tif"), bylayer=FALSE, format='GTiff')
 
-save.image(file=paste0(root,"/.RData"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #### OLD COPY raster stack cropping
@@ -521,8 +596,6 @@ stack3<-stack(paste0(dir_pres,"/2.0/crop/","/crop_X30as__present_tmean_mosaic_la
 save(stack3,file=paste0(dir_out,"/cropstack-mcl-rm.R"))
 writeRaster(stack3, paste0(dir_out,"/cropstack-mcl-rm.tif"), bylayer=FALSE, format='GTiff')
 writeRaster(stack3, paste0(dir_out,"/cropstack-mcl-rm.tif"), bylayer=TRUE, suffix = names(stack3),format='GTiff')
-
-save.image(file=paste0(root,"/.RData"))
 
 ###################################################################################################
 
