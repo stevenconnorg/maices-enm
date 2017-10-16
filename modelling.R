@@ -27,24 +27,20 @@ dir_bmz<-paste0(root,"/07_biomodez")
 
 
 # climate data root
+dir_dat<-paste0(root,"/01_data")
+dir_R<-paste0(root,"/02_R")
+dir_out<-paste0(root,"/03_output")
+dir_figs<-paste0(root,"/04_figs")
+
+# 
 dir_clim<-paste0(dir_dat,"/clim")
-
-# present climate data directory
 dir_pres<-paste0(dir_clim,"/present")
-
-# future climate data directory
 dir_fut<-paste0(dir_clim,"/future")
 
-# present
-dir_p.mosaics<-paste0(dir_pres,"/mosaics")
-dir_p.raw<-paste0(dir_pres,"/raw")
-dir_p.stack<-paste0(dir_pres,"/stack")
+dir_p.mosaics<-paste0(dir_pres,"/2.0/")
+dir_f.mosaics<-paste0(dir_fut,"/1.4/")
 
-# future
-dir_f.mosaics<-paste0(dir_fut,"/mosaics")
-dir_f.raw<-paste0(dir_fut,"/raw")
-dir_f.stack<-paste0(dir_fut,"/stack")
-
+dir_stacks<-paste0(dir_clim,"/stacks")
 
 #####################################
 #       BIOMOD formatting Data      #
@@ -52,44 +48,71 @@ dir_f.stack<-paste0(dir_fut,"/stack")
 
 # set wd inside biomod subdirectory
 setwd(dir_bm)
-load(paste0(dir_out,"/stack.R"))
-load(paste0(dir_out,"/cropstack.R"))
-load(paste0(dir_out,"/cropstack-mcl-rm.R"))
+load(paste0(dir_stacks,"/present_modstack.RData"))
+load(paste0(dir_stacks,"/f50_modstack.RData"))
+load(paste0(dir_stacks,"/f70_modstack.RData"))
 # load(paste0(dir_bm,"/.RData"))
 
-pam<-read.csv(paste0(dir_out,"/pam.csv"))
+### formating presence absense data, uncomment when on cluster ###
+# maices<-readOGR(dsn=paste0(dir_out,"/maices.shp"),layer="maices")
+# xy<-cbind(maices@data$Longitud,maices@data$Latitud)
+# PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima, resol = 0.01)
+# PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima, resol = 0.008333333)
+# pam<-PA$Presence_and_Absence_Matrix
+# View(pam)
+# [pam == 0 ] <- NA
+# pa<-data.frame(pam)
+
+# comment out when running cluster
+pam<-read.csv(file=paste0(dir_out,"/pam.csv"))
+
+
 pa<-data.frame(pam)
+write.csv(pa,paste0(dir_out,"/pa_dataframe.csv"))
+
 pa
 maxentjar<-paste0(dir_bm,"/maxent.jar")
 
-sp.n= c("Arrocillo.Amarillo")     #vector of species name(s)
+sp.n= c("Tuxpeño"
+        #,"Arrocillo.Amarillo"
+        )     #vector of species name(s)
+
+library(biomod2)
+library(mgcv)
+options(max.print=1000000)
+library(gbm)
+library(dismo)
 
 # BioModApply <-function(sp.n) {
-  
   myRespName = sp.n
   myResp <- as.numeric(pa[,myRespName])
   myExpl<-presmodstack
-  myExplFuture50<-fut50modstack
-  myExplFuture70<-fut70modstack
+  myExplFuture50<-f50modstack
+  myExplFuture70<-f70modstack
   myRespXY = pa[,c('Longitude.x.','Latitude.y.')]
-  
+
   
   # format input data for biomod
   myBiomodData <- BIOMOD_FormatingData(resp.var = myResp,
-                                       expl.var = myExpl,
                                        resp.xy = myRespXY,
-                                       resp.name = myRespName
+                                       expl.var = myExpl,
+                                       resp.name = myRespName,
+                                       PA.nb.rep = 0,
+                                       PA.nb.absences = round((sum(!is.na(myResp))/5),0),
+                                       PA.strategy = "sre",
+                                       PA.sre.quant = 0.95,
+                                       na.rm=TRUE
                                        )
   
   # define model options
   
   
   # print default biomod options 
-  # default_ModelOptions <-BIOMOD_ModelingOptions()
-  # print(default_ModelOptions)
+  default_ModelOptions <-BIOMOD_ModelingOptions()
+  print(default_ModelOptions)
   
   # edit default options accordingly
-  BIOMOD_ModelOptions <- BIOMOD_ModelingOptions(GLM = list( type = 'quadratic',       # tk polynomial ?
+  BIOMOD_ModelOptions <- BIOMOD_ModelingOptions(GLM = list( type = 'quadratic',      
                                                               interaction.level = 0,
                                                               myFormula = NULL,
                                                               test = 'AIC',           # tk BIC? 
@@ -110,24 +133,11 @@ sp.n= c("Arrocillo.Amarillo")     #vector of species name(s)
                                                               verbose = FALSE,
                                                               perf.method = 'cv'),
                                                   
-                                                 # GAM = list( algo = 'GAM_mgcv',
-                                                 #              type = 's_smoother',
-                                                #             k = -1,
-                                                #             interaction.level = 0,
-                                                #              myFormula = NULL,
-                                                #             family = binomial(link = 'logit'),
-                                                #              method = 'GCV.Cp',
-                                                #              optimizer = c('outer','newton'),
-                                                #             select = FALSE,
-                                                #             knots = NULL,
-                                                #             paraPen = NULL,
-                                                #             control = list(nthreads = 1, irls.reg = 0, epsilon = 1e-07, maxit = 200, trace = FALSE
-                                                #                            , mgcv.tol = 1e-07, mgcv.half = 15, rank.tol = 1.49011611938477e-08
-                                                #                            , nlm = list(ndigit=7, gradtol=1e-06, stepmax=2, steptol=1e-04, iterlim=200, check.analyticals=0)
-                                                #                            , optim = list(factr=1e+07), newton = list(conv.tol=1e-06, maxNstep=5, maxSstep=2, maxHalf=30, use.svd=0)
-                                                #                           , outerPIsteps = 0, idLinksBases = TRUE, scalePenalty = TRUE, keepData = FALSE, scale.est = fletcher
-                                                #                            , edge.correct = FALSE) ),
-                                                  
+                                                GAM = list(algo = 'GAM_mgcv', type = 's_smoother', k = NULL, 
+                                                           interaction.level = 0, 
+                                                           myFormula = NULL, 
+                                                           family = 'binomial', 
+                                                           control = gam.control(epsilon = 1e-06, trace = FALSE, maxit = 100)),
                                                   
                                                   CTA = list( method = 'class',
                                                               parms = 'default',
@@ -191,74 +201,72 @@ sp.n= c("Arrocillo.Amarillo")     #vector of species name(s)
 # modeling
 myBiomodModelOut <- BIOMOD_Modeling(
   myBiomodData, 
-  models = c("GLM","GBM","ANN","SRE","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka'), 
+  models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka'), 
   models.options = BIOMOD_ModelOptions, 
   NbRunEval=5,
-  DataSplit=65,
-  Prevalence=NULL,
+  DataSplit=60,
   VarImport=5,
-  models.eval.meth = c( 'KAPPA', 'TSS','ROC'),
+  models.eval.meth = c( 'KAPPA', 'TSS', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS'),
   SaveObj = TRUE,
   rescal.all.models = TRUE,
   do.full.models = TRUE,
-  modeling.id = paste(myRespName,"FirstModeling",sep=""))
-  
-maxentBiomodModelOut <- BIOMOD_Modeling(
-  myBiomodData, 
-  models = c("MAXENT.Phillips"), 
-  models.options = BIOMOD_ModelOptions, 
-  NbRunEval=5,
-  DataSplit=65,
-  Prevalence=NULL,
-  VarImport=5,
-  models.eval.meth = c( 'KAPPA', 'TSS','ROC'),
-  SaveObj = TRUE,
-  rescal.all.models = TRUE,
-  do.full.models = TRUE,
-  modeling.id = paste(myRespName,"MaxEntModeling",sep=""))
+  modeling.id = paste(myRespName,"_current"))
 
-  myBiomodModelEval <- get_evaluations(myBiomodModelOut)          #GETTING MODEL EVALUATIONS FOR PERFORMANCE TESTING
-  print("Done Running Models")
+print(paste0("Done Running Models for ",sp.n))
 
-  myBiomodModelEval <- get_evaluations(myBiomodModelOut)          #GETTING MODEL EVALUATIONS FOR PERFORMANCE TESTING
-  print("Done Running Models")
-  
-  plot(get_predictions(myBiomodModelOut))
-  
-  
-  # let's print the ROC scores of all selected models
-  # myBiomodModelEval["ROC","Testing.data",,,]
-  
-  # print variable importances
-  # get_variables_importance(myBiomodModelOut)
-  
-  
-  setwd(dir_bm)
-  GBMs<- BIOMOD_LoadModels(myBiomodModelOut, models='GBM')
-  # get_formal_model(Arrocillo.Amarillo_AllData_Full_GBM) 
-  # summary(get_formal_model(Arrocillo.Amarillo_AllData_Full_GBM) )
-  
-  myRespPlot2D <- response.plot2(models  = GBMs,
-                                 Data = get_formal_data(myBiomodModelOut,'expl.var'), 
-                                 show.variables= get_formal_data(myBiomodModelOut,'expl.var.names'),
-                                 do.bivariate = FALSE,
-                                 fixed.var.metric = 'median',
-                                 col = c("blue", "red"),
-                                 legend = TRUE,
-                                 data_species = get_formal_data(myBiomodModelOut,'resp.var'))
-  
-  
-  # BIOMOD_LoadModels(myBiomodModelOut, models='RF')
-  # get_formal_model(Arrocillo.Amarillo_AllData_Full_RF) 
-  # summary(get_formal_model(Arrocillo.Amarillo_AllData_Full_RF) )
-  
+          # write data used for modelling
+          capture.output(get_formal_data(myBiomodModelOut),
+                         file=paste0(dir_out,"/model-data/",myRespName,"_formal_data.txt"))
+          ### eval current model
+        
+          print(paste0("Capturing Model Evaluations for ",sp.n))
+          evalmods<-get_evaluations(myBiomodModelOut,as.data.frame=TRUE)
+          write.csv(evalmods,file=paste0(dir_out,"/eval/",myRespName,"_formal_models_evaluation.csv"))
+          
+          ### get variable importance
+          modevalimport<-get_variables_importance(myBiomodModelOut,as.data.frame=TRUE)
+          write.csv(modevalimport,file=paste0(dir_out,"/var-imp/",myRespName,"_var_imp.csv"))
+         
+          ### get model summaries
+          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_ANN",sep="")))))
+                         ,file=paste0(dir_out,"/eval/",myRespName,"_ANN_summary.txt"))
+          
+          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_CTA",sep="")))))
+                          ,file=paste0(dir_out,"/eval/",myRespName,"_CTA_summary.txt"))
+          
+          fda1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_FDA",sep=""))))
+          capture.output(fda1$confusion,file==paste0(dir_out,"/eval/",myRespName,"_FDA-conf_summary.txt"))
+        
+          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_GAM",sep="")))))
+                         ,file=paste0(dir_out,"/eval/",myRespName,"_GAM_summary.txt"))
+          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_GBM",sep="")))))
+                        ,file=paste0(dir_out,"/eval/",myRespName,"_GBM_summary.txt"))
+          
+          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_GLM",sep="")))))
+                         ,file=paste0(dir_out,"/eval/",myRespName,"_GLM_summary.txt"))
+        
+          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MARS",sep="")))))
+                        ,file=paste0(dir_out,"/eval/",myRespName,"_MARS_summary.txt"))
+          
+          # summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Phillips",sep="")))))
+          maxent_t1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Tsuruoka",sep=""))))
+        
+          myRespPlot2D <- response.plot2(models  = "MAXENT",
+                                         Data = get_formal_data(myBiomodModelOut,'expl.var'), 
+                                         show.variables= get_formal_data(myBiomodModelOut,'expl.var.names'),
+                                         do.bivariate = FALSE,
+                                         fixed.var.metric = 'median',
+                                         col = c("blue", "red"),
+                                         legend = TRUE,
+                                         data_species = get_formal_data(myBiomodModelOut,'resp.var'))
+          
   # model projections
   myBiomodProj <- BIOMOD_Projection(
     modeling.output = myBiomodModelOut,
     new.env = myExpl,
     proj.name = 'current',
     selected.models = 'all',
-    binary.meth = 'none',
+    binary.meth = c( 'KAPPA', 'TSS','ROC'),
     compress = TRUE,
     clamping.mask = TRUE,
     output.format = '.grd')
@@ -277,7 +285,7 @@ maxentBiomodModelOut <- BIOMOD_Modeling(
   myBiomodEM <- BIOMOD_EnsembleModeling(
     modeling.output = myBiomodModelOut,
     chosen.models = 'all',
-    em.by='all',
+    em.by='algo',
     eval.metric = c('KAPPA', 'TSS','ROC'),
     eval.metric.quality.threshold = c(0.5,0.5,0.5),
     prob.mean = T,
