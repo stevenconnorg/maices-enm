@@ -100,7 +100,7 @@ maices = subset(todos.6, length(todos.6$Raza_prima) > 20)
 raza.counts<-maices@data %>% group_by(Raza_prima) %>% summarise(n()) 
 raza.counts
 
-
+dir.create(paste0(dir_dat,"/maices"))
 writeOGR(maices,dsn=paste0(dir_dat,"/maices"),layer="maices",driver="ESRI Shapefile",overwrite=TRUE)
 
 
@@ -122,6 +122,22 @@ save.image(file=paste0(dir_out,"/clean_maices_obs.RData"))
 
 #####################################
 # Indigenous vars processing and rasterization
+
+# download.file("http://www.conabio.gob.mx/informacion/gis/maps/geo/poinmun10gw.zip",destfile = paste0(dir_dat,"/maices/pobind10.zip"),method = "wget")
+
+# zipF<-paste0(dir_dat,"/maices/pobind10.zip") # lets you choose a file and save its file path in R (at least for windows)
+# outDir<-paste0(dir_dat,"/maices") # Define the folder where the zip file should be unzipped to 
+# unzip(zipF,exdir=outDir)  # unzip your file 
+
+
+# file <- list.files(outDir,pattern = # "maizngw",
+full.names = F) 
+
+# sapply(files,FUN=function(eachPath){
+#   file.rename(from=eachPath,to=sub(pattern= paste("maizngw.*"),replacement= "todos.*",eachPath))
+# })
+
+
 ??pca
 # read in some data for mexico to get outline to crop
 library(rgeos)
