@@ -148,7 +148,7 @@ vars<-c("poinmun10gw", # Indigenous population data by municipio geometry
         "lengmun90gw", # 1st, 2nd, 3rd, and 4th major indigenous language by municipio geometry (1990)
         "presindigw"   # Categorical indicators of indigenous population magnitude by municipio
        )
-replacements<- c("poinmun10gw","lengmun90gw","presindigw")
+replacements<- c("pobind10","lengmuni90","ind-pres")
 
 for (i in vars) {
      
@@ -158,68 +158,22 @@ for (i in vars) {
         zipF<-paste0(dir_ind,"/",i,".zip") # lets you choose a file and save its file path in R (at least for windows)
         outDir<-paste0(dir_ind,"/",i) # Define the folder where the zip file should be unzipped to 
         unzip(zipF,exdir=outDir)  # unzip your file 
+         
+        
 
+        # for (m in replacements) {
+          #  files <- list.files(outDir,pattern = i, full.names = F) 
+          #   sapply(files,FUN=function(eachPath){
+          #   file.rename(from=eachPath,to=sub(pattern= paste0(i,".*"),replacement= paste0(m,".*"),eachPath))
+          #     })
+          #   }
+}
 
-        # file <- list.files(outDir,pattern = i,
-        full.names = F) 
-
-        # sapply(files,FUN=function(eachPath){
-        #   file.rename(from=eachPath,to=sub(pattern= paste("maizngw.*"),replacement= "todos.*",eachPath))
-        # })
-
-
-####
-download.file("http://www.conabio.gob.mx/informacion/gis/maps/geo/poinmun10gw.zip",destfile = paste0(dir_ind,"/poinmun10gw.zip"),method = "wget")
-
-
-zipF<-paste0(dir_ind,"/poinmun10gw.zip") # lets you choose a file and save its file path in R (at least for windows)
-outDir<-paste0(dir_ind) # Define the folder where the zip file should be unzipped to 
-unzip(zipF,exdir=outDir)  # unzip your file 
-
-
-# file <- list.files(outDir,pattern = # "maizngw",
-full.names = F) 
-
-# sapply(files,FUN=function(eachPath){
-#   file.rename(from=eachPath,to=sub(pattern= paste("maizngw.*"),replacement= "todos.*",eachPath))
-# })
-
-
-
-download.file("http://www.conabio.gob.mx/informacion/gis/maps/geo/lengmun90gw.zip",destfile = paste0(dir_ind,"/lengmun90gw.zip"),method = "wget")
-
-zipF<-paste0(dir_ind,"pobind10.zip") # lets you choose a file and save its file path in R (at least for windows)
-outDir<-paste0(dir_ind) # Define the folder where the zip file should be unzipped to 
-unzip(zipF,exdir=outDir)  # unzip your file 
-
-
-# file <- list.files(outDir,pattern = # "maizngw",
-full.names = F) 
-
-# sapply(files,FUN=function(eachPath){
-#   file.rename(from=eachPath,to=sub(pattern= paste("maizngw.*"),replacement= "todos.*",eachPath))
-# })
-
-# # # 
-# Categorical indicators of indigenous population magnitude by municipio
-# # # 
-
-
-download.file("http://www.conabio.gob.mx/informacion/gis/maps/geo/presindigw.zip",destfile = paste0(dir_ind,"/presindigw.zip"),method = "wget")
-
-zipF<-paste0(dir_ind,"presindigw.zip") # lets you choose a file and save its file path in R (at least for windows)
-outDir<-paste0(dir_ind) # Define the folder where the zip file should be unzipped to 
-unzip(zipF,exdir=outDir)  # unzip your file 
-
-
-# file <- list.files(outDir,pattern = # "maizngw",
-full.names = F) 
-
-# sapply(files,FUN=function(eachPath){
-#   file.rename(from=eachPath,to=sub(pattern= paste("maizngw.*"),replacement= "todos.*",eachPath))
-# })
-
-
+#read in shapefiles
+ shapefiles <- dir(dir_ind, "*.shp",recursive=TRUE) # read in shapefiles into r environment
+        for (shp in shapefiles) assign(shp, readOGR(dsn=paste0(dir_ind,"/",i,"/",shp),layer=i))
+          }
+## 
 
 ## Do pca on ethnographic variables
 ??pca
