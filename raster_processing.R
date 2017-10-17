@@ -12,6 +12,9 @@ dir_R<-paste0(root,"/02_R")
 dir_out<-paste0(root,"/03_output")
 dir_figs<-paste0(root,"/04_figs")
 
+dir_maize<-paste0(dir_dat,"/maices")
+dir_ind<-paste0(dir_dat,"/ind")
+
 # 
 dir_clim<-paste0(dir_dat,"/clim")
 dir_pres<-paste0(dir_clim,"/present")
@@ -44,7 +47,7 @@ list
 # ymax        : 33.225 
 # nrow=2304,ncol=3770
 
-# template raster
+# template raster 
 r<-raster(nrow=2304,ncol=3770)
 extent(r)<-c(-117.625,-86.20833,14.025,33.225)
 r
@@ -53,25 +56,28 @@ r
 # Maize Observation Data Downloading and Cleaning # 
 ###################################################
 
-# download.file("http://www.conabio.gob.mx/informacion/gis/maps/geo/maizngw.zip",destfile = paste0(dir_dat,"/maices/maices.zip"),method = "wget")
+download.file("http://www.conabio.gob.mx/informacion/gis/maps/geo/maizngw.zip",destfile = paste0(dir_maize,"/maizngw.zip"),method = "wget")
 
-# zipF<-paste0(dir_dat,"/maices/maices.zip") # lets you choose a file and save its file path in R (at least for windows)
-# outDir<-paste0(dir_dat,"/maices") # Define the folder where the zip file should be unzipped to 
-# unzip(zipF,exdir=outDir)  # unzip your file 
+zipF<-paste0(dir_maices,"maizngw.zip") # lets you choose a file and save its file path in R (at least for windows)
+outDir<-paste0(dir_maices) # Define the folder where the zip file should be unzipped to 
+unzip(zipF,exdir=outDir)  # unzip your file 
 
 
-# file <- list.files(outDir,pattern = "maizngw",full.names = F) 
+file <- list.files(outDir,pattern = "maizngw",full.names = F) 
 
-# sapply(files,FUN=function(eachPath){
-#   file.rename(from=eachPath,to=sub(pattern= paste("maizngw.*"),replacement= "todos.*",eachPath))
-# })
+#  rename original .shp file name
+sapply(files,FUN=function(eachPath){
+   file.rename(from=eachPath,to=sub(pattern= paste("maizngw.*"),replacement= "todos-maices.*",eachPath))
+})
 
 todos<-readOGR(paste0(dir_dat,"/maices/todos.shp"),layer="todos",use_iconv=TRUE) 
+
 # set encolding to latin 1 for some columns to read special characters
 todos@data$Raza_prima<-iconv(todos@data$Raza_prima, from="UTF-8", to="LATIN1")
 todos@data$Nom_ent<-iconv(todos@data$Nom_ent, from="UTF-8", to="LATIN1")
 todos@data$Nom_mun<-iconv(todos@data$Nom_mun, from="UTF-8", to="LATIN1")
 
+# inspect data
 colnames(todos@data) 
 str(todos@data)
 head(todos@data$Nom_ent)
@@ -109,8 +115,8 @@ maices = subset(todos.6, length(todos.6$Raza_prima) > 20)
 raza.counts<-maices@data %>% group_by(Raza_prima) %>% summarise(n()) 
 raza.counts
 
-dir.create(paste0(dir_dat,"/maices"))
-writeOGR(maices,dsn=paste0(dir_dat,"/maices"),layer="maices",driver="ESRI Shapefile",overwrite=TRUE)
+dir.create(paste0(dir_maices))
+writeOGR(maices,dsn=paste0(dir_maices),layer="maices",driver="ESRI Shapefile",overwrite=TRUE)
 
 
 
@@ -119,7 +125,7 @@ writeOGR(maices,dsn=paste0(dir_dat,"/maices"),layer="maices",driver="ESRI Shapef
 install.packages("letsR")
 library(letsR)
 xy<-cbind(maices@data$Longitud,maices@data$Latitud)
-PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima, resol = 0.01)
+PA<-letsR::lets.presabip.points(xy,maices@data$Raza_prima, resol = 0.01)
 plot(PA)
 plot(PA$Richness_Raster)
 pam<-PA$Presence_and_Absence_Matrix
@@ -130,13 +136,45 @@ write.csv(pam,file=paste0(dir_out,"/pam.csv"))
 save.image(file=paste0(dir_out,"/clean_maices_obs.RData"))
 
 #####################################
-# Indigenous vars processing and rasterization
+# Indigenous vars processing and rasterization using CONABIO data
+# http://www.conabio.gob.mx/informacion/gis/maps/geo
 
-# download.file("http://www.conabio.gob.mx/informacion/gis/maps/geo/poinmun10gw.zip",destfile = paste0(dir_dat,"/maices/pobind10.zip"),method = "wget")
+setwd(dir_ind)
 
-# zipF<-paste0(dir_dat,"/maices/pobind10.zip") # lets you choose a file and save its file path in R (at least for windows)
-# outDir<-paste0(dir_dat,"/maices") # Define the folder where the zip file should be unzipped to 
-# unzip(zipF,exdir=outDir)  # unzip your file 
+# define a vector of variable names wanted to download
+# copy link address of .shp you want to download to view var name from CONABIO geoportal
+
+vars<-c("poinmun10gw", # Indigenous population data by municipio geometry
+        "lengmun90gw", # 1st, 2nd, 3rd, and 4th major indigenous language by municipio geometry (1990)
+        "presindigw"   # Categorical indicators of indigenous population magnitude by municipio
+       )
+replacements<- c("poinmun10gw","lengmun90gw","presindigw")
+
+for (i in vars) {
+     
+        download.file(paste0("http://www.conabio.gob.mx/informacion/gis/maps/geo/",i,".zip"),destfile = paste0(dir_ind,"/",i,".zip"),method = "wget")
+
+
+        zipF<-paste0(dir_ind,"/",i,".zip") # lets you choose a file and save its file path in R (at least for windows)
+        outDir<-paste0(dir_ind,"/",i) # Define the folder where the zip file should be unzipped to 
+        unzip(zipF,exdir=outDir)  # unzip your file 
+
+
+        # file <- list.files(outDir,pattern = i,
+        full.names = F) 
+
+        # sapply(files,FUN=function(eachPath){
+        #   file.rename(from=eachPath,to=sub(pattern= paste("maizngw.*"),replacement= "todos.*",eachPath))
+        # })
+
+
+####
+download.file("http://www.conabio.gob.mx/informacion/gis/maps/geo/poinmun10gw.zip",destfile = paste0(dir_ind,"/poinmun10gw.zip"),method = "wget")
+
+
+zipF<-paste0(dir_ind,"/poinmun10gw.zip") # lets you choose a file and save its file path in R (at least for windows)
+outDir<-paste0(dir_ind) # Define the folder where the zip file should be unzipped to 
+unzip(zipF,exdir=outDir)  # unzip your file 
 
 
 # file <- list.files(outDir,pattern = # "maizngw",
@@ -147,13 +185,50 @@ full.names = F)
 # })
 
 
+
+download.file("http://www.conabio.gob.mx/informacion/gis/maps/geo/lengmun90gw.zip",destfile = paste0(dir_ind,"/lengmun90gw.zip"),method = "wget")
+
+zipF<-paste0(dir_ind,"pobind10.zip") # lets you choose a file and save its file path in R (at least for windows)
+outDir<-paste0(dir_ind) # Define the folder where the zip file should be unzipped to 
+unzip(zipF,exdir=outDir)  # unzip your file 
+
+
+# file <- list.files(outDir,pattern = # "maizngw",
+full.names = F) 
+
+# sapply(files,FUN=function(eachPath){
+#   file.rename(from=eachPath,to=sub(pattern= paste("maizngw.*"),replacement= "todos.*",eachPath))
+# })
+
+# # # 
+# Categorical indicators of indigenous population magnitude by municipio
+# # # 
+
+
+download.file("http://www.conabio.gob.mx/informacion/gis/maps/geo/presindigw.zip",destfile = paste0(dir_ind,"/presindigw.zip"),method = "wget")
+
+zipF<-paste0(dir_ind,"presindigw.zip") # lets you choose a file and save its file path in R (at least for windows)
+outDir<-paste0(dir_ind) # Define the folder where the zip file should be unzipped to 
+unzip(zipF,exdir=outDir)  # unzip your file 
+
+
+# file <- list.files(outDir,pattern = # "maizngw",
+full.names = F) 
+
+# sapply(files,FUN=function(eachPath){
+#   file.rename(from=eachPath,to=sub(pattern= paste("maizngw.*"),replacement= "todos.*",eachPath))
+# })
+
+
+
+## Do pca on ethnographic variables
 ??pca
 # read in some data for mexico to get outline to crop
 library(rgeos)
 library(tibble)
 library(OpenStreetMap)
 library(tmap)
-pob_ind_2010<-readOGR(dsn=paste0(dir_dat,"/indigeneity/CONABIO/Municipio/m_pob_ind_2010_poinmun10gw.shp"),layer="m_pob_ind_2010_poinmun10gw")
+pob_ind_2010<-readOGR(dsn=paste0(dir_dat,"/indigeneity/CONABIO/Municipio/poinmun10gw.shp"),layer="poinmun10gw")
 pob_ind_2010@data$pcnt1<-(pob_ind_2010@data$P3I10 / pob_ind_2010@data$P3T10)*100
 pob_ind_2010@data$pcnt2<-(pob_ind_2010@data$P3I10 / pob_ind_2010@data$P3T10)*100
 pob_ind_2010@data$pcnt3<-(pob_ind_2010@data$MON10 / pob_ind_2010@data$P3T10)*100
