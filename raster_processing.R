@@ -4,13 +4,16 @@ library(XML)
 require(rgdal)
 # define directories
 
-root<-"E:/thesis/02_R"
+root<-"E:/thesis"
 setwd(root)
 
 dir_dat<-paste0(root,"/01_data")
 dir_R<-paste0(root,"/02_R")
 dir_out<-paste0(root,"/03_output")
 dir_figs<-paste0(root,"/04_figs")
+dir_lit-paste0(root,"/05_lit")
+dir_comp<-paste0(root,"/06_comp")
+dir_pres<-paste0(root,"/07_pres")
 
 dir_maize<-paste0(dir_dat,"/maices")
 dir_ind<-paste0(dir_dat,"/ind")
