@@ -27,11 +27,11 @@ dir_stacks<-paste0(dir_clim,"/stacks")
 dirlist<-as.list(ls())
 
 for (i in dirlist[[i]])
-  {
+{
   !if.exists(i){
-      dir.create(i,recursive=TRUE)
-              }
+    dir.create(i,recursive=TRUE)
   }
+}
 
 load(paste0(dir_clim,"/raster_processing.RData"))
 
@@ -67,7 +67,7 @@ file <- list.files(outDir,pattern = "maizngw",full.names = F)
 
 #  rename original .shp file name
 sapply(files,FUN=function(eachPath){
-   file.rename(from=eachPath,to=sub(pattern= paste("maizngw.*"),replacement= "todos-maices.*",eachPath))
+  file.rename(from=eachPath,to=sub(pattern= paste("maizngw.*"),replacement= "todos-maices.*",eachPath))
 })
 
 todos<-readOGR(paste0(dir_dat,"/maices/todos.shp"),layer="todos",use_iconv=TRUE) 
@@ -147,33 +147,41 @@ setwd(dir_ind)
 vars<-c("poinmun10gw", # Indigenous population data by municipio geometry
         "lengmun90gw", # 1st, 2nd, 3rd, and 4th major indigenous language by municipio geometry (1990)
         "presindigw"   # Categorical indicators of indigenous population magnitude by municipio
-       )
-replacements<- c("pobind10","lengmuni90","ind-pres")
+)
+
+
 
 for (i in vars) {
-     
-        download.file(paste0("http://www.conabio.gob.mx/informacion/gis/maps/geo/",i,".zip"),destfile = paste0(dir_ind,"/",i,".zip"),method = "wget")
-
-
-        zipF<-paste0(dir_ind,"/",i,".zip") # lets you choose a file and save its file path in R (at least for windows)
-        outDir<-paste0(dir_ind,"/",i) # Define the folder where the zip file should be unzipped to 
-        unzip(zipF,exdir=outDir)  # unzip your file 
-         
-        
-
-        # for (m in replacements) {
-          #  files <- list.files(outDir,pattern = i, full.names = F) 
-          #   sapply(files,FUN=function(eachPath){
-          #   file.rename(from=eachPath,to=sub(pattern= paste0(i,".*"),replacement= paste0(m,".*"),eachPath))
-          #     })
-          #   }
+  download.file(paste0("http://www.conabio.gob.mx/informacion/gis/maps/geo/",i,".zip"),destfile = paste0(dir_ind,"/",i,".zip"),method = "wget")
+  zipF<-paste0(dir_ind,"/",i,".zip") # lets you choose a file and save its file path in R (at least for windows)
+  outDir<-paste0(dir_ind,"/",i) # Define the folder where the zip file should be unzipped to 
+  unzip(zipF,exdir=outDir)  # unzip your file 
+  
 }
 
-#read in shapefiles
- shapefiles <- dir(dir_ind, "*.shp",recursive=TRUE) # read in shapefiles into r environment
-        for (shp in shapefiles) assign(shp, readOGR(dsn=paste0(dir_ind,"/",i,"/",shp),layer=i))
-          }
+# for (m in replacements) {
+#  files <- list.files(outDir,pattern = i, full.names = F) 
+#   sapply(files,FUN=function(eachPath){
+#   file.rename(from=eachPath,to=sub(pattern= paste0(i,".*"),replacement= paste0(m,".*"),eachPath))
+#     })
+#   }
+
+}
+
+ind_shps<-array()
+
+# read in shapefiles inside dir (recursive), naming Spatial* object with shpfile name
+shps <- dir(dir_ind, "*.shp",recursive = T)
+shps
+shps <- gsub('\\.shp$',"",shps)
+for (shp in shps) assign(shp, readOGR(paste0(dir_ind,"/",shp,"/",shp,".shp"),layer=shp))
+
+
 ## 
+
+#read in shapefiles
+shapefiles <- dir(dir_ind, "*.shp",recursive=TRUE) # read in shapefiles into r environment
+
 
 ## Do pca on ethnographic variables
 ??pca
@@ -234,7 +242,7 @@ tm_shape(osm_tiles) + tm_raster() + tm_shape(ind_wgs) +
 
 # rasterize pca results for pc 1 and 2
 ethnlang1 <- rasterize(pob_ind_2010, r, field = pob_ind_2010@data$PC1, fun = "mean", 
-                 update = FALSE, updateValue = "NA")
+                       update = FALSE, updateValue = "NA")
 ethnlang2 <- rasterize(pob_ind_2010, r, field = pob_ind_2010@data$PC2, fun = "mean", 
                        update = FALSE, updateValue = "NA")
 
@@ -319,7 +327,7 @@ save(presfullstack,file=paste0(dir_stacks,"/present_fullstack.RData"))
 writeRaster(presfullstack, paste0(dir_stacks,"/present_fullstack.grd"), bylayer=FALSE, format='GTiff',overwrite=FALSE)
 
 dir.create(paste0(dir_p.mosaics),"/crop")
-       
+
 bbox<-extent(r)
 # i<-pres_rasts[1]
 for(i in pres_rasts){ ##140:173
@@ -391,7 +399,7 @@ str(zfs)
 
 dir.create(paste0(dir_f.mosaics),"/crop/ensemble/50",recursive=TRUE)
 dir.create(paste0(dir_f.mosaics),"/crop/ensemble/70")
-       
+
 # unzip zip directories for each climatology into respective directories, crop, and write layers to 'crop' directory
 for(i in zfs){ ##140:173
   exdir= gsub(".zip","",i)
@@ -422,9 +430,9 @@ for (i in cmip5files){
   stack2<-stackApply(stack,indices=nlayers(stack),fun="mean")
   writeRaster(stack2,filename=paste0(dir_f.mosaics,"/crop/ensemble/",period,"/",name,"_ensemble.tif"),overwrite=TRUE)
   topofiles<-list.files(paste0(dir_dat,"/topo"),pattern="crop",recursive=TRUE)
-    for (t in topofiles){
-      file.copy(paste0(dir_dat,"/topo/",t),paste0(dir_f.mosaics,"/crop/ensemble/",period,"/",basename(t)))
-                        }
+  for (t in topofiles){
+    file.copy(paste0(dir_dat,"/topo/",t),paste0(dir_f.mosaics,"/crop/ensemble/",period,"/",basename(t)))
+  }
 }
 
 
@@ -498,26 +506,26 @@ f50modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_5_ensemble.tif"
                    paste0(dir_dat,"/topo/crop/crop_topo_roughness_mosaic.tif"),
                    paste0(dir_dat,"/topo/crop/crop_topo_altitude_mosaic.tif"),
                    paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif")
-                        
-                        
-                        )
+                   
+                   
+)
 
 f70modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_5_ensemble.tif"),
-        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_6_ensemble.tif"),
-        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_18_ensemble.tif"),
-        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_3_ensemble.tif"),
-        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_17_ensemble.tif"),
-        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_4_ensemble.tif"),
-        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_15_ensemble.tif"),
-        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_8_ensemble.tif"),
-        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_9_ensemble.tif"),
-        paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_2_ensemble.tif"),
-        paste0(dir_dat,"/topo/crop/crop_topo_roughness_mosaic.tif"),
-        paste0(dir_dat,"/topo/crop/crop_topo_altitude_mosaic.tif"),
-        paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif")
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_6_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_18_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_3_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_17_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_4_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_15_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_8_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_9_ensemble.tif"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_2_ensemble.tif"),
+                   paste0(dir_dat,"/topo/crop/crop_topo_roughness_mosaic.tif"),
+                   paste0(dir_dat,"/topo/crop/crop_topo_altitude_mosaic.tif"),
+                   paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif")
 )
-        
-  
+
+
 save(presmodstack,file=paste0(dir_stacks,"/present_modstack.RData"))
 writeRaster(presmodstack, paste0(dir_stacks,"/present_modstack.grd"), bylayer=FALSE, format='raster',overwrite=TRUE)
 
