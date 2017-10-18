@@ -79,6 +79,7 @@ plot(PA$Richness_Raster)
 pam<-PA$Presence_and_Absence_Matrix
 View(pam)
 pam[pam == 0 ] <- NA
-
+pa<-data.frame(pam)
+write.csv(pa,paste0(dir_out,"/pa_dataframe.csv"))
 write.csv(pam,file=paste0(dir_out,"/pam.csv"))
 save.image(file=paste0(dir_out,"/clean_maices_obs.RData"))
