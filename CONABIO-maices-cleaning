@@ -1,0 +1,84 @@
+
+###################################################
+# Maize Observation Data Downloading and Cleaning # 
+###################################################
+dir.create(paste0(dir_maices))
+download.file("http://www.conabio.gob.mx/informacion/gis/maps/geo/maizngw.zip",destfile = paste0(dir_maices,"/maizngw.zip"),method = "wget")
+
+zipF<-paste0(dir_maices,"/maizngw.zip") # lets you choose a file and save its file path in R (at least for windows)
+outDir<-paste0(dir_maices) # Define the folder where the zip file should be unzipped to 
+unzip(zipF,exdir=outDir)  # unzip your file 
+
+
+files <- list.files(outDir,pattern = "maizngw",full.names = F) 
+
+#  rename original .shp file name
+sapply(files,FUN=function(eachPath){
+  file.rename(from=eachPath,to=sub(pattern= "maizngw",replacement= "todos-maices",eachPath))
+})
+
+todos<-readOGR(paste0(dir_maices,"/todos-maices.shp"),layer="todos-maices",use_iconv=TRUE) 
+
+# set encolding to latin 1 for some columns to read special characters
+todos@data$Raza_prima<-iconv(todos@data$Raza_prima, from="UTF-8", to="LATIN1")
+todos@data$Nom_ent<-iconv(todos@data$Nom_ent, from="UTF-8", to="LATIN1")
+todos@data$Nom_mun<-iconv(todos@data$Nom_mun, from="UTF-8", to="LATIN1")
+
+# inspect data
+colnames(todos@data) 
+str(todos@data)
+head(todos@data$Nom_ent)
+head(todos@data$Nom_mun)
+head(todos@data$NomComun)
+length(todos@data[is.na(todos@data$NomComun),])
+length(todos@data[is.na(todos@data$Raza_prima),])
+unique(todos@data$Raza_prima)
+
+
+# remove data without prime race information
+todos.1<-todos[!is.na(todos@data$Raza_prima),]
+# remove data without prime race information
+todos.2<-todos.1[todos.1@data$Raza_prima != "ND",]
+
+# remove data where longitude is equal to zero
+todos.3<-todos.2[todos.2@data$Longitud != 0 , ]
+
+# remove data with missing altitude data
+todos.4<-todos.3[todos.3@data$Altitud!=9999,] 
+
+# remove inconsistent data samples
+todos.5<-todos.4[todos.4@data$Validacion!="Inconsistente",]
+
+# create new column for species 
+todos.5$maiz<-"Zea mays mays"
+
+# make maices object
+todos.6<-todos.5
+
+
+# subset races with greater than 20 samples
+maices = subset(todos.6, length(todos.6$Raza_prima) > 20)
+
+
+
+writeOGR(maices,dsn=paste0(dir_maices),layer="todos-maices-cleaned",driver="ESRI Shapefile",overwrite=TRUE)
+
+# maize statistics
+library(dplyr)
+raza.counts<-maices@data %>% group_by(Raza_prima) %>% summarise(n()) 
+raza.counts
+
+
+# make presence/absence matrix
+install.packages("letsR")
+library(letsR)
+xy<-cbind(maices@data$Longitud,maices@data$Latitud)
+PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima, resol = 0.00883333)
+plot(PA)
+plot(PA$Richness_Raster)
+pam<-PA$Presence_and_Absence_Matrix
+View(pam)
+pam[pam == 0 ] <- NA
+
+write.csv(pam,file=paste0(dir_out,"/pam.csv"))
+save.image(file=paste0(dir_out,"/clean_maices_obs.RData"))
