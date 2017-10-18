@@ -1,7 +1,58 @@
-getwd()
-setwd("E:\\thesis\\02_R")
-source(paste0(getwd(),"\\02_R\\functions.R"))
 
+# establish directories
+root<-"E:\\thesis"
+setwd(root)
+
+# new directories for biomod
+dir_bm<-paste0(dir_R,"/01_biomod")
+# dir_bmz<-paste0(dir_R,"/02_biomodez")
+
+
+dir_dat<-paste0(root,"/01_data")
+dir_R<-paste0(root,"/02_R")
+dir_out<-paste0(root,"/03_output")
+dir_figs<-paste0(root,"/04_figs")
+dir_lit<-paste0(root,"/05_lit")
+dir_comp<-paste0(root,"/06_comp")
+dir_presentations<-paste0(root,"/07_pres")
+
+dir_maices<-paste0(dir_dat,"/maices")
+dir_ind<-paste0(dir_dat,"/ind")
+
+# 
+dir_clim<-paste0(dir_dat,"/clim")
+dir_pres<-paste0(dir_clim,"/present")
+dir_fut<-paste0(dir_clim,"/future")
+
+dir_p.mosaics<-paste0(dir_pres,"/2.0/")
+dir_f.mosaics<-paste0(dir_fut,"/1.4/")
+
+dir_stacks<-paste0(dir_clim,"/stacks/")
+
+## recursively create directories if not already there
+folders<-as.list(ls())
+for (i in folders[[i]])  { 
+  folder<-get(i)
+  dir.create(folder,recursive=TRUE,pattern="dir") 
+} 
+
+
+## read in functions
+# Function to Install and Load R Packages
+# borrowed from Pratik Patil, https://stackoverflow.com/questions/9341635/check-for-installed-packages-before-running-install-packages
+Install_And_Load <- function(Required_Packages)
+{
+    Remaining_Packages <- Required_Packages[!(Required_Packages %in% installed.packages()[,"Package"])];
+
+    if(length(Remaining_Packages)) 
+    {
+        install.packages(Remaining_Packages);
+    }
+    for(package_name in Required_Packages)
+    {
+        library(package_name,character.only=TRUE,quietly=TRUE);
+    }
+}
 # install and load required packages
 requiredPackages<-(c("foreign",
                  "maptools",
@@ -14,33 +65,6 @@ requiredPackages<-(c("foreign",
                  "snowfall"))
 
 Install_And_Load(requiredPackages)
-
-# establish directories
-root<-"E:\\thesis\\02_R"
-setwd(root)
-dir_dat<-paste0(root,"/01_data")
-dir_R<-paste0(root,"/02_R")
-dir_out<-paste0(root,"/03_output")
-dir_figs<-paste0(root,"/04_figs")
-dir_bm<-paste0(root,"/06_biomod")
-dir_bmz<-paste0(root,"/07_biomodez")
-
-
-# climate data root
-dir_dat<-paste0(root,"/01_data")
-dir_R<-paste0(root,"/02_R")
-dir_out<-paste0(root,"/03_output")
-dir_figs<-paste0(root,"/04_figs")
-
-# 
-dir_clim<-paste0(dir_dat,"/clim")
-dir_pres<-paste0(dir_clim,"/present")
-dir_fut<-paste0(dir_clim,"/future")
-
-dir_p.mosaics<-paste0(dir_pres,"/2.0/")
-dir_f.mosaics<-paste0(dir_fut,"/1.4/")
-
-dir_stacks<-paste0(dir_clim,"/stacks")
 
 #####################################
 #       BIOMOD formatting Data      #
