@@ -77,29 +77,19 @@ load(paste0(dir_stacks,"/f50_modstack.RData"))
 load(paste0(dir_stacks,"/f70_modstack.RData"))
 # load(paste0(dir_bm,"/.RData"))
 
-### formating presence absense data, uncomment when on cluster ###
-# maices<-readOGR(dsn=paste0(dir_out,"/maices.shp"),layer="maices")
-# xy<-cbind(maices@data$Longitud,maices@data$Latitud)
-# PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima, resol = 0.01)
-# PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima, resol = 0.008333333)
-# pam<-PA$Presence_and_Absence_Matrix
-# View(pam)
-# [pam == 0 ] <- NA
-# pa<-data.frame(pam)
-
 # comment out when running cluster
-pam<-read.csv(file=paste0(dir_out,"/pam.csv"))
+pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
+pa<-data.frame(pa)
 
-
-pa<-data.frame(pam)
-write.csv(pa,paste0(dir_out,"/pa_dataframe.csv"))
-
-pa
 maxentjar<-paste0(dir_bm,"/maxent.jar")
 
-sp.n= c("Tuxpeño"
+# get vector of species names
+names<-paste0(colnames(pa))
+# sp.n= dput(names[-(1:2)]) #vector of species name(s), excluding lat and long cols
+    
+sp.n=c("Tuxpeño"
         #,"Arrocillo.Amarillo"
-        )     #vector of species name(s)
+        )     
 
 library(biomod2)
 library(mgcv)
