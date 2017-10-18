@@ -11,11 +11,11 @@ dir_dat<-paste0(root,"/01_data")
 dir_R<-paste0(root,"/02_R")
 dir_out<-paste0(root,"/03_output")
 dir_figs<-paste0(root,"/04_figs")
-dir_lit-paste0(root,"/05_lit")
+dir_lit<-paste0(root,"/05_lit")
 dir_comp<-paste0(root,"/06_comp")
-dir_pres<-paste0(root,"/07_pres")
+dir_presentations<-paste0(root,"/07_pres")
 
-dir_maize<-paste0(dir_dat,"/maices")
+dir_maices<-paste0(dir_dat,"/maices")
 dir_ind<-paste0(dir_dat,"/ind")
 
 # 
@@ -26,19 +26,21 @@ dir_fut<-paste0(dir_clim,"/future")
 dir_p.mosaics<-paste0(dir_pres,"/2.0/")
 dir_f.mosaics<-paste0(dir_fut,"/1.4/")
 
-dir_stacks<-paste0(dir_clim,"/stacks")
-dirlist<-as.list(ls())
+dir_stacks<-paste0(dir_clim,"/stacks/")
 
-for (i in dirlist[[i]])
-{
-  !if.exists(i){
-    dir.create(i,recursive=TRUE)
-  }
-}
+folders<-as.list(ls())
+i<-folders[[3]]
+# tk work on function to create these directories
+for (i in 1:length(folders))  { 
+  f<-folders[[i]]
+  folder<-get(f)
+  dir.create(folder,recursive=TRUE) 
+} 
+dir.create(dir_stacks)
 
-load(paste0(dir_clim,"/raster_processing.RData"))
+# load(paste0(dir_clim,"/raster_processing.RData"))
 
-list
+ls()
 # 
 
 
@@ -319,6 +321,7 @@ lapply(grep(".zip",files, value=TRUE),unzip)
 
 #####
 # Present clim data Raster Stack Cropping
+dir.create(paste0(dir_p.mosaics,"/crop"))
 
 # read in present data, stack and write to RData file
 pres_rasts<-list.files(paste0(dir_p.mosaics),pattern="\\.tif$", full.names=TRUE)
@@ -337,10 +340,11 @@ for(i in pres_rasts){ ##140:173
   name<-gsub(".tif","",basename(i))
   ras<-raster(i)
   croplay<-crop(ras,bbox) ##filtered
-  writeRaster(croplay,filename=paste0(dir_p.mosaics,"/crop/crop_",name,".tif"))
-}
+  writeRaster(croplay,filename=paste0(dir_p.mosaics,"/crop/crop_",name,".tif"),overwrite=TRUE)
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
+  }
 
-save.image(paste0(dir_pres,"/raster_processing.RData"))
+save.image(paste0(dir_R,"/raster_processing.RData"))
 
 #  make present crop raster stack
 pres_croprasts<-list.files(paste0(dir_p.mosaics,"/crop"),pattern="\\.tif$", full.names=TRUE)
@@ -355,6 +359,7 @@ writeRaster(prescropstack, paste0(dir_stacks,"/present_cropstack.grd"), bylayer=
 # from https://github.com/ClimateActionUCI/datasets/blob/master/get_CMIP5.R
 
 library(dplyr)
+library(raster)
 AR5<-'AR5 temperature increase projections'
 ar5.df<-data.frame('Scenario' = c('RCP2.6','RCP4.5','RCP6.0','RCP8.5'),
                    '2046 - 2065' = c('1.0 (0.4 to 1.6)','1.4 (0.9 to 2.0)','1.3 (0.8 to 1.8)','2.0 (1.4 to 2.6)'),
@@ -371,6 +376,8 @@ mods<-expand.grid(var=c("tn","tx","pr","bi"),   #tn, tx, pr, or bi, no bi?
 # set path of where to download future data zips to
 outpath<-dir_f.mosaics
 
+# set download.file timeout 
+options(timeout=10000)
 # make function to download files
 dwnldfxn<-function(aurl,filename){
   try(raster:::.download(aurl,filename))
@@ -382,11 +389,9 @@ urls<-mods$url
 # get zipfiles
 zipfile<-paste0(outpath,substr(urls,nchar(urls)-12+1,nchar(urls)))
 
-setwd(dir_f.mosaics)
-getwd()
+
 # download each zipfile for each url
 mapply(dwnldfxn,aurl=urls,filename=zipfile)
-
 
 ###########################################################
 ## unzip files and crop
