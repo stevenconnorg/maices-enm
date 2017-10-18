@@ -70,7 +70,9 @@ raza.counts
 
 
 # make presence/absence matrix
-install.packages("letsR")
+# maices<-readOGR(dsn=paste0(dir_maices,"/todos-maices-cleaned.shp"),layer="todos-maices-cleaned")
+
+# install.packages("letsR")
 library(letsR)
 xy<-cbind(maices@data$Longitud,maices@data$Latitud)
 PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima, resol = 0.00883333)
