@@ -28,14 +28,16 @@ dir_f.mosaics<-paste0(dir_fut,"/1.4/")
 dir_stacks<-paste0(dir_clim,"/stacks/")
 
 folders<-as.list(ls())
-
+i<-folders[[3]]
 # tk work on function to create these directories
 for (i in 1:length(folders))  { 
   f<-folders[[i]]
   folder<-get(f)
   dir.create(folder,recursive=TRUE) 
 } 
+dir.create(dir_stacks)
 
+# load(paste0(dir_clim,"/raster_processing.RData"))
 
 ls()
 # 
@@ -404,46 +406,51 @@ str(zfs)
 
 dir.create(paste0(dir_f.mosaics,"/crop/ensemble/50"),recursive=TRUE)
 dir.create(paste0(dir_f.mosaics,"/crop/ensemble/70"),recursive=TRUE)
-
+i<-zfs[2]
 # unzip zip directories for each climatology into respective directories, crop, and write layers to 'crop' directory
-for(i in zfs[17:32]){ 
+for(i in zfs){ ##140:173
   exdir= gsub(".zip","",i)
   unzip(i,exdir=exdir)  # unzip file
-  # unlink(i)  # remove zip file
-  patt<-substr(i,nchar(i)-12+1,nchar(i)-4)
-  gtifs<-list.files(exdir,pattern=patt,full.names=T)# [c(2, 6:13, 3:5)]##reorder
-  tempstack<-stack(grds) ##rasterbrick
-  ctempstack<-crop(tempstack,bbox) ##filtered
-  writeRaster(ctempstack,bylayer=TRUE,filename=paste0(dir_f.mosaics,"/crop/",patt,".tif"),overwrite=TRUE)
-  # unlink(gtifs)
-  print(paste0("Finished with file ",patt," (",which(zfs==i)," out of ",length(zfs),")"))
-  do.call(file.remove,list(list.files(pattern="temp*"))) 
-  for (i in gtifs[i]){
-    writeRaster(i,format="raster",filename=paste0(dir_f.mosaics,"/",patt,".grd")
+  apatt<-substr(i,nchar(i)-12+1,nchar(i)-4)
+  gtifs<-list.files(exdir,pattern=".tif",full.names=T)# [c(2, 6:13, 3:5)]##reorder
+t<-gtifs[1]
+    for (t in gtifs){
+    gtifras<-raster(t)
+    cropped<-crop(gtifras,bbox)
+    writeRaster(cropped,format="raster",filename=paste0(dir_f.mosaics,"crop/",gsub(".tif","",basename(t)),".grd"),overwrite=T)
+    # unlink(t)
+    do.call(file.remove,list(list.files(pattern="temp*"))) 
   }
-  grds<-list.files(paste0(dir_f.mosaics,pattern="grd",full.names=T)
-                   unlink(gtifs)
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
 }
 
 
+
+
+# tempstack<-stack(grds) ##rasterbrick
+ctempstack<-crop(tempstack,bbox) ##filtered
+writeRaster(ctempstack,format="raster",by.layer=FALSE,filename=paste0(exdir,"/present_cropstack.grd"))
+do.call(file.remove,list(list.files(pattern="temp*"))) 
+print(paste0("Finished with file ",patt," (",which(zfs==i)," out of ",length(zfs),")"))
+
 # ensemble GCMs by monthly means
 # get list of all tifs in crop directory, mean ensemble by variable, and write layer to stack
-cmip5files<-list.files(paste0(dir_f.mosaics,"/crop"),pattern="*.tif",recursive = FALSE)
+cmip5files<-list.files(paste0(dir_f.mosaics,"/crop"),pattern="*.grd",recursive = FALSE)
 
 for (i in cmip5files){
-  clims<-gsub(".tif","",basename(i))
-  filter<-paste0(substr(clims,3,nchar(clims)),".tif")
+  clims<-gsub(".grd","",basename(i))
+  filter<-paste0(substr(clims,3,nchar(clims)),".grd")
   period<-substr(clims,7,8)
   name <-gsub(".tif","",basename(filter))
   varfiles1<-list.files(paste0(dir_f.mosaics,"/crop"),pattern= filter,recursive = TRUE)
   varfiles2<-paste0(dir_f.mosaics,"/crop/",varfiles1)
   stack<-stack(varfiles2)
   stack2<-stackApply(stack,indices=nlayers(stack),fun="mean")
-  writeRaster(stack2,filename=paste0(dir_f.mosaics,"/crop/ensemble/",period,"/",name,"_ensemble.tif"),overwrite=TRUE)
-  topofiles<-list.files(paste0(dir_dat,"/topo"),pattern="crop",recursive=TRUE)
-  for (t in topofiles){
-    file.copy(paste0(dir_dat,"/topo/",t),paste0(dir_f.mosaics,"/crop/ensemble/",period,"/",basename(t)))
-  }
+  writeRaster(stack2,filename=paste0(dir_f.mosaics,"/crop/ensemble/",period,"/",name,"_ensemble.grd"),overwrite=TRUE)
+  # topofiles<-list.files(paste0(dir_dat,"/topo"),pattern="crop",recursive=TRUE)
+  # for (t in topofiles){
+  #   file.copy(paste0(dir_dat,"/topo/",t),paste0(dir_f.mosaics,"/crop/ensemble/",period,"/",basename(t)))
+  # }
 }
 
 
