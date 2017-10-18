@@ -1,3 +1,32 @@
+# establish directories
+root<-"E:\\thesis"
+setwd(root)
+
+# new directories for biomod
+dir_bm<-paste0(dir_R,"/01_biomod")
+# dir_bmz<-paste0(dir_R,"/02_biomodez")
+
+
+dir_dat<-paste0(root,"/01_data")
+dir_R<-paste0(root,"/02_R")
+dir_out<-paste0(root,"/03_output")
+dir_figs<-paste0(root,"/04_figs")
+dir_lit<-paste0(root,"/05_lit")
+dir_comp<-paste0(root,"/06_comp")
+dir_presentations<-paste0(root,"/07_pres")
+
+dir_maices<-paste0(dir_dat,"/maices")
+dir_ind<-paste0(dir_dat,"/ind")
+
+# 
+dir_clim<-paste0(dir_dat,"/clim")
+dir_pres<-paste0(dir_clim,"/present")
+dir_fut<-paste0(dir_clim,"/future")
+
+dir_p.mosaics<-paste0(dir_pres,"/2.0/")
+dir_f.mosaics<-paste0(dir_fut,"/1.4/")
+
+dir_stacks<-paste0(dir_clim,"/stacks/")
 
 ###################################################
 # Maize Observation Data Downloading and Cleaning # 
@@ -19,10 +48,9 @@ sapply(files,FUN=function(eachPath){
 
 todos<-readOGR(paste0(dir_maices,"/todos-maices.shp"),layer="todos-maices",use_iconv=TRUE) 
 
-# set encolding to latin 1 for some columns to read special characters
-todos@data$Raza_prima<-iconv(todos@data$Raza_prima, from="UTF-8", to="LATIN1")
-todos@data$Nom_ent<-iconv(todos@data$Nom_ent, from="UTF-8", to="LATIN1")
-todos@data$Nom_mun<-iconv(todos@data$Nom_mun, from="UTF-8", to="LATIN1")
+for(i in todos@data){
+  iconv(i, from="UTF-8", to="LATIN1")
+}
 
 # inspect data
 colnames(todos@data) 
@@ -82,6 +110,12 @@ pam<-PA$Presence_and_Absence_Matrix
 View(pam)
 pam[pam == 0 ] <- NA
 pa<-data.frame(pam)
-write.csv(pa,paste0(dir_out,"/pa_dataframe.csv"))
-write.csv(pam,file=paste0(dir_out,"/pam.csv"))
-save.image(file=paste0(dir_out,"/clean_maices_obs.RData"))
+pa_df_fn<-paste0(dir_out,"/pa_dataframe.csv")
+pam_fn<-paste0(dir_out,"/pam.csv")
+con_pa<-file(pa_df_fn,encoding="LATIN1")
+con_pam<-file(pam_fn,encoding="LATIN1")
+
+write.csv(pa,file=con_pa)
+write.csv(pam,file=con_pam)
+
+save.image(file=paste0(dir_maices,"/clean_maices_obs.RData"))
