@@ -103,9 +103,7 @@ raza.counts
 # install.packages("letsR")
 library(letsR)
 xy<-cbind(maices@data$Longitud,maices@data$Latitud)
-PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima, resol = 0.00883333)
-plot(PA)
-plot(PA$Richness_Raster)
+PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima, ,xmn=-117.625, xmx=-86.20833 , ymn=14.025 , ymx=33.225 , resol = 0.00883333)
 pam<-PA$Presence_and_Absence_Matrix
 View(pam)
 pam[pam == 0 ] <- NA
