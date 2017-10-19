@@ -445,7 +445,7 @@ for (i in cmip5files){
   varfiles1<-list.files(paste0(dir_f.mosaics,"/crop"),pattern= filter,recursive = F)
   varfiles2<-paste0(dir_f.mosaics,"/crop/",varfiles1)
   stack<-stack(varfiles2)
-  stack2<-stackApply(stack,indices=c(1,1,1,1),fun="mean")
+  stack2<-stackApply(stack,indices=rep(1:1,length(names(stack))),fun="mean")
   names(stack2)<-paste0(name,"_ensemble")
   writeRaster(stack2,filename=paste0(dir_f.mosaics,"crop/ensemble/",period,"/",name,"_ensemble.grd"),overwrite=TRUE)
   # topofiles<-list.files(paste0(dir_dat,"/topo"),pattern="crop",recursive=TRUE)
@@ -463,8 +463,7 @@ f50cropstack<-stack(f50_croprasts)
 f70cropstack<-stack(f70_croprasts)
 
 # write to file
-hdr(f50cropstack, format = "ENVI")
-hdr(f70cropstack, format = "ENVI")
+
 save(f50cropstack,file=paste0(dir_stacks,"/f50cropstack.RData"))
 save(f70cropstack,file=paste0(dir_stacks,"/f70cropstack.RData"))
 hdr(f50cropstack, format = "ENVI") # to preserve layer names in other programs with .grd/.gri file types -- uncompressed, so they take a while
