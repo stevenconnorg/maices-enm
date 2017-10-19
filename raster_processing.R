@@ -406,9 +406,9 @@ str(zfs)
 
 dir.create(paste0(dir_f.mosaics,"/crop/ensemble/50"),recursive=TRUE)
 dir.create(paste0(dir_f.mosaics,"/crop/ensemble/70"),recursive=TRUE)
-i<-zfs[2]
+
 # unzip zip directories for each climatology into respective directories, crop, and write layers to 'crop' directory
-for(i in zfs){ ##140:173
+for(i in zfs[11:32]){ ##140:173
   exdir= gsub(".zip","",i)
   unzip(i,exdir=exdir)  # unzip file
   apatt<-substr(i,nchar(i)-12+1,nchar(i)-4)
@@ -436,17 +436,18 @@ print(paste0("Finished with file ",patt," (",which(zfs==i)," out of ",length(zfs
 # ensemble GCMs by monthly means
 # get list of all tifs in crop directory, mean ensemble by variable, and write layer to stack
 cmip5files<-list.files(paste0(dir_f.mosaics,"/crop"),pattern="*.grd",recursive = FALSE)
-
+i<-cmip5files[1]
 for (i in cmip5files){
   clims<-gsub(".grd","",basename(i))
   filter<-paste0(substr(clims,3,nchar(clims)),".grd")
   period<-substr(clims,7,8)
-  name <-gsub(".tif","",basename(filter))
-  varfiles1<-list.files(paste0(dir_f.mosaics,"/crop"),pattern= filter,recursive = TRUE)
+  name <-gsub(".grd","",basename(filter))
+  varfiles1<-list.files(paste0(dir_f.mosaics,"/crop"),pattern= filter,recursive = F)
   varfiles2<-paste0(dir_f.mosaics,"/crop/",varfiles1)
   stack<-stack(varfiles2)
-  stack2<-stackApply(stack,indices=nlayers(stack),fun="mean")
-  writeRaster(stack2,filename=paste0(dir_f.mosaics,"/crop/ensemble/",period,"/",name,"_ensemble.grd"),overwrite=TRUE)
+  stack2<-stackApply(stack,indices=c(1,1,1,1),fun="mean")
+  names(stack2)<-paste0(name,"_ensemble")
+  writeRaster(stack2,filename=paste0(dir_f.mosaics,"crop/ensemble/",period,"/",name,"_ensemble.grd"),overwrite=TRUE)
   # topofiles<-list.files(paste0(dir_dat,"/topo"),pattern="crop",recursive=TRUE)
   # for (t in topofiles){
   #   file.copy(paste0(dir_dat,"/topo/",t),paste0(dir_f.mosaics,"/crop/ensemble/",period,"/",basename(t)))
@@ -455,13 +456,15 @@ for (i in cmip5files){
 
 
 #  make present crop raster stack
-f50_croprasts<-list.files(paste0(dir_f.mosaics,"crop/ensemble/50/"),pattern="\\.tif$", full.names=TRUE)
-f70_croprasts<-list.files(paste0(dir_f.mosaics,"/crop/ensemble/70/"),pattern="\\.tif$", full.names=TRUE)
+f50_croprasts<-list.files(paste0(dir_f.mosaics,"crop/ensemble/50/"),pattern="\\.grd$", full.names=TRUE)
+f70_croprasts<-list.files(paste0(dir_f.mosaics,"/crop/ensemble/70/"),pattern="\\.grd$", full.names=TRUE)
 
 f50cropstack<-stack(f50_croprasts)
 f70cropstack<-stack(f70_croprasts)
 
 # write to file
+hdr(f50cropstack, format = "ENVI")
+hdr(f70cropstack, format = "ENVI")
 save(f50cropstack,file=paste0(dir_stacks,"/f50cropstack.RData"))
 save(f70cropstack,file=paste0(dir_stacks,"/f70cropstack.RData"))
 hdr(f50cropstack, format = "ENVI") # to preserve layer names in other programs with .grd/.gri file types -- uncompressed, so they take a while
