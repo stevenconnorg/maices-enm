@@ -279,7 +279,7 @@ files<-regmatches(urls,r)
 mapply(function(x,y) download.file(x,y),urls,files)
 lapply(grep(".zip",files, value=TRUE),unzip)
 
-# http://www.worldclim.org/tiles.php
+http://www.worldclim.org/tiles.php
 altrasters<-Sys.glob(file.path("C:/Users/Steven Gonzalez/Desktop/Geo-7300/Data/climatological/present/raw/tiffs/alt*.tif"))
 alt.list<-list()
 for(i in 1:length(altrasters)) {alt.list[i]<-raster(altrasters[i])}
@@ -476,18 +476,18 @@ save.image(paste0(dir_clim,"/raster_processing.RData"))
 #####################################
 # remove multicollinearity of full stack
 # need to run with more RAM
-grds<-list.files(dir_stacks,pattern=".grd")
+grds<-list.files(path=dir_stacks,pattern=".grd",full.names = T)
 
-f50cropstack<-stack(paste0(dir_stacks,"/",grds[1]))
-f70cropstack<-stack(paste0(dir_stacks,"/",grds[2]))
-pres_cropstack<-stack(paste0(dir_stacks,"/",grds[3]))
+f50cropstack<-stack(grds[1])
+f70cropstack<-stack(grds[2])
+pres_cropstack<-stack(grds[3])
 
 library(SpaDES)
-layerNames(present_cropstack)
+layerNames(pres_cropstack)
 
 install.packages(("virtualspecies"))
 library(virtualspecies)
-coll_vars_pres<-virtualspecies::removeCollinearity(pres_cropstack,multicollinearity.cutoff = 0.7, select.variables = FALSE, sample.points = TRUE, nb.points = (pres_cropstack@ncols/2),plot = TRUE)
+coll_vars_pres<-virtualspecies::removeCollinearity(pres_cropstack,multicollinearity.cutoff = 0.6, select.variables = FALSE, sample.points = TRUE, nb.points = (pres_cropstack@ncols/2),plot = TRUE)
 save.image(paste0(dir_clim,"/raster_processing.RData"))
 print(coll_vars_pres)
 coll_vars_pres
