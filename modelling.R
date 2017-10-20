@@ -4,7 +4,7 @@ root<-"E:\\thesis"
 setwd(root)
 
 # new directories for biomod
-dir_bm<-paste0(dir_R,"/01_biomod")
+dir_bm<-paste0(dir_R,"/00_biomod")
 # dir_bmz<-paste0(dir_R,"/02_biomodez")
 
 
@@ -72,32 +72,34 @@ Install_And_Load(requiredPackages)
 
 # set wd inside biomod subdirectory
 setwd(dir_bm)
-load(paste0(dir_stacks,"/present_modstack.RData"))
-load(paste0(dir_stacks,"/f50_modstack.RData"))
-load(paste0(dir_stacks,"/f70_modstack.RData"))
+presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"))
+f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"))
+f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
 # load(paste0(dir_bm,"/.RData"))
 
 # comment out when running cluster
 pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
 pa<-data.frame(pa)
 
-maxentjar<-paste0(dir_bm,"/maxent.jar")
 
 # get vector of species names
 names<-paste0(colnames(pa))
-# sp.n= dput(names[-(1:2)]) #vector of species name(s), excluding lat and long cols
+sp.n= dput(names[(5:length(names))]) #vector of species name(s), excluding lat and long cols
     
-sp.n=c("Tuxpeño"
+#sp.n=c("TuxpeÃ±o"
         #,"Arrocillo.Amarillo"
-        )     
+#        )     
 
-library(biomod2)
-library(mgcv)
-options(max.print=1000000)
-library(gbm)
-library(dismo)
+setwd(dir_bm)
 
-# BioModApply <-function(sp.n) {
+BioModApply <-function(sp.n) {
+  maxentjar<-paste0(dir_R,"/maxent/maxent.jar")
+  setwd(dir_bm)
+  library(biomod2)
+  library(mgcv)
+  options(max.print=1000000)
+  library(gbm)
+  library(dismo)
   myRespName = sp.n
   myResp <- as.numeric(pa[,myRespName])
   myExpl<-presmodstack
@@ -117,6 +119,7 @@ library(dismo)
                                        PA.sre.quant = 0.95,
                                        na.rm=TRUE
                                        )
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
   
   # define model options
   
@@ -217,14 +220,16 @@ myBiomodModelOut <- BIOMOD_Modeling(
   myBiomodData, 
   models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka'), 
   models.options = BIOMOD_ModelOptions, 
-  NbRunEval=5,
-  DataSplit=60,
-  VarImport=5,
+  NbRunEval=10,
+  DataSplit=70,
+  VarImport=10,
   models.eval.meth = c( 'KAPPA', 'TSS', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS'),
   SaveObj = TRUE,
   rescal.all.models = TRUE,
   do.full.models = TRUE,
   modeling.id = paste(myRespName,"_current"))
+
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
 
 print(paste0("Done Running Models for ",sp.n))
 
@@ -235,7 +240,7 @@ print(paste0("Done Running Models for ",sp.n))
         
           print(paste0("Capturing Model Evaluations for ",sp.n))
           evalmods<-get_evaluations(myBiomodModelOut,as.data.frame=TRUE)
-          write.csv(evalmods,file=paste0(dir_out,"/eval/",myRespName,"_formal_models_evaluation.csv"))
+          write.csv(evalmods,file=paste0(dir_out,"/eval/formal_models_evaluation.csv"))
           
           ### get variable importance
           modevalimport<-get_variables_importance(myBiomodModelOut,as.data.frame=TRUE)
@@ -273,17 +278,19 @@ print(paste0("Done Running Models for ",sp.n))
                                          col = c("blue", "red"),
                                          legend = TRUE,
                                          data_species = get_formal_data(myBiomodModelOut,'resp.var'))
-          
+    
   # model projections
   myBiomodProj <- BIOMOD_Projection(
     modeling.output = myBiomodModelOut,
     new.env = myExpl,
     proj.name = 'current',
     selected.models = 'all',
-    binary.meth = c( 'KAPPA', 'TSS','ROC'),
+    binary.meth = cc( 'KAPPA', 'TSS', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS'),
     compress = TRUE,
     clamping.mask = TRUE,
     output.format = '.grd')
+  
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
   
   
   coutputFolderName <- "proj_current"
@@ -299,9 +306,9 @@ print(paste0("Done Running Models for ",sp.n))
   myBiomodEM <- BIOMOD_EnsembleModeling(
     modeling.output = myBiomodModelOut,
     chosen.models = 'all',
-    em.by='algo',
-    eval.metric = c('KAPPA', 'TSS','ROC'),
-    eval.metric.quality.threshold = c(0.5,0.5,0.5),
+    em.by="PA_dataset+repet",
+    eval.metric = c( 'KAPPA', 'TSS', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS'),
+    eval.metric.quality.threshold = c(rep(0.5,10)),
     prob.mean = T,
     prob.cv = T,
     prob.ci = T,
@@ -310,6 +317,8 @@ print(paste0("Done Running Models for ",sp.n))
     committee.averaging = T,
     prob.mean.weight = T,
     prob.mean.weight.decay = 'proportional' )
+  
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
   
   get_evaluations(myBiomodEM)
   
@@ -320,43 +329,62 @@ print(paste0("Done Running Models for ",sp.n))
 
   myBiomodEF
   EF_stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_current_",sp.n,"_ensemble.grd"))
-  
   # plot a layer in the ensemble stack
-  plot(EF_stack[[6]])
-  
-  # future projections for rcp 85
-  # myBiomodProjFuture70 <- BIOMOD_Projection(
-  #   modeling.output = myBiomodModelOut,
-  #   new.env = myExplFuture70,
-  #   proj.name = 'rcp85_70',
-  #   selected.models = 'all',
-  #   binary.meth = 'TSS',
-  #   compress = 'xz',
-  #   clamping.mask = T,
-  #   output.format = '.grd')
-  
-  # future projections for rcp 85
-  # myBiomodProjFuture50 <- BIOMOD_Projection(
-  #   modeling.output = myBiomodModelOut,
-  #   new.env = myExplFuture50,
-  #   proj.name = 'rcp85_50',
-  #   selected.models = 'all',
-  #   binary.meth = 'TSS',
-  #   compress = 'xz',
-  #   clamping.mask = T,
-  #   output.format = '.grd')
+  # plot(EF_stack[[6]])
   
   
-  # f70BiomodEF <- BIOMOD_EnsembleForecasting(
-  #   EM.output = myBiomodEM,
-  #   projection.output = myBiomodProjFuture70)
-  # cat("\n\nExporting Ensemble as ASCII ...\n\n")
+  # future projections for rcp 85 period 70
+   myBiomodProjFuture70 <- BIOMOD_Projection(
+     modeling.output = myBiomodModelOut,
+     new.env = myExplFuture70,
+     proj.name = 'rcp85_70',
+     selected.models = 'all',
+     binary.meth = c( 'KAPPA', 'TSS', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS'),
+     compress = 'xz',
+     clamping.mask = T,
+     output.format = '.grd')
   
-  # f50BiomodEF <- BIOMOD_EnsembleForecasting(
-  #   EM.output = myBiomodEM,
-  #   projection.output = myBiomodProjFuture50)
-  # cat("\n\nExporting Ensemble as ASCII ...\n\n")
+  # future projections for rcp 85 period 50
+   myBiomodProjFuture50 <- BIOMOD_Projection(
+     modeling.output = myBiomodModelOut,
+     new.env = myExplFuture50,
+     proj.name = 'rcp85_50',
+    selected.models = c( 'KAPPA', 'TSS', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS'),
+     binary.meth = 'TSS',
+     compress = 'xz',
+     clamping.mask = T,
+     output.format = '.grd')
   
+  
+   f70BiomodEF <- BIOMOD_EnsembleForecasting(
+     EM.output = myBiomodEM,
+     projection.output = myBiomodProjFuture70)
+   cat("\n\nExporting Ensemble as grd ...\n\n")
+  
+   f50BiomodEF <- BIOMOD_EnsembleForecasting(
+     EM.output = myBiomodEM,
+     projection.output = myBiomodProjFuture50)
+   cat("\n\nExporting Ensemble as grd ...\n\n")
+  
+}
+
+# snowfall initialization
+sfInit(parallel=TRUE, cpus=3)
+## Export packages to snowfall
+sfLibrary('biomod2', character.only=TRUE)
+
+sfExport('BioModApply')
+sfExportAll()
+
+# you may also use sfExportAll() to export all your workspace variables
+## Do the run
+setwd(dir_bm)
+mySFModelsOut <- sfLapply( sp.n, BioModApply)
+
+## stop snowfall
+sfStop( nostop=FALSE )
+
+
   #EXPORTING ENSEMBLE MODEL PROJECTION AS ASCII FOR USE IN OUTSIDE MAPPING SOFTWARE
   gridName = paste(coutputFolderName,myRespName,"ensemble.grd",sep="_")  
   gridDir = paste(myRespName,coutputFolderName,gridName,sep="/")
@@ -479,9 +507,9 @@ print("Done Generating Report")
 ################################
 
 # snowfall initialization
-# sfInit(parallel=TRUE, cpus=4)
+sfInit(parallel=TRUE, cpus=4)
 ## Export packages to snowfall
-# sfLibrary('biomod2', character.only=TRUE)
+sfLibrary('biomod2', character.only=TRUE)
 ## Export variables
 # sfExport('myRespXY')
 # sfExport('myExpl')
