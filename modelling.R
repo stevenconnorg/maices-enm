@@ -86,7 +86,7 @@ pa<-data.frame(pa)
 
 # get vector of species names
 names<-paste0(colnames(pa))
-sp.n= dput(names[(5:15)]) #vector of species name(s), excluding lat and long cols
+sp.n= dput(names[15]) #vector of species name(s), excluding lat and long cols
     
 #sp.n=c("TuxpeÃ±o"
         #,"Arrocillo.Amarillo"
@@ -94,10 +94,11 @@ sp.n= dput(names[(5:15)]) #vector of species name(s), excluding lat and long col
 
 setwd(dir_bm)
 
-BioModApply <-function(sp.n) {
+# BioModApply <-function(sp.n) {
   maxentjar<-paste0(dir_R,"/maxent/maxent.jar")
   setwd(dir_bm)
   library(biomod2)
+  
   library(mgcv)
   options(max.print=1000000)
   library(gbm)
@@ -110,15 +111,28 @@ BioModApply <-function(sp.n) {
   myRespXY = pa[,c('Longitude.x.','Latitude.y.')]
 
   
+  # Barbet-Massin et al 2012:
+  #   Overall, we recommend the use of a large number (e.g. 10 000) of pseudo-absences with equal
+  # weighting for presences and absences when using regression techniques (e.g. generalised linear
+  #                                                                        model and generalised additive model); averaging several runs (e.g. 10) with fewer pseudo-absences
+  # (e.g. 100) with equal weighting for presences and absences with multiple adaptive regression splines
+  # and discriminant analyses; and using the same number of pseudo-absences as available presences
+  # (averaging several runs if few pseudo-absences) for classification techniques such as boosted regression
+  # trees, classification trees and random forest. In addition, we recommend the random selection
+  # of pseudo-absences when using regression techniques and the random selection of geographically
+  # and environmentally stratified pseudo-absences when using classification and machine-learning
+  # techniques
+  
+  
   # format input data for biomod
   myBiomodData <- BIOMOD_FormatingData(resp.var = myResp,
                                        resp.xy = myRespXY,
                                        expl.var = myExpl,
                                        resp.name = myRespName,
-                                       PA.nb.rep = 0,
-                                       PA.nb.absences = round((sum(!is.na(myResp))/5),0),
+                                       PA.nb.rep = 1,
+                                       PA.nb.absences = 1000,
                                        PA.strategy = "sre",
-                                       PA.sre.quant = 0.95,
+                                       PA.sre.quant = 0.45,
                                        na.rm=TRUE
                                        )
   do.call(file.remove,list(list.files(pattern="temp*"))) 
@@ -129,7 +143,7 @@ BioModApply <-function(sp.n) {
   # print default biomod options 
   default_ModelOptions <-BIOMOD_ModelingOptions()
   print(default_ModelOptions)
-  
+
   # edit default options accordingly
   BIOMOD_ModelOptions <- BIOMOD_ModelingOptions(GLM = list( type = 'quadratic',      
                                                               interaction.level = 0,
@@ -229,7 +243,7 @@ myBiomodModelOut <- BIOMOD_Modeling(
   SaveObj = TRUE,
   rescal.all.models = TRUE,
   do.full.models = TRUE,
-  modeling.id = paste(myRespName,"_current"))
+  modeling.id = paste0(myRespName,"_current"))
 
   do.call(file.remove,list(list.files(pattern="temp*"))) 
 
@@ -249,37 +263,46 @@ print(paste0("Done Running Models for ",sp.n))
           write.csv(modevalimport,file=paste0(dir_out,"/var-imp/",myRespName,"_var_imp.csv"))
          
           ### get model summaries
-          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_ANN",sep="")))))
+          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_ANN",sep="")))))
                          ,file=paste0(dir_out,"/eval/",myRespName,"_ANN_summary.txt"))
           
-          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_CTA",sep="")))))
+          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_CTA",sep="")))))
                           ,file=paste0(dir_out,"/eval/",myRespName,"_CTA_summary.txt"))
           
-          fda1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_FDA",sep=""))))
+          fda1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_FDA",sep=""))))
           capture.output(fda1$confusion,file==paste0(dir_out,"/eval/",myRespName,"_FDA-conf_summary.txt"))
         
-          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_GAM",sep="")))))
+          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GAM",sep="")))))
                          ,file=paste0(dir_out,"/eval/",myRespName,"_GAM_summary.txt"))
-          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_GBM",sep="")))))
+          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GBM",sep="")))))
                         ,file=paste0(dir_out,"/eval/",myRespName,"_GBM_summary.txt"))
           
-          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_GLM",sep="")))))
+          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GLM",sep="")))))
                          ,file=paste0(dir_out,"/eval/",myRespName,"_GLM_summary.txt"))
         
-          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MARS",sep="")))))
+          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_MARS",sep="")))))
                         ,file=paste0(dir_out,"/eval/",myRespName,"_MARS_summary.txt"))
           
           # summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Phillips",sep="")))))
-          maxent_t1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Tsuruoka",sep=""))))
+          # maxent_t1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Tsuruoka",sep=""))))
         
-          myRespPlot2D <- response.plot2(models  = "MAXENT",
-                                         Data = get_formal_data(myBiomodModelOut,'expl.var'), 
-                                         show.variables= get_formal_data(myBiomodModelOut,'expl.var.names'),
-                                         do.bivariate = FALSE,
-                                         fixed.var.metric = 'median',
-                                         col = c("blue", "red"),
-                                         legend = TRUE,
-                                         data_species = get_formal_data(myBiomodModelOut,'resp.var'))
+        
+          png(filename=paste0(dir_figs,"/",myRespName,"_model_scores.png"))
+          models_scores_graph(myBiomodModelOut,
+                                            metrics = c( 'KAPPA', 'TSS'),
+                                            by = 'models',
+                                            plot = TRUE)
+          dev.off()
+          
+          
+          # myRespPlot2D <- response.plot2(models  = "MAXENT",
+          #                                 Data = get_formal_data(myBiomodModelOut,'expl.var'), 
+          #                                 show.variables= get_formal_data(myBiomodModelOut,'expl.var.names'),
+          #                                 do.bivariate = FALSE,
+          #                                fixed.var.metric = 'median',
+          #                                col = c("blue", "red"),
+          #                                legend = TRUE,
+          #                                data_species = get_formal_data(myBiomodModelOut,'resp.var'))
     
   # model projections
   myBiomodProj <- BIOMOD_Projection(
@@ -287,7 +310,7 @@ print(paste0("Done Running Models for ",sp.n))
     new.env = myExpl,
     proj.name = 'current',
     selected.models = 'all',
-    binary.meth = cc( 'KAPPA', 'TSS'),
+    binary.meth = c( 'KAPPA', 'TSS'),
     compress = TRUE,
     clamping.mask = TRUE,
     output.format = '.grd')
@@ -341,7 +364,7 @@ print(paste0("Done Running Models for ",sp.n))
      new.env = myExplFuture70,
      proj.name = 'rcp85_70',
      selected.models = 'all',
-     binary.meth = c( 'KAPPA', 'TSS', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS'),
+     binary.meth = c( 'KAPPA', 'TSS'),
      compress = 'xz',
      clamping.mask = T,
      output.format = '.grd')
@@ -351,7 +374,7 @@ print(paste0("Done Running Models for ",sp.n))
      modeling.output = myBiomodModelOut,
      new.env = myExplFuture50,
      proj.name = 'rcp85_50',
-    selected.models = c( 'KAPPA', 'TSS', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS'),
+    selected.models = c( 'KAPPA', 'TSS'),
      binary.meth = 'TSS',
      compress = 'xz',
      clamping.mask = T,
