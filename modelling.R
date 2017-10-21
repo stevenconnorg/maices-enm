@@ -4,7 +4,9 @@ root<-"E:\\thesis"
 setwd(root)
 
 # new directories for biomod
+
 dir_bm<-paste0(dir_R,"/00_biomod")
+
 # dir_bmz<-paste0(dir_R,"/02_biomodez")
 
 
@@ -84,7 +86,7 @@ pa<-data.frame(pa)
 
 # get vector of species names
 names<-paste0(colnames(pa))
-sp.n= dput(names[(5:length(names))]) #vector of species name(s), excluding lat and long cols
+sp.n= dput(names[(5:15)]) #vector of species name(s), excluding lat and long cols
     
 #sp.n=c("TuxpeÃ±o"
         #,"Arrocillo.Amarillo"
@@ -220,10 +222,10 @@ myBiomodModelOut <- BIOMOD_Modeling(
   myBiomodData, 
   models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka'), 
   models.options = BIOMOD_ModelOptions, 
-  NbRunEval=10,
+  NbRunEval=2,
   DataSplit=70,
-  VarImport=10,
-  models.eval.meth = c( 'KAPPA', 'TSS', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS'),
+  VarImport=2,
+  models.eval.meth = c( 'KAPPA', 'TSS'),
   SaveObj = TRUE,
   rescal.all.models = TRUE,
   do.full.models = TRUE,
@@ -285,7 +287,7 @@ print(paste0("Done Running Models for ",sp.n))
     new.env = myExpl,
     proj.name = 'current',
     selected.models = 'all',
-    binary.meth = cc( 'KAPPA', 'TSS', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS'),
+    binary.meth = cc( 'KAPPA', 'TSS'),
     compress = TRUE,
     clamping.mask = TRUE,
     output.format = '.grd')
@@ -298,17 +300,17 @@ print(paste0("Done Running Models for ",sp.n))
   print("Done Projecting Models")
 
   
-  mod_proj <- get_predictions(myBiomodProj) 
-  plot(mod_proj)
-  plot(subset(mod_proj,2), main = "RF projections") # select layer in stack to plot
+  # mod_proj <- get_predictions(myBiomodProj) 
+  # plot(mod_proj)
+  # plot(subset(mod_proj,2), main = "RF projections") # select layer in stack to plot
   
   # ensemble modeling
   myBiomodEM <- BIOMOD_EnsembleModeling(
     modeling.output = myBiomodModelOut,
     chosen.models = 'all',
     em.by="PA_dataset+repet",
-    eval.metric = c( 'KAPPA', 'TSS', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS'),
-    eval.metric.quality.threshold = c(rep(0.5,10)),
+    eval.metric = c( 'KAPPA', 'TSS'),
+    eval.metric.quality.threshold = c(rep(0.5,2)),
     prob.mean = T,
     prob.cv = T,
     prob.ci = T,
@@ -355,7 +357,7 @@ print(paste0("Done Running Models for ",sp.n))
      clamping.mask = T,
      output.format = '.grd')
   
-  
+   
    f70BiomodEF <- BIOMOD_EnsembleForecasting(
      EM.output = myBiomodEM,
      projection.output = myBiomodProjFuture70)
@@ -366,6 +368,16 @@ print(paste0("Done Running Models for ",sp.n))
      projection.output = myBiomodProjFuture50)
    cat("\n\nExporting Ensemble as grd ...\n\n")
   
+   # myBiomodEF
+   # EF_70stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_rcp85_70",sp.n,"_ensemble.grd"))
+   # plot a layer in the ensemble stack
+   # plot(EF_stack[[6]])
+   
+   # myBiomodEF
+   # EF_50stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_rcp85_50",sp.n,"_ensemble.grd"))
+   # plot a layer in the ensemble stack
+   # plot(EF_stack[[6]])
+   
 }
 
 # snowfall initialization
