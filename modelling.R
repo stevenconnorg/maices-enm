@@ -5,7 +5,6 @@ setwd(root)
 
 # new directories for biomod
 
-dir_bm<-paste0(dir_R,"/00_biomod")
 
 # dir_bmz<-paste0(dir_R,"/02_biomodez")
 
@@ -20,6 +19,7 @@ dir_presentations<-paste0(root,"/07_pres")
 
 dir_maices<-paste0(dir_dat,"/maices")
 dir_ind<-paste0(dir_dat,"/ind")
+dir_bm<-paste0(dir_R,"/00_biomod")
 
 # 
 dir_clim<-paste0(dir_dat,"/clim")
@@ -74,10 +74,7 @@ Install_And_Load(requiredPackages)
 
 # set wd inside biomod subdirectory
 setwd(dir_bm)
-presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"))
-f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"))
-f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
-# load(paste0(dir_bm,"/.RData"))
+
 
 # comment out when running cluster
 pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
@@ -86,15 +83,33 @@ pa<-data.frame(pa)
 
 # get vector of species names
 names<-paste0(colnames(pa))
-sp.n= dput(names[15]) #vector of species name(s), excluding lat and long cols
-    
+sp.n= dput(names[15:17]) #vector of species name(s), excluding lat and long cols
+
 #sp.n=c("TuxpeÃ±o"
-        #,"Arrocillo.Amarillo"
+#,"Arrocillo.Amarillo"
 #        )     
+
+presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"))
+f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"))
+f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
+# load(paste0(dir_bm,"/.RData"))
+
+names(presmodstack)<-gsub("crop_wc2.0_","",layerNames(presmodstack))
+names(presmodstack)<-gsub("_30s","",layerNames(presmodstack))
+
+names(f50modstack)<-layerNames(presmodstack)
+names(f70modstack)<-layerNames(presmodstack)
+
+names(presmodstack)<-gsub("crop_wc2.0_","",layerNames(presmodstack))
+names(presmodstack)<-gsub("_30s","",layerNames(presmodstack))
 
 setwd(dir_bm)
 
-# BioModApply <-function(sp.n) {
+myExpl<-presmodstack
+myExplFuture50<-f50modstack
+myExplFuture70<-f70modstack
+
+BioModApply <-function(sp.n) {
   maxentjar<-paste0(dir_R,"/maxent/maxent.jar")
   setwd(dir_bm)
   library(biomod2)
@@ -105,9 +120,6 @@ setwd(dir_bm)
   library(dismo)
   myRespName = sp.n
   myResp <- as.numeric(pa[,myRespName])
-  myExpl<-presmodstack
-  myExplFuture50<-f50modstack
-  myExplFuture70<-f70modstack
   myRespXY = pa[,c('Longitude.x.','Latitude.y.')]
 
   
@@ -333,7 +345,7 @@ print(paste0("Done Running Models for ",sp.n))
     chosen.models = 'all',
     em.by="PA_dataset+repet",
     eval.metric = c( 'KAPPA', 'TSS'),
-    eval.metric.quality.threshold = c(rep(0.5,2)),
+    eval.metric.quality.threshold = c(rep(0.6,2)),
     prob.mean = T,
     prob.cv = T,
     prob.ci = T,
@@ -404,7 +416,7 @@ print(paste0("Done Running Models for ",sp.n))
 }
 
 # snowfall initialization
-sfInit(parallel=TRUE, cpus=3)
+sfInit(parallel=TRUE, cpus=4)
 ## Export packages to snowfall
 sfLibrary('biomod2', character.only=TRUE)
 
