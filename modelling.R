@@ -44,27 +44,28 @@ for (i in folders[[i]])  {
 # borrowed from Pratik Patil, https://stackoverflow.com/questions/9341635/check-for-installed-packages-before-running-install-packages
 Install_And_Load <- function(Required_Packages)
 {
-    Remaining_Packages <- Required_Packages[!(Required_Packages %in% installed.packages()[,"Package"])];
-
-    if(length(Remaining_Packages)) 
-    {
-        install.packages(Remaining_Packages);
-    }
-    for(package_name in Required_Packages)
-    {
-        library(package_name,character.only=TRUE,quietly=TRUE);
-    }
+  Remaining_Packages <- Required_Packages[!(Required_Packages %in% installed.packages()[,"Package"])];
+  
+  if(length(Remaining_Packages)) 
+  {
+    install.packages(Remaining_Packages);
+  }
+  for(package_name in Required_Packages)
+  {
+    library(package_name,character.only=TRUE,quietly=TRUE);
+  }
 }
 # install and load required packages
 requiredPackages<-(c("foreign",
-                 "maptools",
-                 "dplyr",
-                 "rgdal",
-                 "biomod2",
-                 "reader",
-                 "tidyr",
-                 "raster",
-                 "snowfall"))
+                     "maptools",
+                     "dplyr",
+                     "rgdal",
+                     "biomod2",
+                     "reader",
+                     "caret",
+                     "tidyr",
+                     "raster",
+                     "snowfall"))
 
 Install_And_Load(requiredPackages)
 
@@ -83,7 +84,7 @@ pa<-data.frame(pa)
 
 # get vector of species names
 names<-paste0(colnames(pa))
-sp.n= dput(names[4:6]) #vector of species name(s), excluding lat and long cols
+sp.n= dput(names[49]) #vector of species name(s), excluding lat and long cols
 
 #sp.n=c("TuxpeÃ±o"
 #,"Arrocillo.Amarillo"
@@ -105,6 +106,8 @@ setwd(dir_bm)
 
 
 BioModApply <-function(sp.n) {
+  rasterOptions()$tmpdir
+  rasterOptions(tmpdir=root)
   maxentjar<-paste0(dir_R,"/maxent/maxent.jar")
   setwd(dir_bm)
   library(biomod2)
@@ -140,12 +143,12 @@ BioModApply <-function(sp.n) {
                                        resp.xy = myRespXY,
                                        expl.var = myExpl,
                                        resp.name = myRespName,
-                                       PA.nb.rep = 2,
+                                       PA.nb.rep = 1,
                                        PA.nb.absences = 500,
                                        PA.strategy = "sre",
                                        PA.sre.quant = 0.45,
                                        na.rm=TRUE
-                                       )
+  )
   do.call(file.remove,list(list.files(pattern="temp*"))) 
   
   # define model options
@@ -154,167 +157,195 @@ BioModApply <-function(sp.n) {
   # print default biomod options 
   default_ModelOptions <-BIOMOD_ModelingOptions()
   print(default_ModelOptions)
-
+  
   # edit default options accordingly
   BIOMOD_ModelOptions <- BIOMOD_ModelingOptions(GLM = list( type = 'quadratic',      
-                                                              interaction.level = 0,
-                                                              myFormula = NULL,
-                                                              test = 'AIC',           # tk BIC? 
-                                                              family = binomial(link = 'logit'),
-                                                              mustart = 0.5,
-                                                              control = glm.control(epsilon = 1e-08, maxit = 50, trace = FALSE) ),
-                                                  
-                                                  
-                                                  GBM = list( distribution = 'bernoulli',
-                                                              n.trees = 2500,
-                                                              interaction.depth = 7,
-                                                              n.minobsinnode = 5,
-                                                              shrinkage = 0.001,
-                                                              bag.fraction = 0.5,
-                                                              train.fraction = 1,
-                                                              cv.folds = 3,
-                                                              keep.data = FALSE,
-                                                              verbose = FALSE,
-                                                              perf.method = 'cv'),
-                                                  
+                                                            interaction.level = 0,
+                                                            myFormula = NULL,
+                                                            test = 'AIC',           # tk BIC? 
+                                                            family = binomial(link = 'logit'),
+                                                            mustart = 0.5,
+                                                            control = glm.control(epsilon = 1e-08, maxit = 50, trace = FALSE) ),
+                                                
+                                                
+                                                GBM = list( distribution = 'bernoulli',
+                                                            n.trees = 2500,
+                                                            interaction.depth = 7,
+                                                            n.minobsinnode = 5,
+                                                            shrinkage = 0.001,
+                                                            bag.fraction = 0.5,
+                                                            train.fraction = 1,
+                                                            cv.folds = 3,
+                                                            keep.data = FALSE,
+                                                            verbose = FALSE,
+                                                            perf.method = 'cv'),
+                                                
                                                 GAM = list(algo = 'GAM_mgcv', type = 's_smoother', k = NULL, 
                                                            interaction.level = 0, 
                                                            myFormula = NULL, 
                                                            family = 'binomial', 
                                                            control = gam.control(epsilon = 1e-06, trace = FALSE, maxit = 100)),
-                                                  
-                                                  CTA = list( method = 'class',
-                                                              parms = 'default',
-                                                              cost = NULL,
-                                                              control = list(xval = 5, minbucket = 5, minsplit = 5, cp = 0.001, maxdepth = 25) ),
-                                                  
-                                                  
-                                                  ANN = list( NbCV = 5,
-                                                              size = NULL,
-                                                              decay = NULL,
-                                                              rang = 0.1,
-                                                              maxit = 200),
-                                                  
-                                                  SRE = list( quant = 0.025),
-                                                  
-                                                  FDA = list( method = 'mars',
-                                                              add_args = NULL),
-                                                  
-                                                  MARS = list( type = 'simple',
-                                                               interaction.level = 0,
-                                                               myFormula = NULL,
-                                                               nk = NULL,
-                                                               penalty = 2,
-                                                               thresh = 0.001,
-                                                               nprune = NULL,
-                                                               pmethod = 'backward'),
-                                                  
-                                                  RF = list( do.classif = TRUE,
-                                                             ntree = 500,
-                                                             mtry = 'default',
-                                                             nodesize = 5,
-                                                             maxnodes = NULL),
-                                                  
-                                                  MAXENT.Phillips = list( path_to_maxent.jar = maxentjar,
-                                                                          memory_allocated = 1020,
-                                                                          background_data_dir = 'default',
-                                                                          maximumbackground = 'default',
-                                                                          maximumiterations = 200,
-                                                                          visible = FALSE,
-                                                                          linear = TRUE,
-                                                                          quadratic = TRUE,
-                                                                          product = TRUE,
-                                                                          threshold = TRUE,
-                                                                          hinge = TRUE,
-                                                                          lq2lqptthreshold = 80,
-                                                                          l2lqthreshold = 10,
-                                                                          hingethreshold = 15,
-                                                                          beta_threshold = -1,
-                                                                          beta_categorical = -1,
-                                                                          beta_lqp = -1,
-                                                                          beta_hinge = -1,
-                                                                          betamultiplier = 1,
-                                                                          defaultprevalence = 0.5),
-                                                  
-                                                  MAXENT.Tsuruoka = list( l1_regularizer = 0,
-                                                                          l2_regularizer = 0,
-                                                                          use_sgd = FALSE,
-                                                                          set_heldout = 0,
-                                                                          verbose = FALSE))
+                                                
+                                                CTA = list( method = 'class',
+                                                            parms = 'default',
+                                                            cost = NULL,
+                                                            control = list(xval = 5, minbucket = 5, minsplit = 5, cp = 0.001, maxdepth = 25) ),
+                                                
+                                                
+                                                ANN = list( NbCV = 5,
+                                                            size = NULL,
+                                                            decay = NULL,
+                                                            rang = 0.1,
+                                                            maxit = 200),
+                                                
+                                                SRE = list( quant = 0.025),
+                                                
+                                                FDA = list( method = 'mars',
+                                                            add_args = NULL),
+                                                
+                                                MARS = list( type = 'simple',
+                                                             interaction.level = 0,
+                                                             myFormula = NULL,
+                                                             nk = NULL,
+                                                             penalty = 2,
+                                                             thresh = 0.001,
+                                                             nprune = NULL,
+                                                             pmethod = 'backward'),
+                                                
+                                                RF = list( do.classif = TRUE,
+                                                           ntree = 500,
+                                                           mtry = 'default',
+                                                           nodesize = 5,
+                                                           maxnodes = NULL),
+                                                
+                                                MAXENT.Phillips = list( path_to_maxent.jar = maxentjar,
+                                                                        memory_allocated = 1020,
+                                                                        background_data_dir = 'default',
+                                                                        maximumbackground = 'default',
+                                                                        maximumiterations = 200,
+                                                                        visible = FALSE,
+                                                                        linear = TRUE,
+                                                                        quadratic = TRUE,
+                                                                        product = TRUE,
+                                                                        threshold = TRUE,
+                                                                        hinge = TRUE,
+                                                                        lq2lqptthreshold = 80,
+                                                                        l2lqthreshold = 10,
+                                                                        hingethreshold = 15,
+                                                                        beta_threshold = -1,
+                                                                        beta_categorical = -1,
+                                                                        beta_lqp = -1,
+                                                                        beta_hinge = -1,
+                                                                        betamultiplier = 1,
+                                                                        defaultprevalence = 0.5),
+                                                
+                                                MAXENT.Tsuruoka = list( l1_regularizer = 0,
+                                                                        l2_regularizer = 0,
+                                                                        use_sgd = FALSE,
+                                                                        set_heldout = 0,
+                                                                        verbose = FALSE))
+  
+  #library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
+  install.packages("ENMeval")
+  library(caret)
+  library(ENMeval)
+  
+  # download new version of code from Frank Breiner (writer of BIOMOD_tuning), attached here: http://r-forge.wu.ac.at/forum/forum.php?max_rows=75&style=nested&offset=152&forum_id=995&group_id=302
+  
+  source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
+  Biomod.tuning<-BIOMOD_tuning(myBiomodData,
+                               models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka'),
+                               metric='ROC',
+                               method.GAM = "GAM_mgcv")
+  
+  BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
+                                 env.ME = myExpl,
+                                 n.bg.ME = ncell(myExpl),
+                                 models.options=	BIOMOD_ModelOptions
 
-# modeling
-myBiomodModelOut <- BIOMOD_Modeling(
-  myBiomodData, 
-  models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka'), 
-  models.options = BIOMOD_ModelOptions, 
-  NbRunEval=2,
-  DataSplit=70,
-  VarImport=2,
-  models.eval.meth = c( 'KAPPA', 'TSS'),
-  SaveObj = TRUE,
-  rescal.all.models = TRUE,
-  do.full.models = TRUE,
-  modeling.id = paste0(myRespName,"_current"))
+                                 )
+  BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
+  models = c("GLM","GAM","GBM","ANN","CTA","RF","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka'),
+  metric='ROC',
+  models.options=	BIOMOD_ModelOptions)
 
+  #stopCluster(cl)
+  
+  capture.output(BIOMOD_TunedOptions$models.options,file=paste0(dir_out,"/model-opts/",myRespName,"_tuned_opts.txt"))
+  
+  # modeling
+  myBiomodModelOut <- BIOMOD_Modeling(
+    myBiomodData, 
+    models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka'), 
+    models.options = Biomod.tuning$models.options, 
+    NbRunEval=2,
+    DataSplit=70,
+    VarImport=2,
+    models.eval.meth = c( 'KAPPA', 'TSS'),
+    SaveObj = TRUE,
+    rescal.all.models = TRUE,
+    do.full.models = TRUE,
+    modeling.id = paste0(myRespName,"_current"))
+  
   do.call(file.remove,list(list.files(pattern="temp*"))) 
-
-print(paste0("Done Running Models for ",sp.n))
-
-          # write data used for modelling
-          capture.output(get_formal_data(myBiomodModelOut),
-                         file=paste0(dir_out,"/model-data/",myRespName,"_formal_data.txt"))
-          ### eval current model
-        
-          print(paste0("Capturing Model Evaluations for ",sp.n))
-          evalmods<-get_evaluations(myBiomodModelOut,as.data.frame=TRUE)
-          write.csv(evalmods,file=paste0(dir_out,"/eval/formal_models_evaluation.csv"))
-          
-          ### get variable importance
-          modevalimport<-get_variables_importance(myBiomodModelOut,as.data.frame=TRUE)
-          write.csv(modevalimport,file=paste0(dir_out,"/var-imp/",myRespName,"_var_imp.csv"))
-         
-          ### get model summaries
-          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_ANN",sep="")))))
-                         ,file=paste0(dir_out,"/eval/",myRespName,"_ANN_summary.txt"))
-          
-          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_CTA",sep="")))))
-                          ,file=paste0(dir_out,"/eval/",myRespName,"_CTA_summary.txt"))
-          
-          fda1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_FDA",sep=""))))
-          # capture.output(fda1$confusion,file==paste0(dir_out,"/eval/",myRespName,"_FDA-conf_summary.txt"))
-        
-          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GAM",sep="")))))
-                         ,file=paste0(dir_out,"/eval/",myRespName,"_GAM_summary.txt"))
-          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GBM",sep="")))))
-                        ,file=paste0(dir_out,"/eval/",myRespName,"_GBM_summary.txt"))
-          
-          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GLM",sep="")))))
-                         ,file=paste0(dir_out,"/eval/",myRespName,"_GLM_summary.txt"))
-        
-          capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_MARS",sep="")))))
-                        ,file=paste0(dir_out,"/eval/",myRespName,"_MARS_summary.txt"))
-          
-          # summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Phillips",sep="")))))
-          # maxent_t1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Tsuruoka",sep=""))))
-        
-        
-          png(filename=paste0(dir_figs,"/",myRespName,"_model_scores.png"))
-          models_scores_graph(myBiomodModelOut,
-                                            metrics = c( 'KAPPA', 'TSS'),
-                                            by = 'models',
-                                            plot = TRUE)
-          dev.off()
-          
-          
-          # myRespPlot2D <- response.plot2(models  = "MAXENT",
-          #                                 Data = get_formal_data(myBiomodModelOut,'expl.var'), 
-          #                                 show.variables= get_formal_data(myBiomodModelOut,'expl.var.names'),
-          #                                 do.bivariate = FALSE,
-          #                                fixed.var.metric = 'median',
-          #                                col = c("blue", "red"),
-          #                                legend = TRUE,
-          #                                data_species = get_formal_data(myBiomodModelOut,'resp.var'))
-    
+  
+  print(paste0("Done Running Models for ",sp.n))
+  
+  # write data used for modelling
+  capture.output(get_formal_data(myBiomodModelOut),
+                 file=paste0(dir_out,"/model-data/",myRespName,"_formal_data.txt"))
+  ### eval current model
+  
+  print(paste0("Capturing Model Evaluations for ",sp.n))
+  evalmods<-get_evaluations(myBiomodModelOut,as.data.frame=TRUE)
+  write.csv(evalmods,file=paste0(dir_out,"/eval/formal_models_evaluation.csv"))
+  
+  ### get variable importance
+  modevalimport<-get_variables_importance(myBiomodModelOut,as.data.frame=TRUE)
+  write.csv(modevalimport,file=paste0(dir_out,"/var-imp/",myRespName,"_var_imp.csv"))
+  
+  ### get model summaries
+  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_ANN",sep="")))))
+                 ,file=paste0(dir_out,"/eval/",myRespName,"_ANN_summary.txt"))
+  
+  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_CTA",sep="")))))
+                 ,file=paste0(dir_out,"/eval/",myRespName,"_CTA_summary.txt"))
+  
+  fda1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_FDA",sep=""))))
+  # capture.output(fda1$confusion,file==paste0(dir_out,"/eval/",myRespName,"_FDA-conf_summary.txt"))
+  
+  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GAM",sep="")))))
+                 ,file=paste0(dir_out,"/eval/",myRespName,"_GAM_summary.txt"))
+  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GBM",sep="")))))
+                 ,file=paste0(dir_out,"/eval/",myRespName,"_GBM_summary.txt"))
+  
+  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GLM",sep="")))))
+                 ,file=paste0(dir_out,"/eval/",myRespName,"_GLM_summary.txt"))
+  
+  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_MARS",sep="")))))
+                 ,file=paste0(dir_out,"/eval/",myRespName,"_MARS_summary.txt"))
+  
+  # summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Phillips",sep="")))))
+  # maxent_t1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Tsuruoka",sep=""))))
+  
+  
+  png(filename=paste0(dir_figs,"/",myRespName,"_model_scores.png"))
+  models_scores_graph(myBiomodModelOut,
+                      metrics = c( 'KAPPA', 'TSS'),
+                      by = 'models',
+                      plot = TRUE)
+  dev.off()
+  
+  
+  # myRespPlot2D <- response.plot2(models  = "MAXENT",
+  #                                 Data = get_formal_data(myBiomodModelOut,'expl.var'), 
+  #                                 show.variables= get_formal_data(myBiomodModelOut,'expl.var.names'),
+  #                                 do.bivariate = FALSE,
+  #                                fixed.var.metric = 'median',
+  #                                col = c("blue", "red"),
+  #                                legend = TRUE,
+  #                                data_species = get_formal_data(myBiomodModelOut,'resp.var'))
+  
   # model projections
   myBiomodProj <- BIOMOD_Projection(
     modeling.output = myBiomodModelOut,
@@ -332,7 +363,7 @@ print(paste0("Done Running Models for ",sp.n))
   coutputFolderName <- "proj_current"
   coutputFolder <- paste(myRespName,coutputFolderName,sep="/")      #FINDING DIRECTORY FOR ENSEMBLE MODEL OUTPUT FOR REPORT GENERATION
   print("Done Projecting Models")
-
+  
   
   # mod_proj <- get_predictions(myBiomodProj) 
   # plot(mod_proj)
@@ -362,7 +393,7 @@ print(paste0("Done Running Models for ",sp.n))
   myBiomodEF <- BIOMOD_EnsembleForecasting(
     EM.output = myBiomodEM,
     projection.output = myBiomodProj)
-
+  
   myBiomodEF
   # EF_stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_current_",sp.n,"_ensemble.grd"))
   # plot a layer in the ensemble stack
@@ -370,48 +401,56 @@ print(paste0("Done Running Models for ",sp.n))
   
   
   # future projections for rcp 85 period 70
-   myBiomodProjFuture70 <- BIOMOD_Projection(
-     modeling.output = myBiomodModelOut,
-     new.env = myExplFuture70,
-     proj.name = 'rcp85_70',
-     selected.models = 'all',
-     binary.meth = c( 'KAPPA', 'TSS'),
-     compress = 'xz',
-     clamping.mask = T,
-     output.format = '.grd')
+  myBiomodProjFuture70 <- BIOMOD_Projection(
+    modeling.output = myBiomodModelOut,
+    new.env = myExplFuture70,
+    proj.name = 'rcp85_70',
+    selected.models = 'all',
+    binary.meth = c( 'KAPPA', 'TSS'),
+    compress = 'xz',
+    clamping.mask = T,
+    output.format = '.grd')
+  
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
+  
   
   # future projections for rcp 85 period 50
-   myBiomodProjFuture50 <- BIOMOD_Projection(
-     modeling.output = myBiomodModelOut,
-     new.env = myExplFuture50,
-     proj.name = 'rcp85_50',
+  myBiomodProjFuture50 <- BIOMOD_Projection(
+    modeling.output = myBiomodModelOut,
+    new.env = myExplFuture50,
+    proj.name = 'rcp85_50',
     selected.models = c( 'KAPPA', 'TSS'),
-     binary.meth = 'TSS',
-     compress = 'xz',
-     clamping.mask = T,
-     output.format = '.grd')
+    binary.meth = 'TSS',
+    compress = 'xz',
+    clamping.mask = T,
+    output.format = '.grd')
   
-   
-   f70BiomodEF <- BIOMOD_EnsembleForecasting(
-     EM.output = myBiomodEM,
-     projection.output = myBiomodProjFuture70)
-   cat("\n\nExporting Ensemble as grd ...\n\n")
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
   
-   f50BiomodEF <- BIOMOD_EnsembleForecasting(
-     EM.output = myBiomodEM,
-     projection.output = myBiomodProjFuture50)
-   cat("\n\nExporting Ensemble as grd ...\n\n")
+  f70BiomodEF <- BIOMOD_EnsembleForecasting(
+    EM.output = myBiomodEM,
+    projection.output = myBiomodProjFuture70)
+  cat("\n\nExporting Ensemble as grd ...\n\n")
   
-   # myBiomodEF
-   # EF_70stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_rcp85_70",sp.n,"_ensemble.grd"))
-   # plot a layer in the ensemble stack
-   # plot(EF_stack[[6]])
-   
-   # myBiomodEF
-   # EF_50stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_rcp85_50",sp.n,"_ensemble.grd"))
-   # plot a layer in the ensemble stack
-   # plot(EF_stack[[6]])
-   
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
+  
+  f50BiomodEF <- BIOMOD_EnsembleForecasting(
+    EM.output = myBiomodEM,
+    projection.output = myBiomodProjFuture50)
+  cat("\n\nExporting Ensemble as grd ...\n\n")
+  
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
+  
+  # myBiomodEF
+  # EF_70stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_rcp85_70",sp.n,"_ensemble.grd"))
+  # plot a layer in the ensemble stack
+  # plot(EF_stack[[6]])
+  
+  # myBiomodEF
+  # EF_50stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_rcp85_50",sp.n,"_ensemble.grd"))
+  # plot a layer in the ensemble stack
+  # plot(EF_stack[[6]])
+  
 }
 
 library(snowfall)
@@ -432,41 +471,41 @@ mySFModelsOut <- sfLapply( sp.n, BioModApply)
 sfStop( nostop=FALSE )
 
 
-  #EXPORTING ENSEMBLE MODEL PROJECTION AS ASCII FOR USE IN OUTSIDE MAPPING SOFTWARE
-  gridName = paste(coutputFolderName,myRespName,"ensemble.grd",sep="_")  
-  gridDir = paste(myRespName,coutputFolderName,gridName,sep="/")
-  MyRaster = raster(paste(myRespName,coutputFolderName,gridName,sep="/"))
-  writeRaster(MyRaster,file=paste0(sp.n,"_EnsembleRaster.asc"), format = 'ascii', overwrite = TRUE)
-  print("Done Exporting Ensemble as ASCII")
+#EXPORTING ENSEMBLE MODEL PROJECTION AS ASCII FOR USE IN OUTSIDE MAPPING SOFTWARE
+gridName = paste(coutputFolderName,myRespName,"ensemble.grd",sep="_")  
+gridDir = paste(myRespName,coutputFolderName,gridName,sep="/")
+MyRaster = raster(paste(myRespName,coutputFolderName,gridName,sep="/"))
+writeRaster(MyRaster,file=paste0(sp.n,"_EnsembleRaster.asc"), format = 'ascii', overwrite = TRUE)
+print("Done Exporting Ensemble as ASCII")
 
-  cat("\n\nExporting Model Plots ...\n\n")
-  #EXPORTING PLOTS FOR EACH MODEL & ENSEMBLE TO 'PLOTS' FOLDER IN WD
+cat("\n\nExporting Model Plots ...\n\n")
+#EXPORTING PLOTS FOR EACH MODEL & ENSEMBLE TO 'PLOTS' FOLDER IN WD
 
-      model_names <- c("GLM","GBM","GAM","ANN","SRE","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
-  
-  # FUNCTION FOR PLOTTING PROJECTIONS FOR EACH MODEL AND PLACEHOLDERS FOR FAILED MODELS
-      plot_raster <- function(x,model){
-          tryCatch({
-              file_name <- paste("plots/", model,".png",sep="")
-             png(file_name)
-              raster::plot(x, str.grep = model)
-        dev.off()
-            }, error = function(e){
-              file.copy("ParametersAndSettings/no_plot.png",file_name)
-              cat("\n\nPlotting for ", model, " failed! Blank file created.\n\n",sep="")
-            }
-         )
-        }
-  
-      for (i in 1:length(model_names)){
-          plot_raster(myBiomodProj,model_names[i])
-        }
-  
-      png(paste0("plots/ensemble_",sp.n,".png"))
-      raster::plot(myBiomodEF)
-      dev.off()
-        print("Done Exporting Model Plots")
-  
+model_names <- c("GLM","GBM","GAM","ANN","SRE","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
+
+# FUNCTION FOR PLOTTING PROJECTIONS FOR EACH MODEL AND PLACEHOLDERS FOR FAILED MODELS
+plot_raster <- function(x,model){
+  tryCatch({
+    file_name <- paste("plots/", model,".png",sep="")
+    png(file_name)
+    raster::plot(x, str.grep = model)
+    dev.off()
+  }, error = function(e){
+    file.copy("ParametersAndSettings/no_plot.png",file_name)
+    cat("\n\nPlotting for ", model, " failed! Blank file created.\n\n",sep="")
+  }
+  )
+}
+
+for (i in 1:length(model_names)){
+  plot_raster(myBiomodProj,model_names[i])
+}
+
+png(paste0("plots/ensemble_",sp.n,".png"))
+raster::plot(myBiomodEF)
+dev.off()
+print("Done Exporting Model Plots")
+
 # }
 
 
