@@ -83,7 +83,7 @@ pa<-data.frame(pa)
 
 # get vector of species names
 names<-paste0(colnames(pa))
-sp.n= dput(names[15:17]) #vector of species name(s), excluding lat and long cols
+sp.n= dput(names[4:6]) #vector of species name(s), excluding lat and long cols
 
 #sp.n=c("TuxpeÃ±o"
 #,"Arrocillo.Amarillo"
@@ -94,20 +94,15 @@ f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"))
 f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
 # load(paste0(dir_bm,"/.RData"))
 
+library(quickPlot)
 names(presmodstack)<-gsub("crop_wc2.0_","",layerNames(presmodstack))
 names(presmodstack)<-gsub("_30s","",layerNames(presmodstack))
 
 names(f50modstack)<-layerNames(presmodstack)
 names(f70modstack)<-layerNames(presmodstack)
 
-names(presmodstack)<-gsub("crop_wc2.0_","",layerNames(presmodstack))
-names(presmodstack)<-gsub("_30s","",layerNames(presmodstack))
-
 setwd(dir_bm)
 
-myExpl<-presmodstack
-myExplFuture50<-f50modstack
-myExplFuture70<-f70modstack
 
 BioModApply <-function(sp.n) {
   maxentjar<-paste0(dir_R,"/maxent/maxent.jar")
@@ -121,7 +116,11 @@ BioModApply <-function(sp.n) {
   myRespName = sp.n
   myResp <- as.numeric(pa[,myRespName])
   myRespXY = pa[,c('Longitude.x.','Latitude.y.')]
-
+  
+  myExpl<-presmodstack
+  myExplFuture50<-f50modstack
+  myExplFuture70<-f70modstack
+  
   
   # Barbet-Massin et al 2012:
   #   Overall, we recommend the use of a large number (e.g. 10 000) of pseudo-absences with equal
@@ -141,8 +140,8 @@ BioModApply <-function(sp.n) {
                                        resp.xy = myRespXY,
                                        expl.var = myExpl,
                                        resp.name = myRespName,
-                                       PA.nb.rep = 1,
-                                       PA.nb.absences = 1000,
+                                       PA.nb.rep = 2,
+                                       PA.nb.absences = 500,
                                        PA.strategy = "sre",
                                        PA.sre.quant = 0.45,
                                        na.rm=TRUE
@@ -282,7 +281,7 @@ print(paste0("Done Running Models for ",sp.n))
                           ,file=paste0(dir_out,"/eval/",myRespName,"_CTA_summary.txt"))
           
           fda1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_FDA",sep=""))))
-          capture.output(fda1$confusion,file==paste0(dir_out,"/eval/",myRespName,"_FDA-conf_summary.txt"))
+          # capture.output(fda1$confusion,file==paste0(dir_out,"/eval/",myRespName,"_FDA-conf_summary.txt"))
         
           capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GAM",sep="")))))
                          ,file=paste0(dir_out,"/eval/",myRespName,"_GAM_summary.txt"))
@@ -365,7 +364,7 @@ print(paste0("Done Running Models for ",sp.n))
     projection.output = myBiomodProj)
 
   myBiomodEF
-  EF_stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_current_",sp.n,"_ensemble.grd"))
+  # EF_stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_current_",sp.n,"_ensemble.grd"))
   # plot a layer in the ensemble stack
   # plot(EF_stack[[6]])
   
@@ -415,6 +414,7 @@ print(paste0("Done Running Models for ",sp.n))
    
 }
 
+library(snowfall)
 # snowfall initialization
 sfInit(parallel=TRUE, cpus=4)
 ## Export packages to snowfall
