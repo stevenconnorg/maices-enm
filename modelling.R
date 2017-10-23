@@ -90,9 +90,9 @@ sp.n= dput(names[49]) #vector of species name(s), excluding lat and long cols
 #,"Arrocillo.Amarillo"
 #        )     
 
-presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"))
-f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"))
-f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
+presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"),)
+f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"),)
+f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"),)
 # load(paste0(dir_bm,"/.RData"))
 
 library(quickPlot)
@@ -444,26 +444,17 @@ BioModApply <-function(sp.n) {
   # plot a layer in the ensemble stack
   # plot(EF_stack[[6]])
   
-}
-
-library(snowfall)
-# snowfall initialization
-sfInit(parallel=TRUE, cpus=4)
-## Export packages to snowfall
-sfLibrary('biomod2', character.only=TRUE)
-
-sfExport('BioModApply')
-sfExportAll()
-
-# you may also use sfExportAll() to export all your workspace variables
-## Do the run
-setwd(dir_bm)
-mySFModelsOut <- sfLapply( sp.n, BioModApply)
-
-## stop snowfall
-sfStop( nostop=FALSE )
-
-
+  
+  ensemble50<-raster::stack(paste0(dir_bm,"/",sp.n,"/proj_rcp85_50/proj_rcp85_50_",sp.n,"_ensemble.grd"))
+  meanensemble50<-stackApply(ensemble50,indices=rep(1:1,nlayers(ensemble50)),fun=mean)
+  writeRaster(meanensemble50,file=paste0(dir_bm,"/",sp.n,"/proj_rcp85_50/proj_rcp85_50_",sp.n,"_mean_ensemble.grd"),format="raster")
+  plot(meanensemble50)
+  
+  range_current<-
+  range_50<-
+  range_70<-
+  <-biomod2::BIOMOD_RangeSize(myBiomodProj,myBiomodEF)
+  
 #EXPORTING ENSEMBLE MODEL PROJECTION AS ASCII FOR USE IN OUTSIDE MAPPING SOFTWARE
 gridName = paste(coutputFolderName,myRespName,"ensemble.grd",sep="_")  
 gridDir = paste(myRespName,coutputFolderName,gridName,sep="/")
@@ -483,9 +474,6 @@ plot_raster <- function(x,model){
     png(file_name)
     raster::plot(x, str.grep = model)
     dev.off()
-  }, error = function(e){
-    file.copy("ParametersAndSettings/no_plot.png",file_name)
-    cat("\n\nPlotting for ", model, " failed! Blank file created.\n\n",sep="")
   }
   )
 }
