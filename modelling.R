@@ -145,8 +145,7 @@ BioModApply <-function(sp.n) {
                                        resp.name = myRespName,
                                        PA.nb.rep = 1,
                                        PA.nb.absences = 500,
-                                       PA.strategy = "sre",
-                                       PA.sre.quant = 0.45,
+                                       PA.strategy = "random",
                                        na.rm=TRUE
   )
   do.call(file.remove,list(list.files(pattern="temp*"))) 
@@ -158,6 +157,8 @@ BioModApply <-function(sp.n) {
   default_ModelOptions <-BIOMOD_ModelingOptions()
   print(default_ModelOptions)
   
+  install.library("gam")
+  library(gam)
   # edit default options accordingly
   BIOMOD_ModelOptions <- BIOMOD_ModelingOptions(GLM = list( type = 'quadratic',      
                                                             interaction.level = 0,
@@ -189,7 +190,7 @@ BioModApply <-function(sp.n) {
                                                 CTA = list( method = 'class',
                                                             parms = 'default',
                                                             cost = NULL,
-                                                            control = list(xval = 5, minbucket = 5, minsplit = 5, cp = 0.001, maxdepth = 25) ),
+                                                            control = list(xval = 5, minbucket = 5, minsplit = 5, cp = 0.01, maxdepth = 25) ),
                                                 
                                                 
                                                 ANN = list( NbCV = 5,
@@ -245,7 +246,6 @@ BioModApply <-function(sp.n) {
                                                                         set_heldout = 0,
                                                                         verbose = FALSE))
   
-  #library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
   install.packages("ENMeval")
   library(caret)
   library(ENMeval)
@@ -253,24 +253,17 @@ BioModApply <-function(sp.n) {
   # download new version of code from Frank Breiner (writer of BIOMOD_tuning), attached here: http://r-forge.wu.ac.at/forum/forum.php?max_rows=75&style=nested&offset=152&forum_id=995&group_id=302
   
   source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
-  Biomod.tuning<-BIOMOD_tuning(myBiomodData,
-                               models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka'),
-                               metric='ROC',
-                               method.GAM = "GAM_mgcv")
-  
+  library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
+  # devtools::install_github('topepo/caret/pkg/caret')
+  library(caret)
   BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
                                  env.ME = myExpl,
-                                 n.bg.ME = ncell(myExpl),
-                                 models.options=	BIOMOD_ModelOptions
-
+                                 n.bg.ME = ncell(myExpl)
                                  )
-  BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
-  models = c("GLM","GAM","GBM","ANN","CTA","RF","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka'),
-  metric='ROC',
-  models.options=	BIOMOD_ModelOptions)
-
-  #stopCluster(cl)
+  stopCluster(cl)
+  BIOMOD_ModelOptions<-Biomod.tuning$models.options
   
+
   capture.output(BIOMOD_TunedOptions$models.options,file=paste0(dir_out,"/model-opts/",myRespName,"_tuned_opts.txt"))
   
   # modeling
@@ -419,8 +412,8 @@ BioModApply <-function(sp.n) {
     modeling.output = myBiomodModelOut,
     new.env = myExplFuture50,
     proj.name = 'rcp85_50',
-    selected.models = c( 'KAPPA', 'TSS'),
-    binary.meth = 'TSS',
+    selected.models = 'all',
+    binary.meth = c( 'KAPPA', 'TSS'),
     compress = 'xz',
     clamping.mask = T,
     output.format = '.grd')
