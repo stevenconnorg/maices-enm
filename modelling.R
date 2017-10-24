@@ -90,9 +90,9 @@ sp.n= dput(names[49]) #vector of species name(s), excluding lat and long cols
 #,"Arrocillo.Amarillo"
 #        )     
 
-presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"),)
-f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"),)
-f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"),)
+presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"),paste0(dir_dat,"/ind/pob-ind.grd"))
+f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"),paste0(dir_dat,"/ind/pob-ind.grd"))
+f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"),paste0(dir_dat,"/ind/pob-ind.grd"))
 # load(paste0(dir_bm,"/.RData"))
 
 library(quickPlot)
@@ -320,24 +320,32 @@ BioModApply <-function(sp.n) {
   
   # summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Phillips",sep="")))))
   # maxent_t1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Tsuruoka",sep=""))))
+  models<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA",'MAXENT.Tsuruoka')
+  for (mods in models){
+    loadedmodel<-biomod2::BIOMOD_LoadModels(myBiomodModelOut,models=mods)
+    dir.create(paste0(dir_figs,"/",myRespName))
+    response.plot2(models= loadedmodel,
+                   Data = get_formal_data(myBiomodModelOut,'expl.var'), 
+                   show.variables = get_formal_data(myBiomodModelOut,'expl.var.names'),
+                   save.file = "tiff",
+                   name=paste0(dir_figs,"/",myRespName,"/",myRespName,"_",mods,"_curves"),
+                   col = c("blue", "red"),
+                   legend = TRUE,
+                   data_species = get_formal_data(myBiomodModelOut,'resp.var'),
+                   ImageSize=1000
+    )
+    
+  }
+
   
+  # get model scores by eval metrics
   
-  png(filename=paste0(dir_figs,"/",myRespName,"_model_scores.png"))
+  png(filename=paste0(dir_figs,"/",myRespName,"/",myRespName,"_model_scores-kappa-tss.png"))
   models_scores_graph(myBiomodModelOut,
                       metrics = c( 'KAPPA', 'TSS'),
                       by = 'models',
                       plot = TRUE)
   dev.off()
-  
-  
-  # myRespPlot2D <- response.plot2(models  = "MAXENT",
-  #                                 Data = get_formal_data(myBiomodModelOut,'expl.var'), 
-  #                                 show.variables= get_formal_data(myBiomodModelOut,'expl.var.names'),
-  #                                 do.bivariate = FALSE,
-  #                                fixed.var.metric = 'median',
-  #                                col = c("blue", "red"),
-  #                                legend = TRUE,
-  #                                data_species = get_formal_data(myBiomodModelOut,'resp.var'))
   
   # model projections
   myBiomodProj <- BIOMOD_Projection(
@@ -444,17 +452,15 @@ BioModApply <-function(sp.n) {
   # plot a layer in the ensemble stack
   # plot(EF_stack[[6]])
   
+  projs<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
+  for (p in projs){
+    
   
-  ensemble50<-raster::stack(paste0(dir_bm,"/",sp.n,"/proj_rcp85_50/proj_rcp85_50_",sp.n,"_ensemble.grd"))
-  meanensemble50<-stackApply(ensemble50,indices=rep(1:1,nlayers(ensemble50)),fun=mean)
-  writeRaster(meanensemble50,file=paste0(dir_bm,"/",sp.n,"/proj_rcp85_50/proj_rcp85_50_",sp.n,"_mean_ensemble.grd"),format="raster")
-  plot(meanensemble50)
-  
-  range_current<-
-  range_50<-
-  range_70<-
-  <-biomod2::BIOMOD_RangeSize(myBiomodProj,myBiomodEF)
-  
+  ensemblestack<-raster::stack(paste0(dir_bm,"/",sp.n,"/",p,"/",p,"_",sp.n,"_ensemble.grd"))
+  ensembleconsensus<-stackApply(ensemblestack,indices=rep(1:1,nlayers(ensemblestack)),fun=mean)
+  writeRaster(ensembleconsensus,file=paste0(dir_bm,"/",sp.n,"/",p,"/",p,"_",sp.n,"_mean_consensus.grd"),format="raster")
+  }
+ 
 #EXPORTING ENSEMBLE MODEL PROJECTION AS ASCII FOR USE IN OUTSIDE MAPPING SOFTWARE
 gridName = paste(coutputFolderName,myRespName,"ensemble.grd",sep="_")  
 gridDir = paste(myRespName,coutputFolderName,gridName,sep="/")
