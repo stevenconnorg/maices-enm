@@ -396,6 +396,21 @@ presmodstack<-stack(paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_05.tif"),
                     
 )
 
+# presprojstack<-stack(paste0(dir_p.mosaics,"wc2.0_bio_30s_05.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_06.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_18.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_03.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_17.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_04.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_15.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_08.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_09.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_02.tif"),
+#                     paste0(dir_topo,"/alt_cropped.grd"),
+#                     paste0(dir_ind,"/pob-ind.grd")
+#                     
+# )
+
 coll_vars_pres_mod<-virtualspecies::removeCollinearity(presmodstack,multicollinearity.cutoff = 0.7, select.variables = FALSE, sample.points = TRUE, nb.points = (presmodstack@ncols/2),plot = TRUE)
 
 presmodstack

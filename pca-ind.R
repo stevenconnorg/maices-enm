@@ -47,7 +47,7 @@ for (i in vars) {
 #     })
 #   }
 
-}
+# }
 
 ind_shps<-array()
 

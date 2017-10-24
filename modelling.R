@@ -20,6 +20,7 @@ dir_presentations<-paste0(root,"/07_pres")
 dir_maices<-paste0(dir_dat,"/maices")
 dir_ind<-paste0(dir_dat,"/ind")
 dir_bm<-paste0(dir_R,"/00_biomod")
+dir_topo<-paste0(dir_dat,"/topo")
 
 # 
 dir_clim<-paste0(dir_dat,"/clim")
@@ -84,15 +85,16 @@ pa<-data.frame(pa)
 
 # get vector of species names
 names<-paste0(colnames(pa))
-sp.n= dput(names[49]) #vector of species name(s), excluding lat and long cols
+sp.n= dput(names   [c(50,10)]
+           ) #vector of species name(s), excluding lat and long cols
 
 #sp.n=c("TuxpeÃ±o"
 #,"Arrocillo.Amarillo"
 #        )     
 
-presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"),paste0(dir_dat,"/ind/pob-ind.grd"))
-f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"),paste0(dir_dat,"/ind/pob-ind.grd"))
-f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"),paste0(dir_dat,"/ind/pob-ind.grd"))
+presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"))
+f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"))
+f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
 # load(paste0(dir_bm,"/.RData"))
 
 library(quickPlot)
@@ -485,32 +487,24 @@ BioModApply <-function(sp.n) {
   writeRaster(ensembleconsensus100,file=paste0(dir_bm,"/",sp.n,"/",p,"/",p,"_",sp.n,"_mean_consensus.grd"),format="raster",overwrite=T)
   }
  
-  
-#EXPORTING ENSEMBLE MODEL PROJECTION AS ASCII FOR USE IN OUTSIDE MAPPING SOFTWARE
-gridName = paste(coutputFolderName,myRespName,"ensemble.grd",sep="_")  
-gridDir = paste(myRespName,coutputFolderName,gridName,sep="/")
-MyRaster = raster(paste(myRespName,coutputFolderName,gridName,sep="/"))
-writeRaster(MyRaster,file=paste0(sp.n,"_EnsembleRaster.asc"), format = 'ascii', overwrite = TRUE)
-print("Done Exporting Ensemble as ASCII")
-
-cat("\n\nExporting Model Plots ...\n\n")
-#EXPORTING PLOTS FOR EACH MODEL & ENSEMBLE TO 'PLOTS' FOLDER IN WD
-
-model_names <- c("GLM","GBM","GAM","ANN","SRE","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
-
-              
-model_names <- c("GLM","GBM","GAM","ANN","SRE","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
-i<-model_names[1]
-for (i in myBiomodProj@models.projected){
-  raster::plot(i)
 }
 
-png(paste0("plots/ensemble_",sp.n,".png"))
-raster::plot(myBiomodEF)
-dev.off()
-print("Done Exporting Model Plots")
 
-# }
+
+# snowfall initialization
+sfInit(parallel=TRUE, cpus=4)
+## Export packages to snowfall
+sfLibrary('biomod2', character.only=TRUE)
+sfExportAll()
+
+# you may also use sfExportAll() to export all your workspace variables
+## Do the run
+mySFModelsOut <- sfLapply( sp.n, BioModApply)
+
+## stop snowfall
+sfStop( nostop=FALSE )
+
+
 
 # define a mask of studied
 alphaMap <- reclassify(subset(myExpl,1), c(-Inf,Inf,0))
@@ -537,3 +531,38 @@ for(variety in sp.n){
 plot(alphaMap)
 
 
+
+
+
+
+
+
+
+
+
+
+#EXPORTING ENSEMBLE MODEL PROJECTION AS ASCII FOR USE IN OUTSIDE MAPPING SOFTWARE
+gridName = paste(coutputFolderName,myRespName,"ensemble.grd",sep="_")  
+gridDir = paste(myRespName,coutputFolderName,gridName,sep="/")
+MyRaster = raster(paste(myRespName,coutputFolderName,gridName,sep="/"))
+writeRaster(MyRaster,file=paste0(sp.n,"_EnsembleRaster.asc"), format = 'ascii', overwrite = TRUE)
+print("Done Exporting Ensemble as ASCII")
+
+cat("\n\nExporting Model Plots ...\n\n")
+#EXPORTING PLOTS FOR EACH MODEL & ENSEMBLE TO 'PLOTS' FOLDER IN WD
+
+model_names <- c("GLM","GBM","GAM","ANN","SRE","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
+
+              
+model_names <- c("GLM","GBM","GAM","ANN","SRE","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
+i<-model_names[1]
+for (i in myBiomodProj@models.projected){
+  raster::plot(i)
+}
+
+png(paste0("plots/ensemble_",sp.n,".png"))
+raster::plot(myBiomodEF)
+dev.off()
+print("Done Exporting Model Plots")
+
+# }
