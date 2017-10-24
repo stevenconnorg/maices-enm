@@ -159,7 +159,6 @@ BioModApply <-function(sp.n) {
   default_ModelOptions <-BIOMOD_ModelingOptions()
   print(default_ModelOptions)
   
-  install.library("gam")
   library(gam)
   # edit default options accordingly
   BIOMOD_ModelOptions <- BIOMOD_ModelingOptions(GLM = list( type = 'quadratic',      
@@ -248,21 +247,21 @@ BioModApply <-function(sp.n) {
                                                                         set_heldout = 0,
                                                                         verbose = FALSE))
   
-  install.packages("ENMeval")
-  library(caret)
+  # install.packages("ENMeval")
+  # library(caret)
   library(ENMeval)
   
   # download new version of code from Frank Breiner (writer of BIOMOD_tuning), attached here: http://r-forge.wu.ac.at/forum/forum.php?max_rows=75&style=nested&offset=152&forum_id=995&group_id=302
   
   source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
-  library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
+  # library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
   # devtools::install_github('topepo/caret/pkg/caret')
   library(caret)
-  BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
-                                 env.ME = myExpl,
-                                 n.bg.ME = ncell(myExpl)
-                                 )
-  stopCluster(cl)
+  # BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
+  #                                env.ME = myExpl,
+  #                                n.bg.ME = ncell(myExpl)
+  #                                )
+  # stopCluster(cl)
   BIOMOD_ModelOptions<-Biomod.tuning$models.options
   
 
