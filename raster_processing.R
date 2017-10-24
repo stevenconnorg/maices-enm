@@ -400,36 +400,39 @@ coll_vars_pres_mod<-virtualspecies::removeCollinearity(presmodstack,multicolline
 
 presmodstack
 
-f50modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_5_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_6_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_18_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_3_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_17_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_4_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_15_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_15_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_8_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_9_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_2_ensemble.tif"),
+
+f50modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/50/85bi505_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi506_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi5018_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi503_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi5017_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi504_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi5015_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi508_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi509_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi502_ensemble.grd"),
                    paste0(dir_topo,"/alt_cropped.grd"),
                    paste0(dir_ind,"/pob-ind.grd")
                    
                    
 )
 
-f70modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_5_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_6_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_18_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_3_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_17_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_4_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_15_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_8_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_9_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_2_ensemble.tif"),
+f70modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/70/85bi705_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi706_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi7018_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi703_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi7017_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi704_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi7015_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi708_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi709_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi702_ensemble.grd"),
                    paste0(dir_topo,"/alt_cropped.grd"),
                    paste0(dir_ind,"/pob-ind.grd")
+                   
+                   
 )
+
 
 
 save(presmodstack,file=paste0(dir_stacks,"/present_modstack.RData"))
