@@ -302,11 +302,11 @@ BioModApply <-function(sp.n) {
   write.csv(modevalimport,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_var_imp.csv"))
   
   ### get model summaries
-  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_current/",myRespName,"_PA1_Full_ANN",sep="")))))
+  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_ANN",sep="")))))
                  ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_ANN_summary.txt"))
   
-  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_current/",myRespName,"_PA1_Full_CTA",sep="")))))
-                 ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_CTA_summary.txt"))
+   capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_CTA",sep="")))))
+                  ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_CTA_summary.txt"))
   
   # fda1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_FDA",sep=""))))
   # capture.output(as.table(fda1$confusion),file==paste0(dir_out,"/",myRespName,"/",myRespName,"_FDA-conf_summary.csv"))
@@ -323,7 +323,7 @@ BioModApply <-function(sp.n) {
   capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_MARS",sep="")))))
                  ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_MARS_summary.txt"))
   
-  copy()
+  # copy()
   # summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Phillips",sep="")))))
   # maxent_t1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Tsuruoka",sep=""))))
   
