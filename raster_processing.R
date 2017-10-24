@@ -16,7 +16,7 @@ dir_presentations<-paste0(root,"/07_pres")
 
 dir_maices<-paste0(dir_dat,"/maices")
 dir_ind<-paste0(dir_dat,"/ind")
-
+dir_topo<-paste0(dir_dat,"/topo")
 # 
 dir_clim<-paste0(dir_dat,"/clim")
 dir_pres<-paste0(dir_clim,"/present")
@@ -170,9 +170,10 @@ for (i in tiles){
 # altrasters<-list.files(dir_topo,pattern=".bil",full.names = T,recursive=T)
 
 altrasters<-lapply(list.files(dir_topo,pattern=".tif",full.names = T,recursive=T),raster)
-# alt.mosaic<-do.call(mosaic,altrasters)
-alt.mosaic<-mosaic(altrasters[[1]],altrasters[[2]],altrasters[[3]],altrasters[[4]],altrasters[[5]],altrasters[[6]],fun=mean)
-# crs(alt.mosaic)<-"+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+altrasters$fun<-mean
+alt.mosaic<-do.call(mosaic,altrasters)
+crs(alt.mosaic)<-"+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+names(alt.mosaic)<-"altitude"
 alt.crop<-crop(alt.mosaic,r)
 writeRaster(alt.crop,filename=paste0(dir_topo,"/alt_cropped.grd"),format="raster",overwrite=T)
 
@@ -380,19 +381,18 @@ save.image(paste0(dir_clim,"/raster_processing.RData"))
 print(coll_vars_pres)
 coll_vars_pres
 # manually select raster layers to retain from climate pca, including other variables of interest
-presmodstack<-stack(paste0(dir_p.mosaics,"/crop/crop_bio5.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio6.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio18.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio3.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio17.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio4.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio15.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio8.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio9.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio2.tif"),
-                    paste0(dir_dat,"/topo/crop/crop_topo_roughness_mosaic.tif"),
-                    paste0(dir_dat,"/topo/crop/crop_topo_altitude_mosaic.tif"),
-                    paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif")
+presmodstack<-stack(paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_05.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_06.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_18.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_03.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_17.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_04.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_15.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_08.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_09.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_02.tif"),
+                    paste0(dir_topo,"/alt_cropped.grd"),
+                    paste0(dir_ind,"/pob-ind.grd")
                     
 )
 
@@ -411,9 +411,8 @@ f50modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_5_ensemble.tif"
                    paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_8_ensemble.tif"),
                    paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_9_ensemble.tif"),
                    paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_2_ensemble.tif"),
-                   paste0(dir_dat,"/topo/crop/crop_topo_roughness_mosaic.tif"),
-                   paste0(dir_dat,"/topo/crop/crop_topo_altitude_mosaic.tif"),
-                   paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif")
+                   paste0(dir_topo,"/alt_cropped.grd"),
+                   paste0(dir_ind,"/pob-ind.grd")
                    
                    
 )
@@ -428,9 +427,8 @@ f70modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_5_ensemble.tif"
                    paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_8_ensemble.tif"),
                    paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_9_ensemble.tif"),
                    paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_2_ensemble.tif"),
-                   paste0(dir_dat,"/topo/crop/crop_topo_roughness_mosaic.tif"),
-                   paste0(dir_dat,"/topo/crop/crop_topo_altitude_mosaic.tif"),
-                   paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif")
+                   paste0(dir_topo,"/alt_cropped.grd"),
+                   paste0(dir_ind,"/pob-ind.grd")
 )
 
 
