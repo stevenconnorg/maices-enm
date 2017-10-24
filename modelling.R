@@ -85,7 +85,7 @@ pa<-data.frame(pa)
 
 # get vector of species names
 names<-paste0(colnames(pa))
-sp.n= dput(names   [c(50,10)]
+sp.n= dput(names   [c(50)]
            ) #vector of species name(s), excluding lat and long cols
 
 #sp.n=c("TuxpeÃ±o"
@@ -249,29 +249,29 @@ BioModApply <-function(sp.n) {
   
   # install.packages("ENMeval")
   # library(caret)
-  library(ENMeval)
+  # library(ENMeval)
   
   # download new version of code from Frank Breiner (writer of BIOMOD_tuning), attached here: http://r-forge.wu.ac.at/forum/forum.php?max_rows=75&style=nested&offset=152&forum_id=995&group_id=302
   
-  source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
+  # source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
   # library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
   # devtools::install_github('topepo/caret/pkg/caret')
-  library(caret)
+  # library(caret)
   # BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
   #                                env.ME = myExpl,
   #                                n.bg.ME = ncell(myExpl)
   #                                )
   # stopCluster(cl)
-  BIOMOD_ModelOptions<-Biomod.tuning$models.options
+  # BIOMOD_ModelOptions<-Biomod.tuning$models.options
   
 
-  capture.output(BIOMOD_TunedOptions$models.options,file=paste0(dir_out,"/model-opts/",myRespName,"_tuned_opts.txt"))
+  # capture.output(BIOMOD_TunedOptions$models.options,file=paste0(dir_out,"/model-opts/",myRespName,"_tuned_opts.txt"))
   
   # modeling
   myBiomodModelOut <- BIOMOD_Modeling(
     myBiomodData, 
     models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka'), 
-    models.options = Biomod.tuning$models.options, 
+    models.options = BIOMOD_ModelOptions, 
     NbRunEval=2,
     DataSplit=70,
     VarImport=2,
@@ -474,18 +474,6 @@ BioModApply <-function(sp.n) {
   # EF_50stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_rcp85_50",sp.n,"_ensemble.grd"))
   # plot a layer in the ensemble stack
   # plot(EF_stack[[6]])
-  
-  projs<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
-  
-  for (p in projs){
-    
-  
-  ensemblestack<-raster::stack(paste0(dir_bm,"/",sp.n,"/",p,"/",p,"_",sp.n,"_ensemble.grd"))
-  ensembleconsensus<-stackApply(ensemblestack,indices=rep(1:1,nlayers(ensemblestack)),fun=mean)
-  ensembleconsensus100<-ensembleconsensus/1000
-  writeRaster(ensembleconsensus100,file=paste0(dir_bm,"/",sp.n,"/",p,"/",p,"_",sp.n,"_mean_consensus.grd"),format="raster",overwrite=T)
-  }
- 
 }
 
 
@@ -503,7 +491,18 @@ mySFModelsOut <- sfLapply( sp.n, BioModApply)
 ## stop snowfall
 sfStop( nostop=FALSE )
 
+projs<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
 
+for (p in projs){
+  for (sp in sp.n){
+    # TK
+  }
+  
+  ensemblestack<-raster::stack(paste0(dir_bm,"/",sp.n,"/",p,"/",p,"_",sp.n,"_ensemble.grd"))
+  ensembleconsensus<-stackApply(ensemblestack,indices=rep(1:1,nlayers(ensemblestack)),fun=mean)
+  ensembleconsensus100<-ensembleconsensus/1000
+  writeRaster(ensembleconsensus100,file=paste0(dir_bm,"/",sp.n,"/",p,"/",p,"_",sp.n,"_mean_consensus.grd"),format="raster",overwrite=T)
+}
 
 # define a mask of studied
 alphaMap <- reclassify(subset(myExpl,1), c(-Inf,Inf,0))
