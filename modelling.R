@@ -284,42 +284,48 @@ BioModApply <-function(sp.n) {
   
   print(paste0("Done Running Models for ",sp.n))
   
+  dir.create(paste0(dir_out,"/",myRespName))
+  
+  
   # write data used for modelling
   capture.output(get_formal_data(myBiomodModelOut),
-                 file=paste0(dir_out,"/model-data/",myRespName,"_formal_data.txt"))
+                 file=paste0(dir_out,"/",myRespName,"/",myRespName,"_model_data.txt"))
   ### eval current model
   
-  print(paste0("Capturing Model Evaluations for ",sp.n))
+  print(paste0("Capturing Model Evaluations for ",myRespName))
   evalmods<-get_evaluations(myBiomodModelOut,as.data.frame=TRUE)
-  write.csv(evalmods,file=paste0(dir_out,"/eval/formal_models_evaluation.csv"))
+  write.csv(evalmods,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_models_eval.csv"))
   
   ### get variable importance
   modevalimport<-get_variables_importance(myBiomodModelOut,as.data.frame=TRUE)
-  write.csv(modevalimport,file=paste0(dir_out,"/var-imp/",myRespName,"_var_imp.csv"))
+  write.csv(modevalimport,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_var_imp.csv"))
   
   ### get model summaries
-  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_ANN",sep="")))))
-                 ,file=paste0(dir_out,"/eval/",myRespName,"_ANN_summary.txt"))
+  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_current/",myRespName,"_PA1_Full_ANN",sep="")))))
+                 ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_ANN_summary.txt"))
   
-  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_CTA",sep="")))))
-                 ,file=paste0(dir_out,"/eval/",myRespName,"_CTA_summary.txt"))
+  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_current/",myRespName,"_PA1_Full_CTA",sep="")))))
+                 ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_CTA_summary.txt"))
   
-  fda1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_FDA",sep=""))))
-  # capture.output(fda1$confusion,file==paste0(dir_out,"/eval/",myRespName,"_FDA-conf_summary.txt"))
-  
-  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GAM",sep="")))))
-                 ,file=paste0(dir_out,"/eval/",myRespName,"_GAM_summary.txt"))
+  # fda1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_FDA",sep=""))))
+  # capture.output(as.table(fda1$confusion),file==paste0(dir_out,"/",myRespName,"/",myRespName,"_FDA-conf_summary.csv"))
+
+    capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GAM",sep="")))))
+                 ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_GAM_summary.txt"))
+    
   capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GBM",sep="")))))
-                 ,file=paste0(dir_out,"/eval/",myRespName,"_GBM_summary.txt"))
+                 ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_GBM_summary.txt"))
   
   capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GLM",sep="")))))
-                 ,file=paste0(dir_out,"/eval/",myRespName,"_GLM_summary.txt"))
+                 ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_GLM_summary.txt"))
   
   capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_MARS",sep="")))))
-                 ,file=paste0(dir_out,"/eval/",myRespName,"_MARS_summary.txt"))
+                 ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_MARS_summary.txt"))
   
+  copy()
   # summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Phillips",sep="")))))
   # maxent_t1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Tsuruoka",sep=""))))
+  
   models<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA",'MAXENT.Tsuruoka')
   for (mods in models){
     loadedmodel<-biomod2::BIOMOD_LoadModels(myBiomodModelOut,models=mods)
@@ -339,12 +345,19 @@ BioModApply <-function(sp.n) {
 
   
   # get model scores by eval metrics
-  
+  dir.create(paste0(dir_figs,"/",myRespName))
   png(filename=paste0(dir_figs,"/",myRespName,"/",myRespName,"_model_scores-kappa-tss.png"))
   models_scores_graph(myBiomodModelOut,
                       metrics = c( 'KAPPA', 'TSS'),
                       by = 'models',
                       plot = TRUE)
+  dev.off()
+  
+  png(filename=paste0(dir_figs,"/",myRespName,"/",myRespName,"_observations.png"))
+  presab<-myResp
+  presab[is.na(presab)]<-0
+  level.plot(data.in = presab,
+             XY = myRespXY )
   dev.off()
   
   # model projections
@@ -359,6 +372,7 @@ BioModApply <-function(sp.n) {
     output.format = '.grd')
   
   do.call(file.remove,list(list.files(pattern="temp*"))) 
+  
   
   
   coutputFolderName <- "proj_current"
@@ -386,14 +400,22 @@ BioModApply <-function(sp.n) {
     prob.mean.weight = T,
     prob.mean.weight.decay = 'proportional' )
   
+  
   do.call(file.remove,list(list.files(pattern="temp*"))) 
   
-  get_evaluations(myBiomodEM)
+  ### eval current model
+  
+  print(paste0("Capturing Model Ensemble Evaluations for ",sp.n))
+  enevalmods<-get_evaluations(myBiomodEM,as.data.frame=TRUE)
+  write.csv(enevalmods,file=paste0(dir_out,"/eval/formal_ensemble_evaluation.csv"))
+  
   
   # current ensemble projection
   myBiomodEF <- BIOMOD_EnsembleForecasting(
     EM.output = myBiomodEM,
-    projection.output = myBiomodProj)
+    projection.output = myBiomodProj,
+    binary.meth = c( 'KAPPA', 'TSS'),
+    )
   
   myBiomodEF
   # EF_stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_current_",sp.n,"_ensemble.grd"))
@@ -453,14 +475,17 @@ BioModApply <-function(sp.n) {
   # plot(EF_stack[[6]])
   
   projs<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
+  
   for (p in projs){
     
   
   ensemblestack<-raster::stack(paste0(dir_bm,"/",sp.n,"/",p,"/",p,"_",sp.n,"_ensemble.grd"))
   ensembleconsensus<-stackApply(ensemblestack,indices=rep(1:1,nlayers(ensemblestack)),fun=mean)
-  writeRaster(ensembleconsensus,file=paste0(dir_bm,"/",sp.n,"/",p,"/",p,"_",sp.n,"_mean_consensus.grd"),format="raster")
+  ensembleconsensus100<-ensembleconsensus/1000
+  writeRaster(ensembleconsensus100,file=paste0(dir_bm,"/",sp.n,"/",p,"/",p,"_",sp.n,"_mean_consensus.grd"),format="raster",overwrite=T)
   }
  
+  
 #EXPORTING ENSEMBLE MODEL PROJECTION AS ASCII FOR USE IN OUTSIDE MAPPING SOFTWARE
 gridName = paste(coutputFolderName,myRespName,"ensemble.grd",sep="_")  
 gridDir = paste(myRespName,coutputFolderName,gridName,sep="/")
@@ -473,19 +498,11 @@ cat("\n\nExporting Model Plots ...\n\n")
 
 model_names <- c("GLM","GBM","GAM","ANN","SRE","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
 
-# FUNCTION FOR PLOTTING PROJECTIONS FOR EACH MODEL AND PLACEHOLDERS FOR FAILED MODELS
-plot_raster <- function(x,model){
-  tryCatch({
-    file_name <- paste("plots/", model,".png",sep="")
-    png(file_name)
-    raster::plot(x, str.grep = model)
-    dev.off()
-  }
-  )
-}
-
-for (i in 1:length(model_names)){
-  plot_raster(myBiomodProj,model_names[i])
+              
+model_names <- c("GLM","GBM","GAM","ANN","SRE","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
+i<-model_names[1]
+for (i in myBiomodProj@models.projected){
+  raster::plot(i)
 }
 
 png(paste0("plots/ensemble_",sp.n,".png"))
@@ -495,111 +512,28 @@ print("Done Exporting Model Plots")
 
 # }
 
+# define a mask of studied
+alphaMap <- reclassify(subset(myExpl,1), c(-Inf,Inf,0))
+currentensemble<-stack(file.path(variety,
+                                 "proj_current", 
+                                 paste("proj_current_",
+                                       variety, 
+                                       "_ensemble.grd", sep="")))
+names(currentensemble)
 
-
-
-#####################################################
-###############VARIABLE DECISION TREES###############
-#####################################################
-
-cat("\n\nBuilding Decision Tree ...\n\n")
-p.table <- read.csv(prstbl)                             #TABLE OF PRESENCE/ABSENCE DATA
-xcol <- match(xname, names(p.table))                    #FINDING COLUMN NUMBER IN p.table FOR LOGITUDE
-ycol <- match(yname, names(p.table))                    #FINDING COLUMN NUMBER IN p.table FOR LATITUDE
-pacol <- match(myRespName, names(p.table))              #FINDING COLUMN NUMBER IN p.table FOR SPECIES
-xy <- cbind(p.table[xcol], p.table[ycol])               #MAKING NEW OBJECT FOR LONG/LAT ONLY
-sp <- SpatialPoints(xy)                                 #CONVERTING TO SPATIALPOINTS OBJECT
-xy.extract <- extract(myExpl, sp)                       #EXTRACTING RASTER DATA TO POINTS IN SPATIALPOINTS OBJECT
-xy.extract <- cbind(xy.extract, p.table[pacol])         #ADDING PRESENCE/ABSENCE COLUMN TO EXTRACTED RASTER VALUE OBJECT
-write.csv(xy.extract, file = "xy_value_extract.csv")    #SAVING EXTRACTED VALUES TO CSV IN WD
-xy.extract <- read.csv("xy_value_extract.csv")[,-1]     #IMPORTING CSV BACK IN, FIXING TYPE/CLASS ISSUES
-idx_sp <- ncol(xy.extract)                              #FINDING LAST COLUMN WHERE SPECIES PRESENCE/ABSENCE DATA IS LOCATED
-dat <- data.frame(xy.extract[,-idx_sp],
-                  Species = as.factor(ifelse(xy.extract[,idx_sp] == 0, "absent","present")))        #MAKING NEW SPECIES COLUMN WITH PRESENCE/ABSENCE DATA
-xy.tree <- rpart(Species ~ .,dat)                                                                   #BUILDING DECISION TREE FOR PRESENCE/ABSENCE AGAINST ALL EXTRACTED VARIABLE VALUES
-dir.create("plots")
-png("plots/decision_tree.png")
-rpart.plot(xy.tree)            #SAVING PLOT OF DECISION TREE FOR REPORT GENERATION
-dev.off()
-print("Done Building Decision Tree")
-
-#####################################################
-##################GENERATING REPORT##################
-#####################################################
-
-cat("\n\nExporting Model Plots ...\n\n")
-#EXPORTING PLOTS FOR EACH MODEL & ENSEMBLE TO 'PLOTS' FOLDER IN WD
-dir.create("plots")
-model_names <- c("GLM","GBM","GAM","ANN","SRE","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
-
-#FUNCTION FOR PLOTTING PROJECTIONS FOR EACH MODEL AND PLACEHOLDERS FOR FAILED MODELS
-plot_raster <- function(x,model){
-  tryCatch({
-    file_name <- paste("plots/", model,".png",sep="")
-    png(file_name)
-    raster::plot(x, str.grep = model)
-    dev.off()
-  }, error = function(e){
-    file.copy("ParametersAndSettings/no_plot.png",file_name)
-    cat("\n\nPlotting for ", model, " failed! Blank file created.\n\n",sep="")
-  }
-  )
+# # add all other species map
+for(variety in sp.n){
+  # add layer
+  alphaMap <- 
+    alphaMap + 
+    subset(stack(file.path(variety,
+                           "proj_current", 
+                           paste("proj_current_",
+                                 variety, 
+                                 "_TSSbin.grd", sep=""))), 1)
 }
 
-for (i in 1:length(model_names)){
-  plot_raster(myBiomodProj,model_names[i])
-}
-
-png(paste0("plots/",sp.n,"_ensemble.png"))
-raster::plot(myBiomodEF)
-dev.off()
-print("Done Exporting Model Plots")
-
-#SAVING S4 STRUCTURES FOR REPORT GENERATION
-saveRDS(myBiomodModelOut,"myBiomodModelOut.rds")
-saveRDS(myBiomodModelEval,"myBiomodModelEval.rds")
-variableimportance <- get_variables_importance(myBiomodModelOut)
-saveRDS(variableimportance,"variableimportance.rds")
-ensembleevaluation <- get_evaluations(myBiomodEM)
-saveRDS(ensembleevaluation,"ensembleevaluation.rds")
-
-cat("\n\nLGenerating Report ...\n\n")
-
-#KNITTING RMARKDOWN PDF FROM 'Biomod2_Report.rmd' IN WD
-library(rmarkdown)
-rmarkdown::render('Biomod2_Report.rmd',output_format=html_document())                           #KNIT HTML REPORT
-#Sys.setenv(PATH = paste(Sys.getenv("PATH"),
-#    "C:/Program Files/MiKTeX 2.9/miktex/bin/x64", 
-#    sep=.Platform$path.sep))                                #ADDING MikTeX to PATH, WILL BE DIFFERENT FOR OTHER LaTeX INSTALLATIONS
-#rmarkdown::render('Biomod2_Report.rmd',
-#     output_format=pdf_document(latex_engine='xelatex'))    #KNIT PDF REPORT, WILL REQUIRE LaTeX INSTALLATION AND SETUP.
-print("Done Generating Report")
-
-################################
-# Using Snowfall with lapply over species names
-################################
-
-# snowfall initialization
-sfInit(parallel=TRUE, cpus=4)
-## Export packages to snowfall
-sfLibrary('biomod2', character.only=TRUE)
-## Export variables
-# sfExport('myRespXY')
-# sfExport('myExpl')
-# sfExport('sp.n')
-# sfExport('pa')
-# sfExport('stack3')
-# sfExport('root')
-sfExport('BioModApply')
-sfExportAll()
-
-# you may also use sfExportAll() to export all your workspace variables
-## Do the run
-mySFModelsOut <- sfLapply( sp.n, BioModApply)
-
-## stop snowfall
-sfStop( nostop=FALSE )
+# summary of created raster
+plot(alphaMap)
 
 
-
-# Sys.glob(file.path(root, sp.n, "current", "R", "*.rdx"))
