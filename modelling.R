@@ -116,7 +116,7 @@ names(f70modstack)<-layerNames(presmodstack)
 
 eval_metrics<-c( 'KAPPA', 'TSS')
 allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA",'MAXENT.Phillips','MAXENT.Tsuruoka')
-
+models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
 allmodels
 BioModApply <-function(sp.n) {
 
@@ -359,61 +359,6 @@ BioModApply <-function(sp.n) {
   # summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Phillips",sep="")))))
   # maxent_t1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Tsuruoka",sep=""))))
   
-  #################################################################
-  # CAPTURE MODEL RESPONSE CURVES TO FILE
-  #################################################################
-  print(paste0("Writing Response Curve Plots to File for ",myRespName))
-  
-  dir_curves<-paste0(dir_figs,"/",myRespName,"/response-curves")
-  dir.create(dir_curves,recursive=T)
-  dir.create(paste0(dir_figs,"/",myRespName))
-  
-  myBiomodModelOut
-  for (mod in models){
-    loadedmodel<-biomod2::BIOMOD_LoadModels(myBiomodModelOut,models=mod)
-    response.plot2(models= loadedmodel,
-                   Data = get_formal_data(myBiomodModelOut,'expl.var'), 
-                   show.variables = get_formal_data(myBiomodModelOut,'expl.var.names'),
-                   save.file = "tiff",
-                   name=paste0(dir_curves,"/",myRespName,"_",mod,"_curves"),
-                   col = c("blue", "red"),
-                   legend = TRUE,
-                   data_species = get_formal_data(myBiomodModelOut,'resp.var'),
-                   ImageSize=1000
-    )
-    
-  }
-  
-  #################################################################
-  # GET MODEL SCORES GRAPH
-  #################################################################
-  print(paste0("Capturing Model Scores Graph for ",myRespName))
-  
-  dir.create(paste0(dir_figs,"/",myRespName))
-  png(filename=paste0(dir_figs,"/",myRespName,"/",myRespName,"_model_scores-kappa-tss.png"))
-  models_scores_graph(myBiomodModelOut,metrics = c( 'KAPPA', 'TSS'),by = 'models',plot = TRUE)
-  dev.off()
-  
-  #################################################################
-  # GET PLOT OF OBSERVATIONS
-  #################################################################
-  print(paste0("Plotting Observations for ",myRespName))
-  
-  png(filename=paste0(dir_figs,"/",myRespName,"/",myRespName,"_observations.png"))
-  presab<-myResp
-  presab[is.na(presab)]<-0
-  level.plot(data.in = presab,
-             XY = myRespXY,
-             color.gradient = "red",
-             cex = .7,
-             level.range = c(min(presab), max(presab)),
-             show.scale = FALSE,
-             title = paste0(myRespName," Observations"),
-             SRC=FALSE,
-             ImageSize="large"
-             )
-
-  dev.off()
   
   #################################################################
   # PROJECT MODELS ONTO CURRENT AND FUTURE CONDITIONS
@@ -518,17 +463,18 @@ BioModApply <-function(sp.n) {
   myBiomodEM <- BIOMOD_EnsembleModeling(
     modeling.output = myBiomodModelOut,
     chosen.models = 'all',
-    em.by="PA_dataset+repet",
+    em.by="algo",
     eval.metric = c( 'KAPPA', 'TSS'),
-    eval.metric.quality.threshold = c(rep(0.6,2)),
+    eval.metric.quality.threshold = NULL,
     prob.mean = T,
     prob.cv = T,
     prob.ci = T,
     prob.ci.alpha = 0.05,
-    prob.median = T,
+    prob.median = F,
     committee.averaging = T,
     prob.mean.weight = T,
-    prob.mean.weight.decay = 'proportional' )
+    prob.mean.weight.decay = "proportional",
+    VarImport = 10)
   
   
   #################################################################
@@ -690,6 +636,87 @@ sfStop( nostop=FALSE )
 
 projects<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
 
+
+
+
+#################################################################
+# CAPTURE MODEL RESPONSE CURVES TO FILE
+#################################################################
+print(paste0("Writing Response Curve Plots to File for ",myRespName))
+
+myBiomodModelOut
+mod<-models[4]
+var <- sp.n[1]
+for (var in sp.n){
+  
+  for (mod in models){
+    modelfile<-load(paste0(dir_bm,"/",var,"/",var,".",var,"_current.models.out"))
+    modelsubset<-get(modelfile)
+    modelsubset
+    response.plot2(models= loadedmodel,
+                   Data = get_formal_data(myBiomodModelOut,'expl.var'), 
+                   show.variables = get_formal_data(myBiomodModelOut,'expl.var.names'),
+                   save.file = "tiff",
+                   name=paste0(dir_curves,"/",myRespName,"_",mod,"_curves"),
+                   col = c("blue", "red"),
+                   legend = TRUE,
+                   data_species = get_formal_data(myBiomodModelOut,'resp.var'),
+                   ImageSize=1000)
+    
+  }
+}
+
+for (mod in models){
+  
+  dir_curves<-paste0(dir_figs,"/",myRespName,"/response-curves")
+  dir.create(dir_curves,recursive=T)
+  dir.create(paste0(dir_figs,"/",myRespName))
+  modelfile<-load(paste0(dir_bm,"/",myRespName,"/",myRespName,".",myRespName,"_current.models.out"))
+  myBiomodModelOut<-get(modelfile)
+  loadedmodel<-biomod2::BIOMOD_LoadModels(myBiomodModelOut,models=mod)
+  dir.create(paste0(dir_figs,"/",myRespName))
+  
+  
+  response.plot2(models= loadedmodel,
+                 Data = get_formal_data(myBiomodModelOut,'expl.var'),
+                 show.variables = get_formal_data(myBiomodModelOut,'expl.var.names'),
+                 save.file = "tiff",
+                 name=paste0(dir_curves,"/",myRespName,"_",mod,"_curves"),
+                 col = c("blue", "red"),
+                 legend = TRUE,
+                 data_species = get_formal_data(myBiomodModelOut,'resp.var'))
+}
+
+#################################################################
+# GET MODEL SCORES GRAPH
+#################################################################
+print(paste0("Capturing Model Scores Graph for ",myRespName))
+
+dir.create(paste0(dir_figs,"/",myRespName))
+png(filename=paste0(dir_figs,"/",myRespName,"/",myRespName,"_model_scores-kappa-tss.png"))
+models_scores_graph(myBiomodModelOut,metrics = c( 'KAPPA', 'TSS'),by = 'models',plot = TRUE)
+dev.off()
+
+#################################################################
+# GET PLOT OF OBSERVATIONS
+#################################################################
+print(paste0("Plotting Observations for ",myRespName))
+
+png(filename=paste0(dir_figs,"/",myRespName,"/",myRespName,"_observations.png"))
+presab<-myResp
+presab[is.na(presab)]<-0
+level.plot(data.in = presab,
+           XY = myRespXY,
+           color.gradient = "red",
+           cex = .7,
+           level.range = c(min(presab), max(presab)),
+           show.scale = FALSE,
+           title = paste0(myRespName," Observations"),
+           SRC=FALSE,
+           ImageSize="large"
+)
+
+dev.off()
 # for (p in projs){
 #  ensemblestack<-raster::stack(paste0(dir_bm,"/",sp.n,"/",p,"/",p,"_",sp.n,"_ensemble.grd"))
 #  ensembleconsensus<-stackApply(ensemblestack,indices=rep(1:1,nlayers(ensemblestack)),fun=mean)
