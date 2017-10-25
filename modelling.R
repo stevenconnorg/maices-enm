@@ -66,58 +66,69 @@ requiredPackages<-(c("foreign",
                      "caret",
                      "tidyr",
                      "raster",
-                     "snowfall"))
+                     "snowfall",
+                     "quickPlot",
+                     "biomod2",
+                     "mgcv",
+                     "gbm",
+                     "dismo"
+                   ))
 
 Install_And_Load(requiredPackages)
 
-#####################################
-#       BIOMOD formatting Data      #
-#####################################
+#################################################################
+# PRELIMINARY DATA FORMATTING
+#################################################################
 
 # set wd inside biomod subdirectory
 setwd(dir_bm)
 
 
-# comment out when running cluster
+# get observation data formatted
 pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
 pa<-data.frame(pa)
 
-
-# get vector of species names
 names<-paste0(colnames(pa))
-sp.n= dput(names   [c(50)]
+sp.n= dput(names   [c(10:11)]
            ) #vector of species name(s), excluding lat and long cols
 
-#sp.n=c("TuxpeÃ±o"
-#,"Arrocillo.Amarillo"
-#        )     
+
+# read in model raster stacks
 
 presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"))
 f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"))
 f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
-# load(paste0(dir_bm,"/.RData"))
+# plot(f50modstack)
+# plot(presmodstack)
+# plot(f70modstack)
 
-library(quickPlot)
-names(presmodstack)<-gsub("crop_wc2.0_","",layerNames(presmodstack))
-names(presmodstack)<-gsub("_30s","",layerNames(presmodstack))
+# make sure raster stack names are the same, formatting first
 
-names(f50modstack)<-layerNames(presmodstack)
+names(presmodstack)<-gsub("crop_wc2.0_","",layerNames(presmodstack)) # remove prefix
+names(presmodstack)<-gsub("_30s","",layerNames(presmodstack))        # remove suffix
+names(f50modstack)<-layerNames(presmodstack)  # apply presmodstack layer names to future stacks
 names(f70modstack)<-layerNames(presmodstack)
 
-setwd(dir_bm)
 
+#################################################################
+# INITIALIZE FUNCTION TO APPLY TO EACH VARIETY
+#################################################################
 
+eval_metrics<-c( 'KAPPA', 'TSS')
+allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA",'MAXENT.Phillips','MAXENT.Tsuruoka')
+
+allmodels
 BioModApply <-function(sp.n) {
-  rasterOptions()$tmpdir
-  rasterOptions(tmpdir=root)
-  maxentjar<-paste0(dir_R,"/maxent/maxent.jar")
-  setwd(dir_bm)
-  library(biomod2)
+
   
-  library(mgcv)
-  options(max.print=1000000)
-  library(gbm)
-  library(dismo)
+  rasterOptions()$tmpdir      # get raster temp directory
+  rasterOptions(tmpdir=root)  # set raster temp directory
+  options(max.print=1000000)  # set max.print option high to capture outputs
+  maxentjar<-paste0(dir_R,"/maxent/maxent.jar") # define maxent jar location
+  
+  
+  setwd(dir_bm) 
+
   myRespName = sp.n
   myResp <- as.numeric(pa[,myRespName])
   myRespXY = pa[,c('Longitude.x.','Latitude.y.')]
@@ -140,6 +151,10 @@ BioModApply <-function(sp.n) {
   # techniques
   
   
+  #################################################################
+  # FORMAT INPUT DATA -- NOTE pseudo absences rep, selection, and #
+  #################################################################
+  
   # format input data for biomod
   myBiomodData <- BIOMOD_FormatingData(resp.var = myResp,
                                        resp.xy = myRespXY,
@@ -152,7 +167,9 @@ BioModApply <-function(sp.n) {
   )
   do.call(file.remove,list(list.files(pattern="temp*"))) 
   
-  # define model options
+  #################################################################
+  # DEFINE MODEL OPTIONS
+  #################################################################
   
   
   # print default biomod options 
@@ -247,6 +264,11 @@ BioModApply <-function(sp.n) {
                                                                         set_heldout = 0,
                                                                         verbose = FALSE))
   
+  
+  #################################################################
+  # TUNE MODEL OPTIONS -- NOT WORKING RN
+  #################################################################
+  
   # install.packages("ENMeval")
   # library(caret)
   # library(ENMeval)
@@ -266,6 +288,11 @@ BioModApply <-function(sp.n) {
   
 
   # capture.output(BIOMOD_TunedOptions$models.options,file=paste0(dir_out,"/model-opts/",myRespName,"_tuned_opts.txt"))
+  
+  
+  #################################################################
+  # BUILD MODELS
+  #################################################################
   
   # modeling
   myBiomodModelOut <- BIOMOD_Modeling(
@@ -288,10 +315,15 @@ BioModApply <-function(sp.n) {
   dir.create(paste0(dir_out,"/",myRespName))
   
   
+
+  #################################################################
+  # CAPTURE DATA INPUT AND MODEL OUTPUTS
+  #################################################################
+  
   # write data used for modelling
   capture.output(get_formal_data(myBiomodModelOut),
                  file=paste0(dir_out,"/",myRespName,"/",myRespName,"_model_data.txt"))
-  ### eval current model
+  
   
   print(paste0("Capturing Model Evaluations for ",myRespName))
   evalmods<-get_evaluations(myBiomodModelOut,as.data.frame=TRUE)
@@ -327,6 +359,10 @@ BioModApply <-function(sp.n) {
   # summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Phillips",sep="")))))
   # maxent_t1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Tsuruoka",sep=""))))
   
+  #################################################################
+  # CAPTURE MODEL RESPONSE CURVES TO FILE
+  #################################################################
+  
   dir_curves<-paste0(dir_figs,"/",myRespName,"/response-curves")
   dir.create(dir_curves,recursive=T)
   
@@ -346,13 +382,19 @@ BioModApply <-function(sp.n) {
     
   }
   
-  # get plot of model scores by metrc (only two at a time)
+  #################################################################
+  # GET MODEL SCORES GRAPH
+  #################################################################
+  
   dir.create(paste0(dir_figs,"/",myRespName))
   png(filename=paste0(dir_figs,"/",myRespName,"/",myRespName,"_model_scores-kappa-tss.png"))
   models_scores_graph(myBiomodModelOut,metrics = c( 'KAPPA', 'TSS'),by = 'models',plot = TRUE)
   dev.off()
   
-  # get observations 
+  #################################################################
+  # GET PLOT OF OBSERVATIONS
+  #################################################################
+  
   png(filename=paste0(dir_figs,"/",myRespName,"/",myRespName,"_observations.png"))
   presab<-myResp
   presab[is.na(presab)]<-0
@@ -369,6 +411,10 @@ BioModApply <-function(sp.n) {
 
   dev.off()
   
+  #################################################################
+  # PROJECT MODELS ONTO CURRENT AND FUTURE CONDITIONS
+  #################################################################
+  
   # model projections
   myBiomodProj <- BIOMOD_Projection(
     modeling.output = myBiomodModelOut,
@@ -381,88 +427,6 @@ BioModApply <-function(sp.n) {
     output.format = '.grd')
   
   
-  
-  do.call(file.remove,list(list.files(pattern="temp*"))) 
-
-  # write individual model to image grouped by model
-  allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA",'MAXENT.Phillips','MAXENT.Tsuruoka')
-  dir_projs<-paste0(dir_figs,"/",myRespName,"/projs")
-  dir.create(dir_projs,recursive=T)
-  
-  mod_proj <- get_predictions(myBiomodProj) 
-  for (mod in allmodels){
-    indices<-grep(paste0("*",mod), layerNames(mod_proj))
-    modprojs<-subset(mod_proj, indices, drop = TRUE)
-    png(filename=paste0(dir_projs,"/",myRespName,"_",mod,"_projections.png"))
-    plot(modprojs)
-    dev.off()
-  }
-  
-
-  
-  # ensemble modeling
-  myBiomodEM <- BIOMOD_EnsembleModeling(
-    modeling.output = myBiomodModelOut,
-    chosen.models = 'all',
-    em.by="PA_dataset+repet",
-    eval.metric = c( 'KAPPA', 'TSS'),
-    eval.metric.quality.threshold = c(rep(0.6,2)),
-    prob.mean = T,
-    prob.cv = T,
-    prob.ci = T,
-    prob.ci.alpha = 0.05,
-    prob.median = T,
-    committee.averaging = T,
-    prob.mean.weight = T,
-    prob.mean.weight.decay = 'proportional' )
-  
-
-  # write em models built
-  capture.output(get_built_models (myBiomodEM),
-                 file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_models.txt"))
-  
-  # capture em model evals 
-  print(paste0("Capturing Ensemble Models Evaluations ",myRespName))
-  capture.output(getEMeval(myBiomodEM),
-                 file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_mods_eval.txt"))
-  
-  stack()
-  
-  do.call(file.remove,list(list.files(pattern="temp*"))) 
-  
-  ### eval current model
-  
-  print(paste0("Capturing Model Ensemble Evaluations for ",sp.n))
-  enevalmods<-get_evaluations(myBiomodEM,as.data.frame=TRUE)
-  write.csv(enevalmods,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_evals-df.csv"))
-  
-  
-  # current ensemble projection
-  myBiomodEF <- BIOMOD_EnsembleForecasting(
-    EM.output = myBiomodEM,
-    projection.output = myBiomodProj,
-    binary.meth = c( 'KAPPA', 'TSS'),
-    )
-  
-
-
-  # plot ensemble forecasts grouped by metric
-  projects<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
-  eval_metrics<-c( 'KAPPA', 'TSS')
-  
-  
-  current_em_proj <- get_predictions(myBiomodEF) 
-  
-  for (eval in eval_metrics){
-    dir_forecasts<-paste0(dir_figs,"/",myRespName,"/forecasts")
-    dir.create(dir_forecasts,recursive=T)
-    indices<-grep(paste0("*",mod), layerNames(mod_proj))
-    forecasts<-subset(current_em_proj, indices, drop = TRUE)
-    png(filename=paste0(dir_forecasts,"/",myRespName,"_",eval,"_em_forecasts.png"))
-    plot(forecasts)
-    dev.off()
-  }
-  
   # future projections for rcp 85 period 70
   myBiomodProjFuture70 <- BIOMOD_Projection(
     modeling.output = myBiomodModelOut,
@@ -473,6 +437,7 @@ BioModApply <-function(sp.n) {
     compress = 'xz',
     clamping.mask = T,
     output.format = '.grd')
+  
   # future projections for rcp 85 period 50
   myBiomodProjFuture50 <- BIOMOD_Projection(
     modeling.output = myBiomodModelOut,
@@ -486,13 +451,23 @@ BioModApply <-function(sp.n) {
   
   do.call(file.remove,list(list.files(pattern="temp*"))) 
   
-
   
-  # plot future projection to file grouped by model
-  allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA",'MAXENT.Phillips','MAXENT.Tsuruoka')
+  #################################################################
+  # CAPTURE PLOTS OF PROJECTIONS BY MODEL
+  #################################################################
+  
+  # write individual model to image grouped by model
   dir_projs<-paste0(dir_figs,"/",myRespName,"/projs")
   dir.create(dir_projs,recursive=T)
   
+  mod_proj <- get_predictions(myBiomodProj) 
+  for (mod in allmodels){
+    indices<-grep(paste0("*",mod), layerNames(mod_proj))
+    modprojs<-subset(mod_proj, indices, drop = TRUE)
+    png(filename=paste0(dir_projs,"/",myRespName,"_",mod,"_projections.png"))
+    plot(modprojs)
+    dev.off()
+  }
   
   f_70_proj <- get_predictions(myBiomodProjFuture70) 
   for (mod in allmodels){
@@ -515,6 +490,88 @@ BioModApply <-function(sp.n) {
   do.call(file.remove,list(list.files(pattern="temp*"))) 
   
   
+  
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
+  
+  #################################################################
+  # BUILD ENSEMBLE MODELS
+  #################################################################
+  
+  
+  # ensemble modeling
+  myBiomodEM <- BIOMOD_EnsembleModeling(
+    modeling.output = myBiomodModelOut,
+    chosen.models = 'all',
+    em.by="PA_dataset+repet",
+    eval.metric = c( 'KAPPA', 'TSS'),
+    eval.metric.quality.threshold = c(rep(0.6,2)),
+    prob.mean = T,
+    prob.cv = T,
+    prob.ci = T,
+    prob.ci.alpha = 0.05,
+    prob.median = T,
+    committee.averaging = T,
+    prob.mean.weight = T,
+    prob.mean.weight.decay = 'proportional' )
+  
+  
+  #################################################################
+  # CAPTURE ENSEMBLE MODEL OUTPUTS
+  #################################################################
+  
+  # write em models built
+  capture.output(get_built_models (myBiomodEM),
+                 file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_models.txt"))
+  
+  # capture em model evals 
+  print(paste0("Capturing Ensemble Models Evaluations ",myRespName))
+  capture.output(getEMeval(myBiomodEM),
+                 file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_mods_eval.txt"))
+  
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
+  
+  ### eval current model
+  
+  print(paste0("Capturing Model Ensemble Evaluations for ",sp.n))
+  enevalmods<-get_evaluations(myBiomodEM,as.data.frame=TRUE)
+  write.csv(enevalmods,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_evals-df.csv"))
+  
+  #################################################################
+  # FORECAST EMSEMBLE MODELS BY CHOSEN METRICS
+  #################################################################
+  
+  # current ensemble projection
+  myBiomodEF <- BIOMOD_EnsembleForecasting(
+    EM.output = myBiomodEM,
+    projection.output = myBiomodProj,
+    weight.method=c('KAPPA','TSS'),
+    binary=T,
+    bin.method=c('KAPPA','TSS'),
+    PCA.median=TRUE, 
+    Test=TRUE, 
+    decay='proportional',
+    repetition.models=TRUE 
+    )
+  
+
+
+  # plot ensemble forecasts grouped by metric
+  projects<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
+  eval_metrics<-c( 'KAPPA', 'TSS')
+  
+  
+  current_em_proj <- get_predictions(myBiomodEF) 
+  
+  for (eval in eval_metrics){
+    dir_forecasts<-paste0(dir_figs,"/",myRespName,"/forecasts")
+    dir.create(dir_forecasts,recursive=T)
+    indices<-grep(paste0("*",mod), layerNames(mod_proj))
+    forecasts<-subset(current_em_proj, indices, drop = TRUE)
+    png(filename=paste0(dir_forecasts,"/",myRespName,"_",eval,"_em_forecasts.png"))
+    plot(forecasts)
+    dev.off()
+  }
+  
   f70BiomodEF <- BIOMOD_EnsembleForecasting(
     EM.output = myBiomodEM,
     projection.output = myBiomodProjFuture70,
@@ -525,19 +582,26 @@ BioModApply <-function(sp.n) {
     Test=TRUE, 
     decay='proportional',
     repetition.models=TRUE )
+  
   cat("\n\nExporting Ensemble as grd ...\n\n")
   
   do.call(file.remove,list(list.files(pattern="temp*"))) 
   
   f50BiomodEF <- BIOMOD_EnsembleForecasting(
     EM.output = myBiomodEM,
-    projection.output = myBiomodProjFuture50)
-  cat("\n\nExporting Ensemble as grd ...\n\n")
+    projection.output = myBiomodProjFuture50,
+    weight.method=c('KAPPA','TSS'),
+    binary=T,
+    bin.method=c('KAPPA','TSS'),
+    PCA.median=TRUE, 
+    Test=TRUE, 
+    decay='proportional',
+    repetition.models=TRUE )
   
+
   do.call(file.remove,list(list.files(pattern="temp*"))) 
   
   
-  eval_metrics<-c( 'KAPPA', 'TSS')
   
   
   f70forecasts <- get_predictions(f70BiomodEF) 
@@ -573,13 +637,7 @@ BioModApply <-function(sp.n) {
   # EF_50stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_rcp85_50",sp.n,"_ensemble.grd"))
   # plot a layer in the ensemble stack
   # plot(EF_stack[[6]])
-  
-  myBiomodEF
-  EF_stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_current_",sp.n,"_ensemble.grd"))
-  for (l in EF_stack){
-    plot(l)
-  }
-  plot(EF_stack[[6]])
+
   
 }
 
@@ -616,6 +674,17 @@ currentensemble<-stack(file.path(variety,
                                        "_ensemble.grd", sep="")))
 names(currentensemble)
 
+
+
+
+# get alpha diversity map
+pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
+pa<-data.frame(pa)
+
+# get vector of species names
+names<-paste0(colnames(pa))
+varieties <- dput(names[c(49)])
+           
 # # add all other species map
 for(variety in sp.n){
   # add layer
@@ -635,35 +704,3 @@ plot(alphaMap)
 
 
 
-
-
-
-
-
-
-
-#EXPORTING ENSEMBLE MODEL PROJECTION AS ASCII FOR USE IN OUTSIDE MAPPING SOFTWARE
-gridName = paste(coutputFolderName,myRespName,"ensemble.grd",sep="_")  
-gridDir = paste(myRespName,coutputFolderName,gridName,sep="/")
-MyRaster = raster(paste(myRespName,coutputFolderName,gridName,sep="/"))
-writeRaster(MyRaster,file=paste0(sp.n,"_EnsembleRaster.asc"), format = 'ascii', overwrite = TRUE)
-print("Done Exporting Ensemble as ASCII")
-
-cat("\n\nExporting Model Plots ...\n\n")
-#EXPORTING PLOTS FOR EACH MODEL & ENSEMBLE TO 'PLOTS' FOLDER IN WD
-
-model_names <- c("GLM","GBM","GAM","ANN","SRE","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
-
-              
-model_names <- c("GLM","GBM","GAM","ANN","SRE","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
-i<-model_names[1]
-for (i in myBiomodProj@models.projected){
-  raster::plot(i)
-}
-
-png(paste0("plots/ensemble_",sp.n,".png"))
-raster::plot(myBiomodEF)
-dev.off()
-print("Done Exporting Model Plots")
-
-# }
