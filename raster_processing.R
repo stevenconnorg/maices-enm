@@ -16,7 +16,7 @@ dir_presentations<-paste0(root,"/07_pres")
 
 dir_maices<-paste0(dir_dat,"/maices")
 dir_ind<-paste0(dir_dat,"/ind")
-
+dir_topo<-paste0(dir_dat,"/topo")
 # 
 dir_clim<-paste0(dir_dat,"/clim")
 dir_pres<-paste0(dir_clim,"/present")
@@ -139,130 +139,8 @@ pam[pam == 0 ] <- NA
 write.csv(pam,file=paste0(dir_out,"/pam.csv"))
 save.image(file=paste0(dir_out,"/clean_maices_obs.RData"))
 
-#####################################
-# Indigenous vars processing and rasterization using CONABIO data
-# http://www.conabio.gob.mx/informacion/gis/maps/geo
-
-setwd(dir_ind)
-
-# define a vector of variable names wanted to download
-# copy link address of .shp you want to download to view var name from CONABIO geoportal
-
-vars<-c("poinmun10gw", # Indigenous population data by municipio geometry
-        "lengmun90gw", # 1st, 2nd, 3rd, and 4th major indigenous language by municipio geometry (1990)
-        "presindigw"   # Categorical indicators of indigenous population magnitude by municipio
-)
-
-
-
-for (i in vars) {
-  download.file(paste0("http://www.conabio.gob.mx/informacion/gis/maps/geo/",i,".zip"),destfile = paste0(dir_ind,"/",i,".zip"),method = "wget")
-  zipF<-paste0(dir_ind,"/",i,".zip") # lets you choose a file and save its file path in R (at least for windows)
-  outDir<-paste0(dir_ind,"/",i) # Define the folder where the zip file should be unzipped to 
-  unzip(zipF,exdir=outDir)  # unzip your file 
-  
-}
-
-# for (m in replacements) {
-#  files <- list.files(outDir,pattern = i, full.names = F) 
-#   sapply(files,FUN=function(eachPath){
-#   file.rename(from=eachPath,to=sub(pattern= paste0(i,".*"),replacement= paste0(m,".*"),eachPath))
-#     })
-#   }
-
-}
-
-ind_shps<-array()
-
-# read in shapefiles inside dir (recursive), naming Spatial* object with shpfile name
-shps <- dir(dir_ind, "*.shp",recursive = T)
-shps
-shps <- gsub('\\.shp$',"",shps)
-for (shp in shps) assign(shp, readOGR(paste0(dir_ind,"/",shp,"/",shp,".shp"),layer=shp))
-
-
-## 
-
-#read in shapefiles
-shapefiles <- dir(dir_ind, "*.shp",recursive=TRUE) # read in shapefiles into r environment
-
-
-## Do pca on ethnographic variables
-??pca
-# read in some data for mexico to get outline to crop
-library(rgeos)
-library(tibble)
-library(OpenStreetMap)
-library(tmap)
-pob_ind_2010<-readOGR(dsn=paste0(dir_dat,"/indigeneity/CONABIO/Municipio/poinmun10gw.shp"),layer="poinmun10gw")
-pob_ind_2010@data$pcnt1<-(pob_ind_2010@data$P3I10 / pob_ind_2010@data$P3T10)*100
-pob_ind_2010@data$pcnt2<-(pob_ind_2010@data$P3I10 / pob_ind_2010@data$P3T10)*100
-pob_ind_2010@data$pcnt3<-(pob_ind_2010@data$MON10 / pob_ind_2010@data$P3T10)*100
-pob_ind_2010@data$pcnt4<-(pob_ind_2010@data$BIL10 / pob_ind_2010@data$P3T10)*100
-pob_ind_2010@data$pcnt5<-(pob_ind_2010@data$NEI10 / pob_ind_2010@data$P3T10)*100
-pob_ind_2010@data$pcnt6<-(pob_ind_2010@data$NLI10 / pob_ind_2010@data$P3T10)*100
-pob_ind_2010@data$pcnt7<-(pob_ind_2010@data$NELI10 / pob_ind_2010@data$P3T10)*100
-pca<-prcomp(~pcnt1+pcnt2+pcnt3+pcnt4+pcnt5+pcnt6+pcnt7,data= pob_ind_2010@data,center=TRUE,scale=TRUE)
-print(pca)
-plot(pca,type="l")
-screeplot(pca)
-summary(pca)
-
-# plot pca values from dataframe
-library(devtools)
-install_github("ggbiplot", "vqv")
-
-library(ggbiplot)
-g <- ggbiplot(pca, obs.scale = 1, var.scale = 1, 
-              # groups = ir.species, 
-              ellipse = TRUE, 
-              circle = TRUE)
-g <- g + scale_color_discrete(name = '')
-g <- g + theme(legend.direction = 'horizontal', 
-               legend.position = 'top')
-print(g)
-
-# join pca to original shape
-pob_ind_2010@data<-rownames_to_column(pob_ind_2010@data,var="id")
-scores<-as.data.frame(pca$x)
-scores<-rownames_to_column(scores,var="id")
-
-# merge scores to spolydf
-pob_ind_2010@data<-merge(x=pob_ind_2010@data,y=scores,by="id")
-colnames(pob_ind_2010@data)
-
-# plot pc1 over geometry
-qtm(shp = pob_ind_2010, fill = c(paste0("PC1",rep(1:7))), fill.palette = "-Blues",ncol=2) 
-# crs(pob_ind_2010)
-# ind_wgs = spTransform(pob_ind_2010, CRS("+init=epsg:4326"))
-ind_wgs<-pob_ind_2010
-osm_tiles = tmaptools::read_osm(bbox(ind_wgs)) #
-
-# plot pc1 over geometry with osm tiles
-tm_shape(osm_tiles) + tm_raster() + tm_shape(ind_wgs) +
-  tm_fill("PC1", fill.title = "Ethnolinguistic Component", scale = 0.8, alpha = 0.5) +
-  tm_layout(legend.position = c(0.89,0.02))
-
-
-# rasterize pca results for pc 1 and 2
-ethnlang1 <- rasterize(pob_ind_2010, r, field = pob_ind_2010@data$PC1, fun = "mean", 
-                       update = FALSE, updateValue = "NA")
-ethnlang2 <- rasterize(pob_ind_2010, r, field = pob_ind_2010@data$PC2, fun = "mean", 
-                       update = FALSE, updateValue = "NA")
-
-
-# plot rasters
-plot(ethnlang1)
-plot(ethnlang2)
-
-extent(cropstack)
-extent(ind)
-extent(ind) <- extent(cropstack)
-
-writeRaster(ethnlang1, paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif"), bylayer=FALSE, format='GTiff',overwrite=TRUE)
-plot(ind)
-
 save.image(paste0(dir_pres,"/raster_processing.RData"))
+
 
 # get topographic variables
 urltopo<-c("http://biogeo.ucdavis.edu/data/climate/worldclim/1_4/tiles/cur/")
@@ -279,16 +157,27 @@ files<-regmatches(urls,r)
 mapply(function(x,y) download.file(x,y),urls,files)
 lapply(grep(".zip",files, value=TRUE),unzip)
 
-http://www.worldclim.org/tiles.php
-altrasters<-Sys.glob(file.path("C:/Users/Steven Gonzalez/Desktop/Geo-7300/Data/climatological/present/raw/tiffs/alt*.tif"))
-alt.list<-list()
-for(i in 1:length(altrasters)) {alt.list[i]<-raster(altrasters[i])}
 
-alt.list$fun <- mean
-alt.mosaic <- do.call(mosaic,alt.list)
+### DOWNLOAD WORLDCLIM ALTITUDE SRTM
+tiles<-(c("11","12","13","21","22","23"))
+for (i in tiles){
+  download.file(paste0("http://biogeo.ucdavis.edu/data/climate/worldclim/1_4/tiles/cur/alt_",i,"_tif.zip"),destfile = paste0(dir_topo,"/alt_",i,".zip"),method = "wget")
+  zipF<-paste0(dir_topo,"/alt_",i,".zip") # lets you choose a file and save its file path in R (at least for windows)
+  outDir<-paste0(dir_topo,"/alt_",i) # Define the folder where the zip file should be unzipped to 
+  unzip(zipF,exdir=outDir)  # unzip your file 
+}
 
-writeRaster(alt.mosaic,filename="C:/Users/Steven Gonzalez/Desktop/Geo-7300/Data/climatological/present/mosaics/altitude_mosaic.tif",format="GTiff")/
-  plot(alt.mosaic,main="Altitude (m) (30 arc seconds x 30 arc seconds")
+# altrasters<-list.files(dir_topo,pattern=".bil",full.names = T,recursive=T)
+
+altrasters<-lapply(list.files(dir_topo,pattern=".tif",full.names = T,recursive=T),raster)
+altrasters$fun<-mean
+alt.mosaic<-do.call(mosaic,altrasters)
+crs(alt.mosaic)<-"+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+names(alt.mosaic)<-"altitude"
+alt.crop<-crop(alt.mosaic,r)
+writeRaster(alt.crop,filename=paste0(dir_topo,"/alt_cropped.grd"),format="raster",overwrite=T)
+
+
 
 ##############################################
 # download and unzip present 2.0 climate data
@@ -492,58 +381,73 @@ save.image(paste0(dir_clim,"/raster_processing.RData"))
 print(coll_vars_pres)
 coll_vars_pres
 # manually select raster layers to retain from climate pca, including other variables of interest
-presmodstack<-stack(paste0(dir_p.mosaics,"/crop/crop_bio5.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio6.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio18.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio3.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio17.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio4.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio15.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio8.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio9.tif"),
-                    paste0(dir_p.mosaics,"/crop/crop_bio2.tif"),
-                    paste0(dir_dat,"/topo/crop/crop_topo_roughness_mosaic.tif"),
-                    paste0(dir_dat,"/topo/crop/crop_topo_altitude_mosaic.tif"),
-                    paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif")
+presmodstack<-stack(paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_05.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_06.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_18.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_03.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_17.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_04.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_15.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_08.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_09.tif"),
+                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_02.tif"),
+                    paste0(dir_topo,"/alt_cropped.grd"),
+                    paste0(dir_ind,"/pob-ind.grd")
                     
 )
+
+# presprojstack<-stack(paste0(dir_p.mosaics,"wc2.0_bio_30s_05.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_06.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_18.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_03.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_17.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_04.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_15.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_08.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_09.tif"),
+#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_02.tif"),
+#                     paste0(dir_topo,"/alt_cropped.grd"),
+#                     paste0(dir_ind,"/pob-ind.grd")
+#                     
+# )
 
 coll_vars_pres_mod<-virtualspecies::removeCollinearity(presmodstack,multicollinearity.cutoff = 0.7, select.variables = FALSE, sample.points = TRUE, nb.points = (presmodstack@ncols/2),plot = TRUE)
 
 presmodstack
 
-f50modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_5_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_6_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_18_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_3_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_17_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_4_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_15_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_15_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_8_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_9_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi50_2_ensemble.tif"),
-                   paste0(dir_dat,"/topo/crop/crop_topo_roughness_mosaic.tif"),
-                   paste0(dir_dat,"/topo/crop/crop_topo_altitude_mosaic.tif"),
-                   paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif")
+
+f50modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/50/85bi505_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi506_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi5018_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi503_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi5017_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi504_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi5015_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi508_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi509_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi502_ensemble.grd"),
+                   paste0(dir_topo,"/alt_cropped.grd"),
+                   paste0(dir_ind,"/pob-ind.grd")
                    
                    
 )
 
-f70modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_5_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_6_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_18_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_3_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_17_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_4_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_15_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_8_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_9_ensemble.tif"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi70_2_ensemble.tif"),
-                   paste0(dir_dat,"/topo/crop/crop_topo_roughness_mosaic.tif"),
-                   paste0(dir_dat,"/topo/crop/crop_topo_altitude_mosaic.tif"),
-                   paste0(dir_dat,"/ethn/rasts/ethn_lang-pc1.tif")
+f70modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/70/85bi705_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi706_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi7018_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi703_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi7017_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi704_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi7015_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi708_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi709_ensemble.grd"),
+                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi702_ensemble.grd"),
+                   paste0(dir_topo,"/alt_cropped.grd"),
+                   paste0(dir_ind,"/pob-ind.grd")
+                   
+                   
 )
+
 
 
 save(presmodstack,file=paste0(dir_stacks,"/present_modstack.RData"))
