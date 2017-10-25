@@ -362,18 +362,20 @@ BioModApply <-function(sp.n) {
   #################################################################
   # CAPTURE MODEL RESPONSE CURVES TO FILE
   #################################################################
+  print(paste0("Writing Response Curve Plots to File for ",myRespName))
   
   dir_curves<-paste0(dir_figs,"/",myRespName,"/response-curves")
   dir.create(dir_curves,recursive=T)
+  dir.create(paste0(dir_figs,"/",myRespName))
   
-  for (mods in models){
-    loadedmodel<-biomod2::BIOMOD_LoadModels(myBiomodModelOut,models=mods)
-    dir.create(paste0(dir_figs,"/",myRespName))
+  myBiomodModelOut
+  for (mod in models){
+    loadedmodel<-biomod2::BIOMOD_LoadModels(myBiomodModelOut,models=mod)
     response.plot2(models= loadedmodel,
                    Data = get_formal_data(myBiomodModelOut,'expl.var'), 
                    show.variables = get_formal_data(myBiomodModelOut,'expl.var.names'),
                    save.file = "tiff",
-                   name=paste0(dir_curves,"/",myRespName,"_",mods,"_curves"),
+                   name=paste0(dir_curves,"/",myRespName,"_",mod,"_curves"),
                    col = c("blue", "red"),
                    legend = TRUE,
                    data_species = get_formal_data(myBiomodModelOut,'resp.var'),
@@ -385,6 +387,7 @@ BioModApply <-function(sp.n) {
   #################################################################
   # GET MODEL SCORES GRAPH
   #################################################################
+  print(paste0("Capturing Model Scores Graph for ",myRespName))
   
   dir.create(paste0(dir_figs,"/",myRespName))
   png(filename=paste0(dir_figs,"/",myRespName,"/",myRespName,"_model_scores-kappa-tss.png"))
@@ -394,6 +397,7 @@ BioModApply <-function(sp.n) {
   #################################################################
   # GET PLOT OF OBSERVATIONS
   #################################################################
+  print(paste0("Plotting Observations for ",myRespName))
   
   png(filename=paste0(dir_figs,"/",myRespName,"/",myRespName,"_observations.png"))
   presab<-myResp
@@ -415,6 +419,8 @@ BioModApply <-function(sp.n) {
   # PROJECT MODELS ONTO CURRENT AND FUTURE CONDITIONS
   #################################################################
   
+  print(paste0("Projecting onto Current Dataset for ",myRespName))
+  
   # model projections
   myBiomodProj <- BIOMOD_Projection(
     modeling.output = myBiomodModelOut,
@@ -426,6 +432,7 @@ BioModApply <-function(sp.n) {
     clamping.mask = TRUE,
     output.format = '.grd')
   
+  print(paste0("Projecting onto Future (2070) for ",myRespName))
   
   # future projections for rcp 85 period 70
   myBiomodProjFuture70 <- BIOMOD_Projection(
@@ -437,6 +444,8 @@ BioModApply <-function(sp.n) {
     compress = 'xz',
     clamping.mask = T,
     output.format = '.grd')
+  
+  print(paste0("Projecting  onto Future (2050) for ",myRespName))
   
   # future projections for rcp 85 period 50
   myBiomodProjFuture50 <- BIOMOD_Projection(
@@ -460,6 +469,8 @@ BioModApply <-function(sp.n) {
   dir_projs<-paste0(dir_figs,"/",myRespName,"/projs")
   dir.create(dir_projs,recursive=T)
   
+  print(paste0("Saving Individual Model Predictions by Model onto Current Data for ",myRespName))
+  
   mod_proj <- get_predictions(myBiomodProj) 
   for (mod in allmodels){
     indices<-grep(paste0("*",mod), layerNames(mod_proj))
@@ -469,6 +480,8 @@ BioModApply <-function(sp.n) {
     dev.off()
   }
   
+  print(paste0("Saving Individual Model Predictions by Model onto Future (2070) Data for ",myRespName))
+  
   f_70_proj <- get_predictions(myBiomodProjFuture70) 
   for (mod in allmodels){
     indices<-grep(paste0("*",mod), layerNames(mod_proj))
@@ -477,6 +490,8 @@ BioModApply <-function(sp.n) {
     plot(modprojs)
     dev.off()
   }
+  
+  print(paste0("Saving Individual Model Predictions by Model onto Future (2050) Data for ",myRespName))
   
   f_50_proj <- get_predictions(myBiomodProjFuture50) 
   for (mod in allmodels){
@@ -497,6 +512,7 @@ BioModApply <-function(sp.n) {
   # BUILD ENSEMBLE MODELS
   #################################################################
   
+  print(paste0("Building Ensemble Models for ",myRespName))
   
   # ensemble modeling
   myBiomodEM <- BIOMOD_EnsembleModeling(
@@ -519,6 +535,8 @@ BioModApply <-function(sp.n) {
   # CAPTURE ENSEMBLE MODEL OUTPUTS
   #################################################################
   
+  print(paste0("Capturing Ensemble Model Outputs for  ",myRespName))
+  
   # write em models built
   capture.output(get_built_models (myBiomodEM),
                  file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_models.txt"))
@@ -539,6 +557,8 @@ BioModApply <-function(sp.n) {
   #################################################################
   # FORECAST EMSEMBLE MODELS BY CHOSEN METRICS
   #################################################################
+  
+  print(paste0("Performing Ensemble Forcasting onto Current Data for ",myRespName))
   
   # current ensemble projection
   myBiomodEF <- BIOMOD_EnsembleForecasting(
@@ -562,6 +582,8 @@ BioModApply <-function(sp.n) {
   
   current_em_proj <- get_predictions(myBiomodEF) 
   
+  print(paste0("Saving Current Ensemble Plots for  ",myRespName))
+  
   for (eval in eval_metrics){
     dir_forecasts<-paste0(dir_figs,"/",myRespName,"/forecasts")
     dir.create(dir_forecasts,recursive=T)
@@ -571,6 +593,8 @@ BioModApply <-function(sp.n) {
     plot(forecasts)
     dev.off()
   }
+  
+  print(paste0("Performing Ensemble Forcasting onto Future (2070) Data for ",myRespName))
   
   f70BiomodEF <- BIOMOD_EnsembleForecasting(
     EM.output = myBiomodEM,
@@ -586,6 +610,9 @@ BioModApply <-function(sp.n) {
   cat("\n\nExporting Ensemble as grd ...\n\n")
   
   do.call(file.remove,list(list.files(pattern="temp*"))) 
+  
+  
+  print(paste0("Performing Ensemble Forcasting onto Future (2050) Data for ",myRespName))
   
   f50BiomodEF <- BIOMOD_EnsembleForecasting(
     EM.output = myBiomodEM,
@@ -603,6 +630,7 @@ BioModApply <-function(sp.n) {
   
   
   
+  print(paste0("Saving Future (2070) Ensemble Plots for  ",myRespName))
   
   f70forecasts <- get_predictions(f70BiomodEF) 
   
@@ -616,6 +644,7 @@ BioModApply <-function(sp.n) {
     dev.off()
   }
 
+  print(paste0("Saving Future (2050) Ensemble Plots for  ",myRespName))
   
   f50forecasts <- get_predictions(f50BiomodEF) 
   
@@ -641,6 +670,8 @@ BioModApply <-function(sp.n) {
   
 }
 
+## alternatively with lapply
+myLapply_SFModelsOut <- lapply( sp.n, BioModApply)
 
 
 # snowfall initialization
@@ -652,6 +683,7 @@ sfExportAll()
 # you may also use sfExportAll() to export all your workspace variables
 ## Do the run
 mySFModelsOut <- sfLapply( sp.n, BioModApply)
+
 
 ## stop snowfall
 sfStop( nostop=FALSE )
