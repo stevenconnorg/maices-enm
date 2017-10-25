@@ -141,7 +141,7 @@ BioModApply <-function(sp.n) {
   # Barbet-Massin et al 2012:
   #   Overall, we recommend the use of a large number (e.g. 10 000) of pseudo-absences with equal
   # weighting for presences and absences when using regression techniques (e.g. generalised linear
-  #                                                                        model and generalised additive model); averaging several runs (e.g. 10) with fewer pseudo-absences
+  # model and generalised additive model); averaging several runs (e.g. 10) with fewer pseudo-absences
   # (e.g. 100) with equal weighting for presences and absences with multiple adaptive regression splines
   # and discriminant analyses; and using the same number of pseudo-absences as available presences
   # (averaging several runs if few pseudo-absences) for classification techniques such as boosted regression
@@ -165,6 +165,7 @@ BioModApply <-function(sp.n) {
                                        PA.strategy = "random",
                                        na.rm=TRUE
   )
+  
   do.call(file.remove,list(list.files(pattern="temp*"))) 
   
   #################################################################
@@ -466,10 +467,9 @@ BioModApply <-function(sp.n) {
     em.by="algo",
     eval.metric = c( 'KAPPA', 'TSS'),
     eval.metric.quality.threshold = NULL,
-    prob.mean = T,
+    prob.mean = F,
     prob.cv = T,
-    prob.ci = T,
-    prob.ci.alpha = 0.05,
+    prob.ci = F,
     prob.median = F,
     committee.averaging = T,
     prob.mean.weight = T,
@@ -675,11 +675,11 @@ projects<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
 
 ### READ IN PLOTS FROM FILE
 # plot models
-Pep.projs<-load(paste0(dir_bm,"/Pepitilla/proj_current/Pepitilla.current.projection.out"))
-Pepitilla.current_proj<-get(Pep.projs)
+Pep.mods<-load(paste0(dir_bm,"/Pepitilla/Pepitilla.Pepitilla_current.models.out"))
+Pepitilla.current_mod<-get(Pep.projs)
 
-plot(Pepitilla.current_proj, str.grep = "RF")
-
+predictions<-get_predictions(Pepitilla.Pepitilla_current.models.out)
+plot(predictions)
 # plot ensembles
 Pep.emprojs<-load(paste0(dir_bm,"/Pepitilla/proj_current/Pepitilla.current.ensemble.projection.out"))
 Pepitilla.current_emproj<-get(Pep.emprojs)
