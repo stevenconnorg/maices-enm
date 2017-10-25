@@ -640,6 +640,71 @@ projects<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
 
 
 #################################################################
+# LOADING MODELS AND PROJECTIONS AFTER MODELLING
+#################################################################
+### 
+projects<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
+
+
+### UNDER CONSTRUCTION...
+
+# for (p in projects){...}
+
+# for (var in sp.n) {
+# modelfile<-load(paste0(dir_bm,"/",var,"/",var,".",var,"_current.models.out"))
+# ...
+
+
+###...
+
+# }
+# 
+
+
+# Pep.currentmods<-load(paste0(dir_bm,"/Pepitilla/Pepitilla.Pepitilla_current.models.out"))
+# Pepitilla.current.mods<-get(Pep.currentmods)
+
+# data <- cbind(Pepitilla=get_formal_data(Pepitilla.current.mods,'resp.var'), 
+#               get_formal_data(Pepitilla.current.mods,'expl.var'))
+# View(data)
+
+# models<-BIOMOD_LoadModels(Pepitilla.current.mods)
+# variables_importance(models,data=data)
+
+
+
+### READ IN PLOTS FROM FILE
+# plot models
+Pep.projs<-load(paste0(dir_bm,"/Pepitilla/proj_current/Pepitilla.current.projection.out"))
+Pepitilla.current_proj<-get(Pep.projs)
+
+plot(Pepitilla.current_proj, str.grep = "RF")
+
+# plot ensembles
+Pep.emprojs<-load(paste0(dir_bm,"/Pepitilla/proj_current/Pepitilla.current.ensemble.projection.out"))
+Pepitilla.current_emproj<-get(Pep.emprojs)
+
+predictions<-get_predictions(Pepitilla.current_emproj)
+plot(predictions)
+
+# or by reading in .grd files
+Pep.emstackcurrent<-stack(paste0(dir_bm,"/Pepitilla/proj_current/proj_current_Pepitilla_ensemble.grd"))
+Pep.emstackcurrent
+plot(Pep.emstackcurrent)
+
+Pep.emstack50<-stack(paste0(dir_bm,"/Pepitilla/proj_rcp85_50/proj_rcp85_50_Pepitilla_ensemble.grd"))
+
+plot(Pep.emstack)
+
+
+## current mean consensus
+Pep.meancn<-stack(paste0(dir_bm,"/Pepitilla/proj_current/proj_current_Pepitilla_mean_consensus.grd"))
+
+plot(Pep.meancn)
+
+
+
+#################################################################
 # CAPTURE MODEL RESPONSE CURVES TO FILE
 #################################################################
 print(paste0("Writing Response Curve Plots to File for ",myRespName))
