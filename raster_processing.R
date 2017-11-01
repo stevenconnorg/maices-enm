@@ -254,7 +254,17 @@ ar5.df<-data.frame('Scenario' = c('RCP2.6','RCP4.5','RCP6.0','RCP8.5'),
                    '2081 - 2100' = c('1.0 (0.3 to 1.7)','1.8 (1.1 to 2.6)','1.2 (1.4 to 3.1)','3.7 (2.6 to 4.8)'))
 mods<-expand.grid(var=c("tn","tx","pr","bi"),   #tn, tx, pr, or bi, no bi?
                   rcp=c(85), ##26, 45, 60, 85   # rcp
-                  model=c("HE","IP","HD","HG"), # models
+                  model=
+                    
+                  
+                  # following Condo et al. 2011 "Regional climate change scenarios for México." Atmósfera 24(1), 125-140 (2011)
+                  c("CC", # CCSM4 (Community Climate System Model, UCAR)- new version of CCSM-30 
+                    "MC", # MIROC5 (Model for Interdisciplinary Research on Climate)- new version of MIROC-HI; "Although its good performance and high resolution, MIROC32-HIRES model has an inconvenience: its sensibility is 5.6 ºC, way higher than the 3 ºC marked as “best estimate” in IPCC´s AR4 (Wigley, 2008). " (Conde et al. 2011)
+                    "MP", # MPI-ESM-LR (Max-Plank Institute) - per 5th National Communication of Mexico for the United Nations Framework Convention on Climate Change http://atlasclimatico.unam.mx/atlas/Docs/f_escenarios.html
+                   #"HE", # HADGEM2-ES (Met Office Hadley)per 5th  removed because already downloaded
+                    "GF") # GFDL-CM3 (Geophysical Fluid Dynamics Laboratory )
+                  ,
+                  
                   year=c(50,70), ##50 or 70     # period 2050 or 2070
                   res="30s") %>%                # resolution
   

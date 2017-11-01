@@ -3,21 +3,20 @@ Evaluating Impacts of Climate Change on Traditional Mexican Maize
 author: Steven C. Gonzalez
 date: December 6th, 2017
 autosize: true
+width: 1440
+height: 900
+font-family: arial
 Presented to:<br />
-Advsior - Dr. Russell Weaver<br />
-Committee Members - <br />
+Dr. Russell Weaver<br />
+Dr. Jennifer Jensen <br />
+Dr. Thomas Ballinger <br />
+
 
 ```{r,echo=FALSE} 
 
 # establish directories
 root<-"E:\\thesis"
 setwd(root)
-
-# new directories for biomod
-
-
-# dir_bmz<-paste0(dir_R,"/02_biomodez")
-
 
 dir_dat<-paste0(root,"/01_data")
 dir_R<-paste0(root,"/02_R")
@@ -44,27 +43,153 @@ dir_stacks<-paste0(dir_clim,"/stacks/")
 
 ```
 
-Using knitcitations
-=======================================================
 
-Example Citation
-=======================================================
-
-```{r, echo = FALSE}
+```{r, echo=FALSE}
 library(knitcitations)
-bib<-read.bibtex("thesis.bib")
-
+options(encoding = 'UTF-8')
 ```
 
-See the `knitcitations` vignette for details on how to add citations, such as
-`r citep(bib["Perales2014"])`
+
+Introduction
+=======================================================
+incremental: true
+- Climate change is expected heavily impact natural and human systems worldwide (Walther, G.-R. et al., 2002; IPCC 2007, 2013; Kang, Y, S. Khan 2009; Hoegh-Guldberg, O. 2010)
+- The IPCC reports numerous negative impacts of climate change on domesticated crops regardless of the emission scenario implemented (Brown and Funk 2008; Ureta et al. 2012; IPCC 2013)
+
+- Maize (<i>Zea mays</i> subsp. <i>mays</i> L.) supplies a staple food crop for more than 200 million people worldwide (Nuss and Tanumihardjo 2010; Ureta et al. 2013)
+    - Mexico, maize's C.O.D., harbors traditional maize landraces that account for 60% of maize genetic diversity globally (Ureta et al. 2013)
+    - Preservation of agrobiodiversity at centers of domestication
+    - Evaluating the impacts of climate change on Mexican Maize landraces is of increasing importance
+
+
+Traditional Maize Landrace Evolution
+=======================================================
+incremental: true
+- Maize likely evolved in the Balsas River drainage basin at least 9,000 years ago from wild varieties of the Mexican annual teosinte (<i>Z. mays</i> ssp. <i>Parviglumus</i> and ssp. <i>mexicana</i> ) via artificial selection by indigenous cultures (Matsuoka et al. 2002; Kato et al. 2009). 
+- From here, maize varieties then migrated in two major pathways into North and South America (Matsuoka et al. 2002). 
+- Today, continuous variation in phenotypes exist, but with regional clusters of landraces that share greater similarity than with other landraces in other regions (Cutler 1942; Anderson 1947; E.J. Wellhausen, L.M. Roberts, E.Hernandez X., Paul C 1952; Dyer and López-Feldman 2013)
+
+***
+ # tk make image of balsas river basin
+ 
+![my image](figs/Pepitilla_observations.png)
+
+
+
+Bioclimatic Envelopes of Maize Landraces
+=======================================================
+incremental: true
+[CONABIO Maize Diversity Shiny App](https://conabio.shinyapps.io/shiny_maiz/)
+
+
+- Maize landraces have evolved to an incredible array of conditions through its evolution
+- Topographic variables, particularly elevation, greatly influence maize landrace distributions (Ruiz C., Sánchez G., and Goodman 1998; Perales R., Brush, and Qualset 2003; Perales and Golicher 2014; Ureta et al. 2015)
+- Maize landraces have been grown (Ruiz Corral et al. 2008):
+    - from sea-level to 2,900 m asl
+    - with growing season mean temperatures ranging from 12.0 &deg;C to 29.1 &deg;C
+    - with average growing season rainfalls ranging from 400 mm to 3555 mm 
+    
+
+
+Maize as a Mirror of Humanity
+=======================================================
+incremental: true
+- As a domesticated crop, maize is intimately contingent upon societal influences, also
+- Edgar Anderson , first formalized maize diversity using maize landrace classification, first noted "maize [as] as sensitive mirror of the people of who grow it" (Anderson, 1942, 1947)
+- Today, numerous studies indicate human influences on maize distribution and diversity, including
+    - Seed management practices (Anderson 1947; Dyer and López-Feldman 2013)
+    - Indigenous religious practices (Rendón-Aguilar et al., 2015) 
+    - Ethnolinguistic diversity (Perales, Benz, and Brush 2005; Brush and Perales 2007; Rivero-Romero et al. 2016)
+    - Indigenous agricultural knowledge (García-Martínez et al. 2016; Rivero-Romero et al. 2016), 
+    - Agro-technological practices (García-Martínez et al. 2016; Rivero-Romero et al. 2016; Toledo and Barrera-Bassols 2017)
+    
+
+
+
+Purpose Statement
+=======================================================
+- This research aims to identify the current relationships between maize landraces and their social and bioclimatic environments to identify which maize landraces are most susceptible to extinction, and, in turn, which indigenous population are most vulnerable to maize distribution change. In doing so, this research also hopes to both validate projections of future maize distributions from previous research (Ureta et al. 2012, 2015) and identify how the established associations of indigenous populations and maize races are expected to change within the next century.  Assessing the current relationships between distinct indigenous populations and maize races will provide the groundwork for evaluating the temporal variability of these relationships, while also providing launching point to commence more qualitative discourse with indigenous populations regarding maize productivity and habitat at local scales.
+    
+
+
+
+Research Questions
+=======================================================
+To examine the interconnections between maize diversity, climate change, and indigeneity in Mexico, this research hopes to address the following questions:
+    - 1.	How do social and environmental factors contribute to maize landraces’ current distribution? 
+    - 2.	What are the characteristics of each maize landraces ‘bioclimate envelope’?
+    - 3.	Can the contributions of indigeneity and society to maize landraces distribution and diversity be discerned and modelled at the national level?
+    - 4.	What is the nature of the relationship between maize landrace diversity and indigeneity in Mexico? 
+    - 5.	How is climate change expected to alter current maize landrace distributions?
+    - 6.	Which indigenous population are expected to be most heavily impacted by maize’s distribution and diversity change?
+
+    
+
+
+
+Theoretical Background: Ecological Niche
+=======================================================
+- The theory and methodology developed in this proposal is guided strongly by developments of the term ‘biological niche’ in the 20th century. Joseph Grinnell and Charles Elton pioneered early conceptions of biological niches by systematically associating environmental attributes to specific niches, thereby regulating niches to particular environments 
+- George Evelyn Hutchinson revolutionized this definition by claiming biological niches as the roles a community or species performs at any particular time (Colwell and Rangel 2009). Niche, as defined by Hutchinson, is an attribute of a species in relation to its biotic and abiotic environment to n-level of ecological space (Colwell and Rangel 2009; Holt 2009). Under this definition, a species’ biological niche defines its role in its habitat, but not solely its habitat itself.
+
+
+Theoretical Background: Fundamental and Realized Niche
+=======================================================
+- The fundamental niche is a hyper-dimensional niche volume in which “every point … corresponds to a state of the environment that would permit [a] species … to exist indefinitely” (Hutchinson 1957; Holt 2009). This definition obviates migration for clarity. The term “fundamental niche,” therefore, refers a species’ potential geographic distribution in true 4D space, constrained by its n-dimensional bioclimatic envelope. 
+- In reality, a species’ niche is, however, inherently limited by biotic interactions. Hutchinson argued that two species that shared resources cannot coexist in a “limited system” (Pulliam 2000), therefore requiring a true “realized niche” smaller than the fundamental niche. A species’ realized niches represents the portion of a species’ fundamental niche that exists in reality and that does not overlap with other species niches (Griesemer 1992)
+
+
+Methodological Framework/Heuristic BAM Diagram
+=======================================================
+- BAM Diagram
+
+
+Ecological Niche Modelling
+=======================================================
+- ecological niche modeling (ENM, also: environmental niche modeling, habitat suitability modeling, species distribution modeling, and bioclimatic envelope modeling) refers to the use georeferenced species observation data and environmental data to map species distributions in geographic space (Booth et al. 2014). 
+- Ecological niche models utilize species presence and/or absence observation data and ecological data at those observation sites to estimate complex relationships of species niche (Elith et al. 2011). 
+- Numerous ecological niche modeling algorithms have been developed to project ecological niche spaces into geographic spaces. 
+    - Bioclimatic Envelopes, Genetic Algorithm Rule-set Production, Maximum Entropy, Artificial Neural Networks, Support Vector Machines, Boosted Regression Trees, etc.
+    
+
+
+Ensemble Ecological Niche Modelling
+=======================================================
+- Ensemble Ecological Niche Modelling has been proposed as a method to increase validity of modelled distributions by weighting individual models based on performance.
+
+Data
+=======================================================
+- BAM Diagram
+
+    
+
+
+Analysis
+=======================================================
+- Use Ensemble Ecological Niche modelling to estimate the realized niche of traditional maize landraces
+- Using 
+
+   
+   
+
+Novelty of Research
+=======================================================
+- BAM Diagram
+
+   
+   
+    
+Purpose Statement
+=======================================================
+
 
 Bibliography
 ========================================================
-
+class: small-code
+<font size = "5px">
 Use the `bibliography` function to add the bibliography.
 
 ```{r, echo=FALSE, results="asis"}
-bib<-read.bibtex("thesis.bib")
-bibliography(bib)
+print(bibliography()
 ```
+</font>
