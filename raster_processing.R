@@ -241,7 +241,9 @@ prescropstack<-stack(pres_croprasts)
 
 # write to file
 save(prescropstack,file=paste0(dir_stacks,"/present_cropstack.RData"))
-writeRaster(prescropstack, paste0(dir_stacks,"/present_cropstack.grd"), bylayer=FALSE, format='raster',overwrite=F)
+writeRaster(prescropstack, paste0(dir_stacks,"/present_cropstack.grd"), bylayer=FALSE, format='raster',overwrite=T)
+
+
 
 #### DOWNLOAD FUTURE DATA FOR RCP 85 ####
 # from https://github.com/ClimateActionUCI/datasets/blob/master/get_CMIP5.R
@@ -261,7 +263,7 @@ mods<-expand.grid(var=c("tn","tx","pr","bi"),   #tn, tx, pr, or bi, no bi?
                   c("CC", # CCSM4 (Community Climate System Model, UCAR)- new version of CCSM-30 
                     "MC", # MIROC5 (Model for Interdisciplinary Research on Climate)- new version of MIROC-HI; "Although its good performance and high resolution, MIROC32-HIRES model has an inconvenience: its sensibility is 5.6 ºC, way higher than the 3 ºC marked as “best estimate” in IPCC´s AR4 (Wigley, 2008). " (Conde et al. 2011)
                     "MP", # MPI-ESM-LR (Max-Plank Institute) - per 5th National Communication of Mexico for the United Nations Framework Convention on Climate Change http://atlasclimatico.unam.mx/atlas/Docs/f_escenarios.html
-                   #"HE", # HADGEM2-ES (Met Office Hadley)per 5th  removed because already downloaded
+                    "HE", # HADGEM2-ES (Met Office Hadley)per 5th  removed because already downloaded
                     "GF") # GFDL-CM3 (Geophysical Fluid Dynamics Laboratory )
                   ,
                   
@@ -307,7 +309,7 @@ dir.create(paste0(dir_f.mosaics,"/crop/ensemble/50"),recursive=TRUE)
 dir.create(paste0(dir_f.mosaics,"/crop/ensemble/70"),recursive=TRUE)
 
 # unzip zip directories for each climatology into respective directories, crop, and write layers to 'crop' directory
-for(i in zfs[11:32]){ ##140:173
+for(i in zfs[]){ ##140:173
   exdir= gsub(".zip","",i)
   unzip(i,exdir=exdir)  # unzip file
   apatt<-substr(i,nchar(i)-12+1,nchar(i)-4)
@@ -325,12 +327,6 @@ t<-gtifs[1]
 
 
 
-
-# tempstack<-stack(grds) ##rasterbrick
-ctempstack<-crop(tempstack,bbox) ##filtered
-writeRaster(ctempstack,format="raster",by.layer=FALSE,filename=paste0(exdir,"/present_cropstack.grd"))
-do.call(file.remove,list(list.files(pattern="temp*"))) 
-print(paste0("Finished with file ",patt," (",which(zfs==i)," out of ",length(zfs),")"))
 
 # ensemble GCMs by monthly means
 # get list of all tifs in crop directory, mean ensemble by variable, and write layer to stack
@@ -367,8 +363,8 @@ save(f50cropstack,file=paste0(dir_stacks,"/f50cropstack.RData"))
 save(f70cropstack,file=paste0(dir_stacks,"/f70cropstack.RData"))
 hdr(f50cropstack, format = "ENVI") # to preserve layer names in other programs with .grd/.gri file types -- uncompressed, so they take a while
 hdr(f70cropstack, format = "ENVI")
-writeRaster(f50cropstack, paste0(dir_stacks,"/f50cropstack.grd"), bylayer=FALSE, format='raster', overwrite=F)
-writeRaster(f70cropstack, paste0(dir_stacks,"/f70cropstack.grd"), bylayer=FALSE, format='raster', overwrite=F)
+writeRaster(f50cropstack, paste0(dir_stacks,"/f50cropstack.grd"), bylayer=FALSE, format='raster', overwrite=T)
+writeRaster(f70cropstack, paste0(dir_stacks,"/f70cropstack.grd"), bylayer=FALSE, format='raster', overwrite=T)
 save.image(paste0(dir_clim,"/raster_processing.RData"))
 
 
