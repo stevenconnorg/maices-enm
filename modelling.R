@@ -102,12 +102,7 @@ f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
 # plot(presmodstack)
 # plot(f70modstack)
 
-# make sure raster stack names are the same, formatting first
 
-names(presmodstack)<-gsub("crop_wc2.0_","",layerNames(presmodstack)) # remove prefix
-names(presmodstack)<-gsub("_30s","",layerNames(presmodstack))        # remove suffix
-names(f50modstack)<-layerNames(presmodstack)  # apply presmodstack layer names to future stacks
-names(f70modstack)<-layerNames(presmodstack)
 
 
 #################################################################

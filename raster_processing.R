@@ -258,13 +258,13 @@ mods<-expand.grid(var=c("tn","tx","pr","bi"),   #tn, tx, pr, or bi, no bi?
                   rcp=c(85), ##26, 45, 60, 85   # rcp
                   model=
                     
-                  
-                  # following Condo et al. 2011 "Regional climate change scenarios for México." Atmósfera 24(1), 125-140 (2011)
-                  c("CC", # CCSM4 (Community Climate System Model, UCAR)- new version of CCSM-30 
-                    "MC", # MIROC5 (Model for Interdisciplinary Research on Climate)- new version of MIROC-HI; "Although its good performance and high resolution, MIROC32-HIRES model has an inconvenience: its sensibility is 5.6 ºC, way higher than the 3 ºC marked as “best estimate” in IPCC´s AR4 (Wigley, 2008). " (Conde et al. 2011)
-                    "MP", # MPI-ESM-LR (Max-Plank Institute) - per 5th National Communication of Mexico for the United Nations Framework Convention on Climate Change http://atlasclimatico.unam.mx/atlas/Docs/f_escenarios.html
-                    "HE", # HADGEM2-ES (Met Office Hadley)per 5th  removed because already downloaded
-                    "GF") # GFDL-CM3 (Geophysical Fluid Dynamics Laboratory )
+                    
+                    # following Condo et al. 2011 "Regional climate change scenarios for MÃ©xico." AtmÃ³sfera 24(1), 125-140 (2011)
+                    c("CC", # CCSM4 (Community Climate System Model, UCAR)- new version of CCSM-30 
+                      "MC", # MIROC5 (Model for Interdisciplinary Research on Climate)- new version of MIROC-HI; "Although its good performance and high resolution, MIROC32-HIRES model has an inconvenience: its sensibility is 5.6 ÂºC, way higher than the 3 ÂºC marked as âbest estimateâ in IPCCÂ´s AR4 (Wigley, 2008). " (Conde et al. 2011)
+                      "MP", # MPI-ESM-LR (Max-Plank Institute) - per 5th National Communication of Mexico for the United Nations Framework Convention on Climate Change http://atlasclimatico.unam.mx/atlas/Docs/f_escenarios.html
+                      "HE", # HADGEM2-ES (Met Office Hadley)per 5th  removed because already downloaded
+                      "GF") # GFDL-CM3 (Geophysical Fluid Dynamics Laboratory )
                   ,
                   
                   year=c(50,70), ##50 or 70     # period 2050 or 2070
@@ -314,8 +314,8 @@ for(i in zfs[]){ ##140:173
   unzip(i,exdir=exdir)  # unzip file
   apatt<-substr(i,nchar(i)-12+1,nchar(i)-4)
   gtifs<-list.files(exdir,pattern=".tif",full.names=T)# [c(2, 6:13, 3:5)]##reorder
-t<-gtifs[1]
-    for (t in gtifs){
+  t<-gtifs[1]
+  for (t in gtifs){
     gtifras<-raster(t)
     cropped<-crop(gtifras,bbox)
     writeRaster(cropped,format="raster",filename=paste0(dir_f.mosaics,"crop/",gsub(".tif","",basename(t)),".grd"),overwrite=T)
@@ -367,92 +367,84 @@ writeRaster(f50cropstack, paste0(dir_stacks,"/f50cropstack.grd"), bylayer=FALSE,
 writeRaster(f70cropstack, paste0(dir_stacks,"/f70cropstack.grd"), bylayer=FALSE, format='raster', overwrite=T)
 save.image(paste0(dir_clim,"/raster_processing.RData"))
 
+library(rasterVis)
+
+levelplot(pres_cropstack[[1:12]])
+levelplot(pres_cropstack[[13:25]])
+levelplot(pres_cropstack[[26:39]])
+
 
 #####################################
+
+# grds<-list.files(path=dir_stacks,pattern=".grd",full.names = T)
+
+# f50cropstack<-stack(grds[1])
+# f70cropstack<-stack(grds[2])
+# pres_cropstack<-stack(grds[3])
+
+
 # remove multicollinearity of full stack
-# need to run with more RAM
-grds<-list.files(path=dir_stacks,pattern=".grd",full.names = T)
-
-f50cropstack<-stack(grds[1])
-f70cropstack<-stack(grds[2])
-pres_cropstack<-stack(grds[3])
-
 library(SpaDES)
-layerNames(pres_cropstack)
-
-install.packages(("virtualspecies"))
 library(virtualspecies)
-coll_vars_pres<-virtualspecies::removeCollinearity(pres_cropstack,multicollinearity.cutoff = 0.6, select.variables = FALSE, sample.points = TRUE, nb.points = (pres_cropstack@ncols/2),plot = TRUE)
+coll_vars_pres<-virtualspecies::removeCollinearity(pres_cropstack,multicollinearity.cutoff = 0.45, select.variables = FALSE, sample.points = F,plot = TRUE)
 save.image(paste0(dir_clim,"/raster_processing.RData"))
 print(coll_vars_pres)
 coll_vars_pres
+
+
 # manually select raster layers to retain from climate pca, including other variables of interest
-presmodstack<-stack(paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_05.tif"),
-                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_06.tif"),
-                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_18.tif"),
-                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_03.tif"),
-                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_17.tif"),
-                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_04.tif"),
-                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_15.tif"),
-                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_08.tif"),
-                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_09.tif"),
-                    paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_02.tif"),
-                    paste0(dir_topo,"/alt_cropped.grd"),
-                    paste0(dir_ind,"/pob-ind.grd")
-                    
+presmodstack<-raster::stack(paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_01.tif"),
+                            paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_02.tif"),
+                            paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_03.tif"),
+                            paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_05.tif"),
+                            paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_06.tif"),
+                            paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_15.tif"),
+                            paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_18.tif"),
+                            paste0(dir_topo,"/alt_cropped.grd"),
+                            paste0(dir_ind,"/pob-ind.grd")
+                            
 )
 
-# presprojstack<-stack(paste0(dir_p.mosaics,"wc2.0_bio_30s_05.tif"),
-#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_06.tif"),
-#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_18.tif"),
-#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_03.tif"),
-#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_17.tif"),
-#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_04.tif"),
-#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_15.tif"),
-#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_08.tif"),
-#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_09.tif"),
-#                     paste0(dir_p.mosaics,"wc2.0_bio_30s_02.tif"),
-#                     paste0(dir_topo,"/alt_cropped.grd"),
-#                     paste0(dir_ind,"/pob-ind.grd")
-#                     
-# )
-
-coll_vars_pres_mod<-virtualspecies::removeCollinearity(presmodstack,multicollinearity.cutoff = 0.7, select.variables = FALSE, sample.points = TRUE, nb.points = (presmodstack@ncols/2),plot = TRUE)
-
-presmodstack
-
-
-f50modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/50/85bi505_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi506_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi5018_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi503_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi5017_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi504_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi5015_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi508_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi509_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/50/85bi502_ensemble.grd"),
-                   paste0(dir_topo,"/alt_cropped.grd"),
-                   paste0(dir_ind,"/pob-ind.grd")
-                   
-                   
+f50modstack<-raster::stack(paste0(dir_f.mosaics,"crop/ensemble/50/85bi501_ensemble.grd"),
+                           paste0(dir_f.mosaics,"crop/ensemble/50/85bi502_ensemble.grd"),
+                           paste0(dir_f.mosaics,"crop/ensemble/50/85bi503_ensemble.grd"),
+                           paste0(dir_f.mosaics,"crop/ensemble/50/85bi505_ensemble.grd"),
+                           paste0(dir_f.mosaics,"crop/ensemble/50/85bi506_ensemble.grd"),
+                           paste0(dir_f.mosaics,"crop/ensemble/50/85bi5015_ensemble.grd"),
+                           paste0(dir_f.mosaics,"crop/ensemble/50/85bi5018_ensemble.grd"),
+                           paste0(dir_topo,"/alt_cropped.grd"),
+                           paste0(dir_ind,"/pob-ind.grd")
+                           
+                           
 )
 
-f70modstack<-stack(paste0(dir_f.mosaics,"crop/ensemble/70/85bi705_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi706_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi7018_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi703_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi7017_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi704_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi7015_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi708_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi709_ensemble.grd"),
-                   paste0(dir_f.mosaics,"crop/ensemble/70/85bi702_ensemble.grd"),
-                   paste0(dir_topo,"/alt_cropped.grd"),
-                   paste0(dir_ind,"/pob-ind.grd")
-                   
-                   
+f70modstack<-raster::stack(paste0(dir_f.mosaics,"crop/ensemble/70/85bi701_ensemble.grd"),
+                           paste0(dir_f.mosaics,"crop/ensemble/70/85bi702_ensemble.grd"),
+                           paste0(dir_f.mosaics,"crop/ensemble/70/85bi703_ensemble.grd"),
+                           paste0(dir_f.mosaics,"crop/ensemble/70/85bi705_ensemble.grd"),
+                           paste0(dir_f.mosaics,"crop/ensemble/70/85bi706_ensemble.grd"),
+                           paste0(dir_f.mosaics,"crop/ensemble/70/85bi7015_ensemble.grd"),
+                           paste0(dir_f.mosaics,"crop/ensemble/70/85bi7018_ensemble.grd"),
+                           paste0(dir_topo,"/alt_cropped.grd"),
+                           paste0(dir_ind,"/pob-ind.grd")
+                           
+                           
 )
+
+
+# make sure raster stack names are the same, formatting first
+library(quickPlot)
+names(presmodstack)<-gsub("crop_wc2.0_","",layerNames(presmodstack)) # remove prefix
+names(presmodstack)<-gsub("_30s","",layerNames(presmodstack))        # remove suffix
+names(f50modstack)<-layerNames(presmodstack)  # apply presmodstack layer names to future stacks
+names(f70modstack)<-layerNames(presmodstack)
+
+title(main = "Average (1970 - 2000) Conditions")
+raster::spplot(presmodstack)
+
+
+plot(f50modstack)
+plot(f70modstack)
 
 
 
