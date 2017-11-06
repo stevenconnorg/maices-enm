@@ -447,7 +447,7 @@ plot(f50modstack)
 plot(f70modstack)
 
 
-
+library(raster)
 save(presmodstack,file=paste0(dir_stacks,"/present_modstack.RData"))
 writeRaster(presmodstack, paste0(dir_stacks,"/present_modstack.grd"), bylayer=FALSE, format='raster',overwrite=TRUE)
 

@@ -89,7 +89,7 @@ pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
 pa<-data.frame(pa)
 
 names<-paste0(colnames(pa))
-sp.n= dput(names   [c(10:11)]
+sp.n= dput(names   [c(66:67)]
            ) #vector of species name(s), excluding lat and long cols
 
 
@@ -401,54 +401,6 @@ BioModApply <-function(sp.n) {
   
   do.call(file.remove,list(list.files(pattern="temp*"))) 
   
-  
-  #################################################################
-  # CAPTURE PLOTS OF PROJECTIONS BY MODEL
-  #################################################################
-  
-  # write individual model to image grouped by model
-  dir_projs<-paste0(dir_figs,"/",myRespName,"/projs")
-  dir.create(dir_projs,recursive=T)
-  
-  print(paste0("Saving Individual Model Predictions by Model onto Current Data for ",myRespName))
-  
-  mod_proj <- get_predictions(myBiomodProj) 
-  for (mod in allmodels){
-    indices<-grep(paste0("*",mod), layerNames(mod_proj))
-    modprojs<-subset(mod_proj, indices, drop = TRUE)
-    png(filename=paste0(dir_projs,"/",myRespName,"_",mod,"_projections.png"))
-    plot(modprojs)
-    dev.off()
-  }
-  
-  print(paste0("Saving Individual Model Predictions by Model onto Future (2070) Data for ",myRespName))
-  
-  f_70_proj <- get_predictions(myBiomodProjFuture70) 
-  for (mod in allmodels){
-    indices<-grep(paste0("*",mod), layerNames(mod_proj))
-    modprojs<-subset(f_70_proj, indices, drop = TRUE)
-    png(filename=paste0(dir_projs,"/",myRespName,"_",mod,"_rcp85_70_projections.png"))
-    plot(modprojs)
-    dev.off()
-  }
-  
-  print(paste0("Saving Individual Model Predictions by Model onto Future (2050) Data for ",myRespName))
-  
-  f_50_proj <- get_predictions(myBiomodProjFuture50) 
-  for (mod in allmodels){
-    indices<-grep(paste0("*",mod), layerNames(mod_proj))
-    modprojs<-subset(f_50_proj, indices, drop = TRUE)
-    png(filename=paste0(dir_projs,"/",myRespName,"_",mod,"_rcp85_50_projections.png"))
-    plot(modprojs)
-    dev.off()
-  }
-  
-  do.call(file.remove,list(list.files(pattern="temp*"))) 
-  
-  
-  
-  do.call(file.remove,list(list.files(pattern="temp*"))) 
-  
   #################################################################
   # BUILD ENSEMBLE MODELS
   #################################################################
@@ -515,26 +467,6 @@ BioModApply <-function(sp.n) {
     )
   
 
-
-  # plot ensemble forecasts grouped by metric
-  projects<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
-  eval_metrics<-c( 'KAPPA', 'TSS')
-  
-  
-  current_em_proj <- get_predictions(myBiomodEF) 
-  
-  print(paste0("Saving Current Ensemble Plots for  ",myRespName))
-  
-  for (eval in eval_metrics){
-    dir_forecasts<-paste0(dir_figs,"/",myRespName,"/forecasts")
-    dir.create(dir_forecasts,recursive=T)
-    indices<-grep(paste0("*",mod), layerNames(mod_proj))
-    forecasts<-subset(current_em_proj, indices, drop = TRUE)
-    png(filename=paste0(dir_forecasts,"/",myRespName,"_",eval,"_em_forecasts.png"))
-    plot(forecasts)
-    dev.off()
-  }
-  
   print(paste0("Performing Ensemble Forcasting onto Future (2070) Data for ",myRespName))
   
   f70BiomodEF <- BIOMOD_EnsembleForecasting(
@@ -569,45 +501,6 @@ BioModApply <-function(sp.n) {
 
   do.call(file.remove,list(list.files(pattern="temp*"))) 
   
-  
-  
-  print(paste0("Saving Future (2070) Ensemble Plots for  ",myRespName))
-  
-  f70forecasts <- get_predictions(f70BiomodEF) 
-  
-  for (eval in eval_metrics){
-    dir_forecasts<-paste0(dir_figs,"/",myRespName,"/forecasts")
-    dir.create(dir_forecasts,recursive=T)
-    indices<-grep(paste0("*",mod), layerNames(mod_proj))
-    forecasts<-subset(f70forecasts, indices, drop = TRUE)
-    png(filename=paste0(dir_forecasts,"/",myRespName,"_",eval,"_em_f70_forecasts.png"))
-    plot(forecasts)
-    dev.off()
-  }
-
-  print(paste0("Saving Future (2050) Ensemble Plots for  ",myRespName))
-  
-  f50forecasts <- get_predictions(f50BiomodEF) 
-  
-  for (eval in eval_metrics){
-    dir_forecasts<-paste0(dir_figs,"/",myRespName,"/forecasts")
-    dir.create(dir_forecasts,recursive=T)
-    indices<-grep(paste0("*",mod), layerNames(mod_proj))
-    forecasts<-subset(f50forecasts, indices, drop = TRUE)
-    png(filename=paste0(dir_forecasts,"/",myRespName,"_",eval,"_em_f50_forecasts.png"))
-    plot(forecasts)
-    dev.off()
-  }
-  # myBiomodEF
-  # EF_70stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_rcp85_70",sp.n,"_ensemble.grd"))
-  # plot a layer in the ensemble stack
-  # plot(EF_stack[[6]])
-  
-  # myBiomodEF
-  # EF_50stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_rcp85_50",sp.n,"_ensemble.grd"))
-  # plot a layer in the ensemble stack
-  # plot(EF_stack[[6]])
-
   
 }
 
@@ -697,6 +590,110 @@ Pep.meancn<-stack(paste0(dir_bm,"/Pepitilla/proj_current/proj_current_Pepitilla_
 
 plot(Pep.meancn)
 
+
+#################################################################
+# CAPTURE PLOTS OF PROJECTIONS BY MODEL
+#################################################################
+
+# write individual model to image grouped by model
+dir_projs<-paste0(dir_figs,"/",myRespName,"/projs")
+dir.create(dir_projs,recursive=T)
+
+print(paste0("Saving Individual Model Predictions by Model onto Current Data for ",myRespName))
+
+
+eval_metrics<-c( 'KAPPA', 'TSS')
+allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA",'MAXENT.Phillips','MAXENT.Tsuruoka')
+
+mod_proj <- get_predictions(myBiomodProj) 
+for (mod in allmodels){
+  indices<-grep(paste0("*",mod), layerNames(mod_proj))
+  modprojs<-subset(mod_proj, indices, drop = TRUE)
+  png(filename=paste0(dir_projs,"/",myRespName,"_",mod,"_projections.png"))
+  plot(modprojs)
+  dev.off()
+}
+
+print(paste0("Saving Individual Model Predictions by Model onto Future (2070) Data for ",myRespName))
+
+f_70_proj <- get_predictions(myBiomodProjFuture70) 
+for (mod in allmodels){
+  indices<-grep(paste0("*",mod), layerNames(mod_proj))
+  modprojs<-subset(f_70_proj, indices, drop = TRUE)
+  png(filename=paste0(dir_projs,"/",myRespName,"_",mod,"_rcp85_70_projections.png"))
+  plot(modprojs)
+  dev.off()
+}
+
+print(paste0("Saving Individual Model Predictions by Model onto Future (2050) Data for ",myRespName))
+
+f_50_proj <- get_predictions(myBiomodProjFuture50) 
+for (mod in allmodels){
+  indices<-grep(paste0("*",mod), layerNames(mod_proj))
+  modprojs<-subset(f_50_proj, indices, drop = TRUE)
+  png(filename=paste0(dir_projs,"/",myRespName,"_",mod,"_rcp85_50_projections.png"))
+  plot(modprojs)
+  dev.off()
+}
+
+
+
+
+# plot ensemble forecasts grouped by metric
+projects<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
+eval_metrics<-c( 'KAPPA', 'TSS')
+
+
+current_em_proj <- get_predictions(myBiomodEF) 
+
+print(paste0("Saving Current Ensemble Plots for  ",myRespName))
+
+for (eval in eval_metrics){
+  dir_forecasts<-paste0(dir_figs,"/",myRespName,"/forecasts")
+  dir.create(dir_forecasts,recursive=T)
+  indices<-grep(paste0("*",mod), layerNames(mod_proj))
+  forecasts<-subset(current_em_proj, indices, drop = TRUE)
+  png(filename=paste0(dir_forecasts,"/",myRespName,"_",eval,"_em_forecasts.png"))
+  plot(forecasts)
+  dev.off()
+}
+
+print(paste0("Saving Future (2070) Ensemble Plots for  ",myRespName))
+
+f70forecasts <- get_predictions(f70BiomodEF) 
+
+for (eval in eval_metrics){
+  dir_forecasts<-paste0(dir_figs,"/",myRespName,"/forecasts")
+  dir.create(dir_forecasts,recursive=T)
+  indices<-grep(paste0("*",mod), layerNames(mod_proj))
+  forecasts<-subset(f70forecasts, indices, drop = TRUE)
+  png(filename=paste0(dir_forecasts,"/",myRespName,"_",eval,"_em_f70_forecasts.png"))
+  plot(forecasts)
+  dev.off()
+}
+
+print(paste0("Saving Future (2050) Ensemble Plots for  ",myRespName))
+
+f50forecasts <- get_predictions(f50BiomodEF) 
+
+for (eval in eval_metrics){
+  dir_forecasts<-paste0(dir_figs,"/",myRespName,"/forecasts")
+  dir.create(dir_forecasts,recursive=T)
+  indices<-grep(paste0("*",mod), layerNames(mod_proj))
+  forecasts<-subset(f50forecasts, indices, drop = TRUE)
+  png(filename=paste0(dir_forecasts,"/",myRespName,"_",eval,"_em_f50_forecasts.png"))
+  plot(forecasts)
+  dev.off()
+}
+# myBiomodEF
+# EF_70stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_rcp85_70",sp.n,"_ensemble.grd"))
+# plot a layer in the ensemble stack
+# plot(EF_stack[[6]])
+
+# myBiomodEF
+# EF_50stack<- raster::stack(paste0(dir_bm,"/",sp.n,"/proj_current/proj_rcp85_50",sp.n,"_ensemble.grd"))
+# plot a layer in the ensemble stack
+# plot(EF_stack[[6]])
 
 
 #################################################################
