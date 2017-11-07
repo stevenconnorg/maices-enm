@@ -558,37 +558,98 @@ projects<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
 
 # models<-BIOMOD_LoadModels(Pepitilla.current.mods)
 # variables_importance(models,data=data)
-
+sp.n[]
 
 
 ### READ IN PLOTS FROM FILE
 # plot models
-Pep.mods<-load(paste0(dir_bm,"/Pepitilla/Pepitilla.Pepitilla_current.models.out"))
-Pepitilla.current_mod<-get(Pep.projs)
+# current_mods<-load(paste0(dir_bm,"/",sp.n,"/",sp.n,".",sp.n,"_current.models.out"))
+# current_mod<-get(current_mods)
 
-predictions<-get_predictions(Pepitilla.Pepitilla_current.models.out)
-plot(predictions)
-# plot ensembles
-Pep.emprojs<-load(paste0(dir_bm,"/Pepitilla/proj_current/Pepitilla.current.ensemble.projection.out"))
-Pepitilla.current_emproj<-get(Pep.emprojs)
-
-predictions<-get_predictions(Pepitilla.current_emproj)
-plot(predictions)
-
-# or by reading in .grd files
-Pep.emstackcurrent<-stack(paste0(dir_bm,"/Pepitilla/proj_current/proj_current_Pepitilla_ensemble.grd"))
-Pep.emstackcurrent
-plot(Pep.emstackcurrent)
-
-Pep.emstack50<-stack(paste0(dir_bm,"/Pepitilla/proj_rcp85_50/proj_rcp85_50_Pepitilla_ensemble.grd"))
-
-plot(Pep.emstack)
+# proj<-load(paste0(dir_bm,"/",sp.n,"/",sp.n,".",sp.n,"_current.models.out"))
+# current_mod<-get(current_mods)
 
 
-## current mean consensus
-Pep.meancn<-stack(paste0(dir_bm,"/Pepitilla/proj_current/proj_current_Pepitilla_mean_consensus.grd"))
+# get observation data formatted
+pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
+pa<-data.frame(pa)
 
-plot(Pep.meancn)
+names<-paste0(colnames(pa))
+
+sp.n= dput(names   [66]) #vector of species name(s), excluding lat and long cols
+projects<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
+models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
+
+
+# get individual projections
+for (sp in sp.n){
+  for (p in projects){
+    
+    sp<-sp.n
+    p<-projects[1]
+    # get individual projections
+    for (mod in models){
+      individualproj<-list.files(paste0(dir_bm,"/",sp,"/",p,"/individual_projections/"),pattern=".grd",full.names = T)
+      for (proj in individualproj){
+        raster(proj)
+      }
+      emstack<-raster::raster(paste0(dir_bm,"/",sp,"/",p,"/individual_projections/",p,"_",sp,"_ensemble.grd"))
+      
+    }
+    
+  }
+}
+
+
+# get ensemble w mean ensemble projections and w mean ensemble binaries
+for (sp in sp.n){
+  for (p in projects){
+
+    # average weighted mean ensemble projections
+    emstack<-raster::stack(paste0(dir_bm,"/",sp,"/",p,"/",p,"_",sp,"_ensemble.grd"))
+    emwmeans <- raster::subset(emstack, grep('EMwmean', names(emstack), value = T))
+    emwmean<-raster::stackApply(emwmeans,indices=c(rep(1,raster::nlayers(emwmeans))),fun=mean)
+    emwmean<-emwmean/10
+    raster::plot(emwmean,main=paste0(sp," Weighted Mean Ensemble for ",p),xlab="Longitude",ylab="Latitude")
+    dir.create(paste0(dir_bm,"/weighted_mean_ensembles/"))
+    raster::writeRaster(emwmean,file=paste0(dir_bm,"/weighted_mean_ensembles/",sp.n,"_",p,"_em-wmean.grd"),format="raster",overwrite=T)
+    
+    # get binary of average of w mean ensemble grds and write to file
+    threshold<-"70"
+    bin<-biomod2::BinaryTransformation(emwmean,threshold)
+    raster::plot(bin)
+    dir.create(paste0(dir_bm,"/binaries"))
+    raster::writeRaster(emwmean,file=paste0(dir_bm,"/binaries/",sp.n,"_",p,"_",threshold,"_thresh_bin-wmean.grd"),format="raster",overwrite=T)
+
+  }
+}
+
+# get range size change
+projects
+for (sp in sp.n){
+  currentPred <- raster::raster(paste0(dir_bm,"/binaries/",sp.n,"_proj_current_",threshold,"_thresh_bin-wmean.grd"))
+  f50Pred <- raster::raster(paste0(dir_bm,"/binaries/",sp.n,"_proj_rcp85_50_",threshold,"_thresh_bin-wmean.grd"))
+  f70Pred<- raster::raster(paste0(dir_bm,"/binaries/",sp.n,"_proj_rcp85_70_",threshold,"_thresh_bin-wmean.grd"))
+  
+  # call the Range size function
+  rangechange50 <- biomod2::BIOMOD_RangeSize(
+    CurrentPred=currentPred,
+    FutureProj=f50Pred)
+  
+  # see the results
+  rangechange50$Compt.By.Models
+  raster::plot(rangechange50$Diff.By.Pixel)
+  
+  # call the Range size function
+  rangechange70 <- biomod2::BIOMOD_RangeSize(
+    CurrentPred=currentPred,
+    FutureProj=f70Pred)
+  
+  # see the results
+  rangechange70$Compt.By.Models
+  raster::plot(rangechange70$Diff.By.Pixel)
+  
+}
 
 
 #################################################################
