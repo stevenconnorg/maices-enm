@@ -368,24 +368,24 @@ writeRaster(f70cropstack, paste0(dir_stacks,"/f70cropstack.grd"), bylayer=FALSE,
 save.image(paste0(dir_clim,"/raster_processing.RData"))
 
 library(rasterVis)
-levelplot(pres_cropstack[[73:91]]) # bio
-levelplot(pres_cropstack[[1:12]]) # prcp
-levelplot(pres_cropstack[[37:48]]) # tmin
-levelplot(pres_cropstack[[25:36]]) # tmax
+levelplot(pres_cropstack[[73:91]],main= "Bioclimatic Variables, 1970-2000, RCP 8.5") # bio
+levelplot(pres_cropstack[[1:12]],main= "Annual Precipitation in mm, 1970-2000, RCP 8.5") # prcp
+levelplot(pres_cropstack[[37:48]],main= "Monthly Minimum Temperature (C * 10), 1970-2000, RCP 8.5") # tmin
+levelplot(pres_cropstack[[25:36]],main= "Monthly Maximum Temperature (C * 10), 1970-2000, RCP 8.5") # tmax
 # levelplot(pres_cropstack[[49:60]]) # vpr
 # levelplot(pres_cropstack[[61:72]]) # wind
 # levelplot(pres_cropstack[[13:24]]) # tavg
 
 names(f50cropstack)
-levelplot(f50cropstack[[1:19]]) # bio
-levelplot(f50cropstack[[20:31]]) # prcp
-levelplot(f50cropstack[[32:43]]) # tmin
-levelplot(f50cropstack[[44:55]]) # tmax
+levelplot(f50cropstack[[1:19]],main="Bioclimatic Variables, 2041-2060, RCP 8.5") # bio
+levelplot(f50cropstack[[20:31]],main="Annual Precipitation in mm, 2041-2060, RCP 8.5") # prcp
+levelplot(f50cropstack[[32:43]],main="Monthly Minimum Temperature (C * 10), 2041-2060, RCP 8.5") # tmin
+levelplot(f50cropstack[[44:55]],main="Bioclimatic Variables, 2041-2060, RCP 8.5") # tmax
 
-levelplot(f70cropstack[[1:19]]) # bio
-levelplot(f70cropstack[[20:31]]) # prcp
-levelplot(f70cropstack[[32:43]]) # tmin
-levelplot(f70cropstack[[44:55]]) # tmax
+levelplot(f70cropstack[[1:19]],main="Bioclimatic Variables, 2061-2080, RCP 8.5") # bio
+levelplot(f70cropstack[[20:31]],main="Annual Precipitation in mm, 2061-2080, RCP 8.5") # prcp
+levelplot(f70cropstack[[32:43]],main="Monthly Minimum Temperature (C * 10), 2061-2080, RCP 8.5") # tmin
+levelplot(f70cropstack[[44:55]],main="Monthly Maximum Temperature (C * 10), 2061-2080, RCP 8.5") # tmax
 
 #####################################
 
