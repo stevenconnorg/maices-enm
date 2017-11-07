@@ -619,7 +619,7 @@ for (sp in sp.n){
     bin<-biomod2::BinaryTransformation(emwmean,threshold)
     raster::plot(bin)
     dir.create(paste0(dir_bm,"/binaries"))
-    raster::writeRaster(emwmean,file=paste0(dir_bm,"/binaries/",sp.n,"_",p,"_",threshold,"_thresh_bin-wmean.grd"),format="raster",overwrite=T)
+    raster::writeRaster(bin,file=paste0(dir_bm,"/binaries/",sp.n,"_",p,"_",threshold,"_thresh_bin-wmean.grd"),format="raster",overwrite=T)
 
   }
 }
@@ -627,27 +627,33 @@ for (sp in sp.n){
 # get range size change
 projects
 for (sp in sp.n){
+  rangechange<-df()
   currentPred <- raster::raster(paste0(dir_bm,"/binaries/",sp.n,"_proj_current_",threshold,"_thresh_bin-wmean.grd"))
   f50Pred <- raster::raster(paste0(dir_bm,"/binaries/",sp.n,"_proj_rcp85_50_",threshold,"_thresh_bin-wmean.grd"))
   f70Pred<- raster::raster(paste0(dir_bm,"/binaries/",sp.n,"_proj_rcp85_70_",threshold,"_thresh_bin-wmean.grd"))
   
-  # call the Range size function
+  sp::spplot(currentPred)
+  sp::spplot(f50Pred)
+  sp::spplot(f70Pred)
+  # call the Range size function for 2050 average
   rangechange50 <- biomod2::BIOMOD_RangeSize(
     CurrentPred=currentPred,
     FutureProj=f50Pred)
   
   # see the results
   rangechange50$Compt.By.Models
+  df50chg<-as.data.frame(rangechange70$Compt.By.Models)
   raster::plot(rangechange50$Diff.By.Pixel)
-  
-  # call the Range size function
   rangechange70 <- biomod2::BIOMOD_RangeSize(
     CurrentPred=currentPred,
     FutureProj=f70Pred)
   
-  # see the results
+  # same for 2070 average
   rangechange70$Compt.By.Models
+  df70chg<-as.data.frame(rangechange70$Compt.By.Models)
+  df70chg
   raster::plot(rangechange70$Diff.By.Pixel)
+  rangechange70
   
 }
 

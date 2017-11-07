@@ -368,11 +368,24 @@ writeRaster(f70cropstack, paste0(dir_stacks,"/f70cropstack.grd"), bylayer=FALSE,
 save.image(paste0(dir_clim,"/raster_processing.RData"))
 
 library(rasterVis)
+levelplot(pres_cropstack[[73:91]]) # bio
+levelplot(pres_cropstack[[1:12]]) # prcp
+levelplot(pres_cropstack[[37:48]]) # tmin
+levelplot(pres_cropstack[[25:36]]) # tmax
+# levelplot(pres_cropstack[[49:60]]) # vpr
+# levelplot(pres_cropstack[[61:72]]) # wind
+# levelplot(pres_cropstack[[13:24]]) # tavg
 
-levelplot(pres_cropstack[[1:12]])
-levelplot(pres_cropstack[[13:25]])
-levelplot(pres_cropstack[[26:39]])
+names(f50cropstack)
+levelplot(f50cropstack[[1:19]]) # bio
+levelplot(f50cropstack[[20:31]]) # prcp
+levelplot(f50cropstack[[32:43]]) # tmin
+levelplot(f50cropstack[[44:55]]) # tmax
 
+levelplot(f70cropstack[[1:19]]) # bio
+levelplot(f70cropstack[[20:31]]) # prcp
+levelplot(f70cropstack[[32:43]]) # tmin
+levelplot(f70cropstack[[44:55]]) # tmax
 
 #####################################
 
@@ -426,9 +439,7 @@ f70modstack<-raster::stack(paste0(dir_f.mosaics,"crop/ensemble/70/85bi701_ensemb
                            paste0(dir_f.mosaics,"crop/ensemble/70/85bi7015_ensemble.grd"),
                            paste0(dir_f.mosaics,"crop/ensemble/70/85bi7018_ensemble.grd"),
                            paste0(dir_topo,"/alt_cropped.grd"),
-                           paste0(dir_ind,"/pob-ind.grd")
-                           
-                           
+                           paste0(dir_ind,"/pob-ind.grd")       
 )
 
 
