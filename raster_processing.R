@@ -368,25 +368,46 @@ writeRaster(f70cropstack, paste0(dir_stacks,"/f70cropstack.grd"), bylayer=FALSE,
 save.image(paste0(dir_clim,"/raster_processing.RData"))
 
 library(rasterVis)
+
 levelplot(pres_cropstack[[73:91]],main= "Bioclimatic Variables, 1970-2000 avg.") # bio
-levelplot(pres_cropstack[[1:12]],main= "Annual Precipitation in mm, 1970-2000 avg.") # prcp
-levelplot(pres_cropstack[[37:48]],main= "Monthly Minimum Temperature (~degreeC), 1970-2000 avg.") # tmin
-levelplot(pres_cropstack[[25:36]],main= "Monthly Maximum Temperature (~degreeC), 1970-2000 avg.") # tmax
+levelplot(pres_cropstack[[1:12]],main= "Annual Precipitation in (mm), 1970-2000 avg.") # prcp
+levelplot(pres_cropstack[[37:48]],main= "Monthly Minimum Temperature (ᵒC), 1970-2000 avg.") # tmin
+levelplot(pres_cropstack[[25:36]],main= "Monthly Maximum Temperature (ᵒC), 1970-2000 avg.") # tmax
 # levelplot(pres_cropstack[[49:60]]) # vpr
 # levelplot(pres_cropstack[[61:72]]) # wind
 # levelplot(pres_cropstack[[13:24]]) # tavg
 
 names(f50cropstack)
 levelplot(f50cropstack[[1:19]],main="Bioclimatic Variables, 2041-2060 avg., RCP 8.5") # bio
-levelplot(f50cropstack[[c(20,24:31,21:23)]],main="Annual Precipitation in mm, 2041-2060 avg., RCP 8.5") # prcp
-levelplot(f50cropstack[[c(32,36:43,33:35)]],main="Monthly Minimum Temperature (~degreeC), 2041-2060 avg., RCP 8.5") # tmin
-levelplot(f50cropstack[[c(44,48:55,45:47)]],main="Monthly Maximum Temperature (~degreeC), 2041-2060 avg., RCP 8.5") # tmax
+levelplot(f50cropstack[[c(20,24:31,21:23)]],main="Annual Precipitation in (mm), 2041-2060 avg., RCP 8.5") # prcp
+levelplot(f50cropstack[[c(32,36:43,33:35)]]/10,main="Monthly Minimum Temperature (ᵒ C), 2041-2060 avg., RCP 8.5") # tmin
+levelplot(f50cropstack[[c(44,48:55,45:47)]]/10,main="Monthly Maximum Temperature (ᵒ C), 2041-2060 avg., RCP 8.5") # tmax
 
 levelplot(f70cropstack[[1:19]],main="Bioclimatic Variables, 2061-2080 avg., RCP 8.5") # bio
-levelplot(f70cropstack[[c(20,24:31,21:23)]],main="Annual Precipitation in mm, 2061-2080 avg., RCP 8.5") # prcp
-levelplot(f70cropstack[[c(32,36:43,33:35)]]/10,main="Monthly Minimum Temperature (~degreeC), 2061-2080 avg., RCP 8.5") # tmin
-levelplot(f70cropstack[[c(44,48:55,45:47)]]/10,main="Monthly Maximum Temperature (~degreeC), 2061-2080 avg., RCP 8.5") # tmax
+levelplot(f70cropstack[[c(20,24:31,21:23)]],main="Annual Precipitation in (mm), 2061-2080 avg., RCP 8.5") # prcp
+levelplot(f70cropstack[[c(32,36:43,33:35)]]/10,main="Monthly Minimum Temperature (ᵒC), 2061-2080 avg., RCP 8.5") # tmin
+levelplot(f70cropstack[[c(44,48:55,45:47)]]/10,main="Monthly Maximum Temperature (ᵒC), 2061-2080 avg., RCP 8.5") # tmax
 
+flayervecs<-c("1:19","20,24:31,21:23","32,36:43,33:35","44,48:55,45:47")
+preslayervecs<-c("73:91","1:12","37:48","44,48:55","25:36")
+
+fcropstacks<-c(f70cropstack,f50cropstack)
+
+f70cropstack@title<-"2061-2080"
+f50cropstack@title<-"2041-2060"
+cropstack<-f70cropstack
+for (cropstack in fcropstacks){
+  # get max temp diff
+  tmaxdiff<-(cropstack[[c(44,48:55,45:47)]]/10)-(pres_cropstack[[25:36]])
+  names(tmaxdiff)<-names(pres_cropstack[[25:36]])
+  library(quickPlot)
+  names(tmaxdiff)<-gsub("crop_wc2.0_30s_","",layerNames(tmaxdiff)) # remove prefix
+  
+  levelplot(tmaxdiff,main=paste0("Monthly Maximum Temperature (ᵒC) 1970 - 2000 avg. to ",cropstack@title," avg. Difference, RCP 8.5"))
+  
+  
+}
+  paste(fcropstacks)
 #####################################
 
 # grds<-list.files(path=dir_stacks,pattern=".grd",full.names = T)
