@@ -89,7 +89,7 @@ pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
 pa<-data.frame(pa)
 
 names<-paste0(colnames(pa))
-sp.n= dput(names   [c(66:67)]
+sp.n= dput(names   [c(66)]
            ) #vector of species name(s), excluding lat and long cols
 
 
@@ -134,18 +134,26 @@ BioModApply <-function(sp.n) {
   
   
   # Barbet-Massin et al 2012:
-  #   Overall, we recommend the use of a large number (e.g. 10 000) of pseudo-absences with equal
-  # weighting for presences and absences when using regression techniques (e.g. generalised linear
-  # model and generalised additive model); averaging several runs (e.g. 10) with fewer pseudo-absences
+  #   Overall, we recommend the 
+  # 1 -
+  # use of a large number (e.g. 10 000) of pseudo-absences with equal weighting for presences and absences when 
+  # using regression techniques (e.g. generalised linear model and generalised additive model);
+  # 2 -
+  # averaging several runs (e.g. 10) with fewer pseudo-absences
   # (e.g. 100) with equal weighting for presences and absences with multiple adaptive regression splines
-  # and discriminant analyses; and using the same number of pseudo-absences as available presences
-  # (averaging several runs if few pseudo-absences) for classification techniques such as boosted regression
-  # trees, classification trees and random forest. In addition, we recommend the random selection
-  # of pseudo-absences when using regression techniques and the random selection of geographically
-  # and environmentally stratified pseudo-absences when using classification and machine-learning
-  # techniques
+  # and discriminant analyses; 
+  # 3 - 
+  # and using the same number of pseudo-absences as available presences averaging several runs if few pseudo-absences) 
+  # for classification techniques such as boosted regression trees, classification trees and random forest. 
   
+  # In addition, we recommend 
+  # 4 -
+  # the random selection of pseudo-absences when using regression techniques and the random selection of geographically
+  # and 
+  # 5 - 
+  # environmentally stratified pseudo-absences when using classification and machine-learning techniques
   
+  # c(# "GLM",# "GAM",# "GBM",#"ANN",#"CTA",#"RF",# "MARS",# "FDA",'MAXENT.Phillips','MAXENT.Tsuruoka')
   #################################################################
   # FORMAT INPUT DATA -- NOTE pseudo absences rep, selection, and #
   #################################################################
@@ -160,9 +168,7 @@ BioModApply <-function(sp.n) {
                                        PA.strategy = "random",
                                        na.rm=TRUE
   )
-  
-  do.call(file.remove,list(list.files(pattern="temp*"))) 
-  
+
   #################################################################
   # DEFINE MODEL OPTIONS
   #################################################################
@@ -266,21 +272,22 @@ BioModApply <-function(sp.n) {
   #################################################################
   
   # install.packages("ENMeval")
-  # library(caret)
-  # library(ENMeval)
+  library(caret)
+  library(ENMeval)
   
   # download new version of code from Frank Breiner (writer of BIOMOD_tuning), attached here: http://r-forge.wu.ac.at/forum/forum.php?max_rows=75&style=nested&offset=152&forum_id=995&group_id=302
   
-  # source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
-  # library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
-  # devtools::install_github('topepo/caret/pkg/caret')
-  # library(caret)
-  # BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
-  #                                env.ME = myExpl,
-  #                                n.bg.ME = ncell(myExpl)
-  #                                )
-  # stopCluster(cl)
-  # BIOMOD_ModelOptions<-Biomod.tuning$models.options
+  source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
+  library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
+  devtools::install_github('topepo/caret/pkg/caret')
+  library(caret)
+  BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
+                                        models.options(BIOMOD_ModelOptions),
+                                 env.ME = myExpl,
+                                 n.bg.ME = ncell(myExpl)
+                                 )
+  stopCluster(cl)
+  BIOMOD_ModelOptions<-Biomod.tuning$models.options
   
 
   # capture.output(BIOMOD_TunedOptions$models.options,file=paste0(dir_out,"/model-opts/",myRespName,"_tuned_opts.txt"))
