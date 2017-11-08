@@ -791,11 +791,12 @@ for (var in sp.n){
 }
 
 for (mod in models){
-  
-  dir_curves<-paste0(dir_figs,"/",myRespName,"/response-curves")
+  for (sp in sp.n){
+    
+  dir_curves<-paste0(dir_figs,"/",sp,"/response-curves")
   dir.create(dir_curves,recursive=T)
-  dir.create(paste0(dir_figs,"/",myRespName))
-  modelfile<-load(paste0(dir_bm,"/",myRespName,"/",myRespName,".",myRespName,"_current.models.out"))
+  dir.create(paste0(dir_figs,"/",sp))
+  modelfile<-load(paste0(dir_bm,"/",sp,"/",sp,".",sp,"_current.models.out"))
   myBiomodModelOut<-get(modelfile)
   loadedmodel<-biomod2::BIOMOD_LoadModels(myBiomodModelOut,models=mod)
   dir.create(paste0(dir_figs,"/",myRespName))
