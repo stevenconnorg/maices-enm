@@ -113,7 +113,7 @@ eval_metrics<-c( 'KAPPA', 'TSS')
 allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA",'MAXENT.Phillips','MAXENT.Tsuruoka')
 models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
 allmodels
-BioModApply <-function(sp.n) {
+# BioModApply <-function(sp.n) {
 
   
   rasterOptions()$tmpdir      # get raster temp directory
@@ -165,8 +165,56 @@ BioModApply <-function(sp.n) {
                                        resp.name = myRespName,
                                        PA.nb.rep = 1,
                                        PA.nb.absences = 500,
-                                       PA.strategy = "random",
+                                       PA.strategy = "sre",
                                        na.rm=TRUE
+  )
+  
+  
+  # for GLM, GAM
+  myBiomodData_regr <- BIOMOD_FormatingData(resp.var = myResp,
+                                            resp.xy = myRespXY,
+                                            expl.var = myExpl,
+                                            resp.name = myRespName,
+                                            PA.nb.rep = 1,
+                                            PA.nb.absences = 10000,
+                                            PA.strategy = "random",
+                                            na.rm=TRUE
+  )
+  
+  
+  # for MARS and FDA 
+  myBiomodData_marsfda <- BIOMOD_FormatingData(resp.var = myResp,
+                                               resp.xy = myRespXY,
+                                               expl.var = myExpl,
+                                               resp.name = myRespName,
+                                               PA.nb.rep = 10,
+                                               PA.nb.absences = 100,
+                                               PA.strategy = "random",
+                                               na.rm=TRUE
+  )
+  
+  # for "GBM","ANN","CTA","RF"
+  myBiomodData_cl <- BIOMOD_FormatingData(resp.var = myResp,
+                                          resp.xy = myRespXY,
+                                          expl.var = myExpl,
+                                          resp.name = myRespName,
+                                          PA.nb.rep = 1,
+                                          PA.nb.absences = sum(!is.na(myResp)), # PA num = same number as presences,
+                                          PA.strategy = "sre",
+                                          PA.sre.quant=0.05,
+                                          na.rm=TRUE
+  )
+
+  # for "MAXENT.Phillips",'MAXENT.Tsuruoka'
+  myBiomodData_ml <- BIOMOD_FormatingData(resp.var = myResp,
+                                          resp.xy = myRespXY,
+                                          expl.var = myExpl,
+                                          resp.name = myRespName,
+                                          PA.nb.rep = 10,
+                                          PA.nb.absences = 10000,
+                                          PA.strategy = "sre",
+                                          PA.sre.quant=0.05,
+                                          na.rm=TRUE
   )
 
   #################################################################
@@ -274,20 +322,20 @@ BioModApply <-function(sp.n) {
   # install.packages("ENMeval")
   library(caret)
   library(ENMeval)
-  
+  library(Rmpi)
   # download new version of code from Frank Breiner (writer of BIOMOD_tuning), attached here: http://r-forge.wu.ac.at/forum/forum.php?max_rows=75&style=nested&offset=152&forum_id=995&group_id=302
   
   source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
-  library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
+  # library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
   devtools::install_github('topepo/caret/pkg/caret')
   library(caret)
   BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
-                                        models.options(BIOMOD_ModelOptions),
+                                        models.options = BIOMOD_ModelOptions,
                                  env.ME = myExpl,
                                  n.bg.ME = ncell(myExpl)
                                  )
   stopCluster(cl)
-  BIOMOD_ModelOptions<-Biomod.tuning$models.options
+  BIOMOD_ModelOptions<-BIOMOD_TunedOptions$models.options
   
 
   # capture.output(BIOMOD_TunedOptions$models.options,file=paste0(dir_out,"/model-opts/",myRespName,"_tuned_opts.txt"))

@@ -43,6 +43,10 @@ dir_stacks<-paste0(dir_clim,"/stacks/")
 
 ```
 
+```{r setup, include=FALSE}
+opts_chunk$set(cache=TRUE)
+```
+
 
 ```{r, echo=FALSE}
 library(knitcitations)
@@ -53,22 +57,33 @@ options(encoding = 'UTF-8')
 Introduction
 =======================================================
 incremental: true
-- Climate change is expected heavily impact natural and human systems worldwide (Walther, G.-R. et al., 2002; IPCC 2007, 2013; Kang, Y, S. Khan 2009; Hoegh-Guldberg, O. 2010)
-- The IPCC reports numerous negative impacts of climate change on domesticated crops regardless of the emission scenario implemented (Brown and Funk 2008; Ureta et al. 2012; IPCC 2013)
+- Climate change is expected heavily impact natural and human systems worldwide <small> (Walther, G.-R. et al., 2002; IPCC 2007, 2013; Kang, Y, S. Khan 2009; Hoegh-Guldberg, O. 2010) </small>
 
-- Maize (<i>Zea mays</i> subsp. <i>mays</i> L.) supplies a staple food crop for more than 200 million people worldwide (Nuss and Tanumihardjo 2010; Ureta et al. 2013)
-    - Mexico, maize's C.O.D., harbors traditional maize landraces that account for 60% of maize genetic diversity globally (Ureta et al. 2013)
-    - Preservation of agrobiodiversity at centers of domestication
-    - Evaluating the impacts of climate change on Mexican Maize landraces is of increasing importance
+- The IPCC reports numerous negative impacts of climate change on domesticated crops regardless of the emission scenario implemented <small> (Brown and Funk 2008; Ureta et al. 2012; IPCC 2013) </small>
+
+- Ensuring global food security in an increasingly warming world with  exponentially increasing world population requires multidisciplinary research <small> (Brown and Funk 2008; Ureta et al. 2012; IPCC 2013) </small>
+
+Global Importance of Maize Genetic Diversity at COD
+=======================================================
+
+- Maize (<i>Zea mays</i> subsp. <i>mays</i> L.) supplies a staple food crop for more than 200 million people worldwide <small> (Nuss and Tanumihardjo 2010; Ureta et al. 2013) </small>
+- Preservation of agrobiodiversity at centers of domestication required to sustain healthy crops
+- Mexico, maize's C.O.D., harbors traditional maize landraces that account for 60% of maize genetic diversity globally (Ureta et al. 2013)
 
 
-Traditional Maize Landrace Evolution
+Maize Evolution
 =======================================================
 incremental: true
-- Maize likely evolved in the Balsas River drainage basin at least 9,000 years ago from wild varieties of the Mexican annual teosinte (<i>Z. mays</i> ssp. <i>Parviglumus</i> and ssp. <i>mexicana</i> ) via artificial selection by indigenous cultures (Matsuoka et al. 2002; Kato et al. 2009). 
-- From here, maize varieties then migrated in two major pathways into North and South America (Matsuoka et al. 2002). 
-- Today, continuous variation in phenotypes exist, but with regional clusters of landraces that share greater similarity than with other landraces in other regions (Cutler 1942; Anderson 1947; E.J. Wellhausen, L.M. Roberts, E.Hernandez X., Paul C 1952; Dyer and López-Feldman 2013)
+- Maize likely evolved in the Balsas River drainage basin > 9 k.y.a. from Mexican annual teosinte (<i>Z. mays</i> ssp. <i>Parviglumus</i> and ssp. <i>mexicana</i> ) via artificial selection by indigenous cultures (Matsuoka et al. 2002; Kato et al. 2009). 
+- Maize landraces have evolved to an incredible array of conditions through its evolution
+- Topographic variables, particularly elevation, greatly influence maize landrace distributions (Ruiz C., Sánchez G., and Goodman 1998; Perales R., Brush, and Qualset 2003; Perales and Golicher 2014; Ureta et al. 2015)
+- Maize landraces have been grown (Ruiz Corral et al. 2008):
+    - from sea-level to 2,900 m asl
+    - avg. growing temp 12.0 &deg;C - 29.1 &deg;C
+    - avg. seasonal precip. 400 mm to 3555 mm 
+- Continuous phenotypic variation exist, but with regional clusters of landraces (Cutler 1942; Anderson 1947; E.J. Wellhausen, L.M. Roberts, E.Hernandez X., Paul C 1952; Dyer and López-Feldman 2013)
 
+- Evaluating the impacts of climate change on Mexican Maize landraces is of increasing global importance
 ***
  # tk make image of balsas river basin
  
@@ -82,12 +97,7 @@ incremental: true
 [CONABIO Maize Diversity Shiny App](https://conabio.shinyapps.io/shiny_maiz/)
 
 
-- Maize landraces have evolved to an incredible array of conditions through its evolution
-- Topographic variables, particularly elevation, greatly influence maize landrace distributions (Ruiz C., Sánchez G., and Goodman 1998; Perales R., Brush, and Qualset 2003; Perales and Golicher 2014; Ureta et al. 2015)
-- Maize landraces have been grown (Ruiz Corral et al. 2008):
-    - from sea-level to 2,900 m asl
-    - with growing season mean temperatures ranging from 12.0 &deg;C to 29.1 &deg;C
-    - with average growing season rainfalls ranging from 400 mm to 3555 mm 
+
     
 
 
@@ -133,10 +143,18 @@ Theoretical Background: Ecological Niche
 - George Evelyn Hutchinson revolutionized this definition by claiming biological niches as the roles a community or species performs at any particular time (Colwell and Rangel 2009). Niche, as defined by Hutchinson, is an attribute of a species in relation to its biotic and abiotic environment to n-level of ecological space (Colwell and Rangel 2009; Holt 2009). Under this definition, a species’ biological niche defines its role in its habitat, but not solely its habitat itself.
 
 
-Theoretical Background: Fundamental and Realized Niche
+Theoretical Background: Fundamental Niche
 =======================================================
-- The fundamental niche is a hyper-dimensional niche volume in which “every point … corresponds to a state of the environment that would permit [a] species … to exist indefinitely” (Hutchinson 1957; Holt 2009). This definition obviates migration for clarity. The term “fundamental niche,” therefore, refers a species’ potential geographic distribution in true 4D space, constrained by its n-dimensional bioclimatic envelope. 
-- In reality, a species’ niche is, however, inherently limited by biotic interactions. Hutchinson argued that two species that shared resources cannot coexist in a “limited system” (Pulliam 2000), therefore requiring a true “realized niche” smaller than the fundamental niche. A species’ realized niches represents the portion of a species’ fundamental niche that exists in reality and that does not overlap with other species niches (Griesemer 1992)
+- hyper-dimensional niche volume in which “every point … corresponds to a state of the environment that would permit [a] species … to exist indefinitely” (Hutchinson 1957; Holt 2009). 
+- This definition obviates migration for clarity. 
+- A species’ potential geographic distribution in true 4D space, constrained by its n-dimensional bioclimatic envelope. 
+
+Theoretical Background: Realized Niche
+=======================================================
+- In reality, a species’ niche is inherently limited by biotic interactions. 
+- Hutchinson argued that two species that shared resources cannot coexist in a “limited system” (Pulliam 2000), therefore requiring a true “realized niche” smaller than the fundamental niche. 
+- A species’ realized niches represents the portion of a species’ fundamental niche that exists in reality and that does not overlap with other species niches (Griesemer 1992)
+- 'scenopoetic' vs 'bionomic' variables
 
 
 Methodological Framework/Heuristic BAM Diagram
@@ -146,8 +164,8 @@ Methodological Framework/Heuristic BAM Diagram
 
 Ecological Niche Modelling
 =======================================================
-- ecological niche modeling (ENM, also: environmental niche modeling, habitat suitability modeling, species distribution modeling, and bioclimatic envelope modeling) refers to the use georeferenced species observation data and environmental data to map species distributions in geographic space (Booth et al. 2014). 
-- Ecological niche models utilize species presence and/or absence observation data and ecological data at those observation sites to estimate complex relationships of species niche (Elith et al. 2011). 
+- Refers to the use georeferenced species observation data and environmental data to map species distributions in geographic space (Booth et al. 2014). 
+- Uses pecies presence and/or absence observation data and ecological data at those observation sites to estimate complex relationships of species niche (Elith et al. 2011). 
 - Numerous ecological niche modeling algorithms have been developed to project ecological niche spaces into geographic spaces. 
     - Bioclimatic Envelopes, Genetic Algorithm Rule-set Production, Maximum Entropy, Artificial Neural Networks, Support Vector Machines, Boosted Regression Trees, etc.
     
@@ -156,26 +174,126 @@ Ecological Niche Modelling
 Ensemble Ecological Niche Modelling
 =======================================================
 - Ensemble Ecological Niche Modelling has been proposed as a method to increase validity of modelled distributions by weighting individual models based on performance.
+- e idea of ensemble forecasting involves the consideration that different sources of errors (sensitivity to data, lack of absence data, errors in environmental variables) will affect each niche model in different ways. It is expected that, by using a consensus of these models, errors will tend to cancel each other out and produce a trustworthy and more conservative solution (Filho et. al, 2010, Araújo & New 2007).
+- WA and Mean(All) consensus methods provided significantly more robust predictions than all the single-models and the other consensus methods (Marimon et al., 2009)
 
 Data
 =======================================================
-- BAM Diagram
+- Climatological Data
+- Topographic Variables
+- Ethno-linguistic Data
+- Georeferenced maize observations
 
+
+Climatological Data
+=======================================================
+- WorldClim Database
+- Current Data from WorldClim 2.0 (Fick & Hijmans, 2017)
+-- Maximum, Mean, and Minimum Monthly Temperatures (&deg;C * 10)
+-- Monthly Precipitation (mm)
+- Future Data from Worldclim 1.7 (Hijmans et al., 2005)
+-- downscaled from 19 GCM used in CMIP5
+
+
+
+
+Bioclimatic Variable Processing
+=======================================================
+- Harkens back to early ENM modelling
+- 19 Bioclimatic proxy variables from monthly means
+-- BIO1 = Annual Mean Temperature
+-- BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
+-- BIO3 = Isothermality (BIO2/BIO7) (* 100)
+-- BIO4 = Temperature Seasonality (standard deviation *100)
+-- BIO5 = Max Temperature of Warmest Month
+-- BIO6 = Min Temperature of Coldest Month
+-- BIO7 = Temperature Annual Range (BIO5-BIO6)
+-- BIO8 = Mean Temperature of Wettest Quarter
+-- BIO9 = Mean Temperature of Driest Quarter
+-- BIO10 = Mean Temperature of Warmest Quarter
+-- BIO11 = Mean Temperature of Coldest Quarter
+-- BIO12 = Annual Precipitation
+-- BIO13 = Precipitation of Wettest Month
+-- BIO14 = Precipitation of Driest Month
+-- BIO15 = Precipitation Seasonality (Coefficient of Variation)
+-- BIO16 = Precipitation of Wettest Quarter
+-- BIO17 = Precipitation of Driest Quarter
+-- BIO18 = Precipitation of Warmest Quarter
+-- BIO19 = Precipitation of Coldest Quarter
+
+Future GCM Mean-Ensembles
+=======================================================
+- ENM increasingly utilizes averages of future climate models to reduce uncertainty across
+    - Relative Concentration Pathways
+    - GCM
+- To address this, monthly means were averaged for four future GCMs, which preform singularly better than all other models in predicting previous climatologies Conde et al. 2011
+    - CCSM4 (Community Climate System Model, UCAR)- new version of CCSM-30 
+    - MIROC5 (Model for Interdisciplinary Research on Climate)- new version of MIROC-HI
+    - MPI-ESM-LR (Max-Plank Institute) - per 5th National Communication of Mexico for the United Nations Framework Convention on Climate Change
+    - HADGEM2-ES (Met Office Hadley)
+    - GFDL-CM3 (Geophysical Fluid Dynamics Laboratory )
     
+                        # following Condo et al. 2011 "Regional climate change scenarios for MÃ©xico." AtmÃ³sfera 24(1), 125-140 (2011)
+                    c("CC", # CCSM4 (Community Climate System Model, UCAR)- new version of CCSM-30 
+                      "MC", # MIROC5 (Model for Interdisciplinary Research on Climate)- new version of MIROC-HI; "Although its good performance and high resolution, MIROC32-HIRES model has an inconvenience: its sensibility is 5.6 ÂºC, way higher than the 3 ÂºC marked as âbest estimateâ in IPCCÂ´s AR4 (Wigley, 2008). " (Conde et al. 2011)
+                      "MP", # MPI-ESM-LR (Max-Plank Institute) - per 5th National Communication of Mexico for the United Nations Framework Convention on Climate Change http://atlasclimatico.unam.mx/atlas/Docs/f_escenarios.html
+                      "HE", # HADGEM2-ES (Met Office Hadley)per 5th  removed because already downloaded
+                      "GF") # GFDL-CM3 (Geophysical Fluid Dynamics Laboratory )
+                  ,
+
+Topographic Variables
+=======================================================
 
 
-Analysis
+Ethno-linguistic Diversity Variables
+=======================================================
+- CONABIO
+
+Georeferenced Maize Observations
+=======================================================
+- CONABIO
+
+
+Proposed Methods
 =======================================================
 - Use Ensemble Ecological Niche modelling to estimate the realized niche of traditional maize landraces
 - Using 
 
-   
-   
+Workflow
+=======================================================
+
+Pseudo-Absence Selection
+=======================================================
+
+
+Model Parameters and Tuning  
+=======================================================
+
+
+Evaluation Ensemble Statistics
+=======================================================
+
+
+Ensemble Forecasting
+=======================================================
+
+
+Alpha-Diversity and Range Change
+=======================================================
+
+Geovisulation of Impacted Indigenous Communities
+=======================================================
+
+Evaluation of Individual Models
+=======================================================
+
 
 Novelty of Research
 =======================================================
-- BAM Diagram
-
+- Ensemble GCMs
+- Ensemble modelling
+- Worldclim 2.0 for modelling
+- CMIP5 Data
    
    
     
