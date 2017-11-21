@@ -1,6 +1,6 @@
 
 # establish directories
-root<-"E:\\thesis"
+root<-"~/thesis"
 setwd(root)
 
 # new directories for biomod
@@ -32,12 +32,7 @@ dir_f.mosaics<-paste0(dir_fut,"/1.4/")
 
 dir_stacks<-paste0(dir_clim,"/stacks/")
 
-## recursively create directories if not already there
-folders<-as.list(ls())
-for (i in folders[[i]])  { 
-  folder<-get(i)
-  dir.create(folder,recursive=TRUE,pattern="dir") 
-} 
+## recursively create directories if not already there 
 
 
 ## read in functions
@@ -49,11 +44,11 @@ Install_And_Load <- function(Required_Packages)
   
   if(length(Remaining_Packages)) 
   {
-    install.packages(Remaining_Packages);
+    install.packages(Remaining_Packages,lib="home/scg67/R/x86_64_pc-linux-gnu-library/");
   }
   for(package_name in Required_Packages)
   {
-    library(package_name,character.only=TRUE,quietly=TRUE);
+    library(package_name,lib.loc="/home/scg67/R/x86_64_pc-linux-gnu-library/",character.only=TRUE,quietly=TRUE);
   }
 }
 # install and load required packages
@@ -74,7 +69,10 @@ requiredPackages<-(c("foreign",
                      "dismo"
                    ))
 
-Install_And_Load(requiredPackages)
+library(biomod2)
+library(snowfall)
+library(mgcv)
+
 
 #################################################################
 # PRELIMINARY DATA FORMATTING
@@ -89,7 +87,8 @@ pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
 pa<-data.frame(pa)
 
 names<-paste0(colnames(pa))
-sp.n= dput(names   [c(66)]
+
+sp.n= dput(names [c(4:length(names))] # keep only species name, remove lat/long/etc. 
            ) #vector of species name(s), excluding lat and long cols
 
 
@@ -113,7 +112,7 @@ eval_metrics<-c( 'KAPPA', 'TSS')
 allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA",'MAXENT.Phillips','MAXENT.Tsuruoka')
 models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
 allmodels
-# BioModApply <-function(sp.n) {
+BioModApply <-function(sp.n) {
 
   
   rasterOptions()$tmpdir      # get raster temp directory
@@ -134,26 +133,18 @@ allmodels
   
   
   # Barbet-Massin et al 2012:
-  #   Overall, we recommend the 
-  # 1 -
-  # use of a large number (e.g. 10 000) of pseudo-absences with equal weighting for presences and absences when 
-  # using regression techniques (e.g. generalised linear model and generalised additive model);
-  # 2 -
-  # averaging several runs (e.g. 10) with fewer pseudo-absences
+  #   Overall, we recommend the use of a large number (e.g. 10 000) of pseudo-absences with equal
+  # weighting for presences and absences when using regression techniques (e.g. generalised linear
+  # model and generalised additive model); averaging several runs (e.g. 10) with fewer pseudo-absences
   # (e.g. 100) with equal weighting for presences and absences with multiple adaptive regression splines
-  # and discriminant analyses; 
-  # 3 - 
-  # and using the same number of pseudo-absences as available presences averaging several runs if few pseudo-absences) 
-  # for classification techniques such as boosted regression trees, classification trees and random forest. 
+  # and discriminant analyses; and using the same number of pseudo-absences as available presences
+  # (averaging several runs if few pseudo-absences) for classification techniques such as boosted regression
+  # trees, classification trees and random forest. In addition, we recommend the random selection
+  # of pseudo-absences when using regression techniques and the random selection of geographically
+  # and environmentally stratified pseudo-absences when using classification and machine-learning
+  # techniques
   
-  # In addition, we recommend 
-  # 4 -
-  # the random selection of pseudo-absences when using regression techniques and the random selection of geographically
-  # and 
-  # 5 - 
-  # environmentally stratified pseudo-absences when using classification and machine-learning techniques
   
-  # c(# "GLM",# "GAM",# "GBM",#"ANN",#"CTA",#"RF",# "MARS",# "FDA",'MAXENT.Phillips','MAXENT.Tsuruoka')
   #################################################################
   # FORMAT INPUT DATA -- NOTE pseudo absences rep, selection, and #
   #################################################################
@@ -163,60 +154,15 @@ allmodels
                                        resp.xy = myRespXY,
                                        expl.var = myExpl,
                                        resp.name = myRespName,
-                                       PA.nb.rep = 1,
-                                       PA.nb.absences = 500,
+                                       PA.nb.rep = 10,
+                                      PA.nb.absences = 500,
                                        PA.strategy = "sre",
+					PA.sre.quant=0.025,
                                        na.rm=TRUE
   )
   
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
   
-  # for GLM, GAM
-  myBiomodData_regr <- BIOMOD_FormatingData(resp.var = myResp,
-                                            resp.xy = myRespXY,
-                                            expl.var = myExpl,
-                                            resp.name = myRespName,
-                                            PA.nb.rep = 1,
-                                            PA.nb.absences = 10000,
-                                            PA.strategy = "random",
-                                            na.rm=TRUE
-  )
-  
-  
-  # for MARS and FDA 
-  myBiomodData_marsfda <- BIOMOD_FormatingData(resp.var = myResp,
-                                               resp.xy = myRespXY,
-                                               expl.var = myExpl,
-                                               resp.name = myRespName,
-                                               PA.nb.rep = 10,
-                                               PA.nb.absences = 100,
-                                               PA.strategy = "random",
-                                               na.rm=TRUE
-  )
-  
-  # for "GBM","ANN","CTA","RF"
-  myBiomodData_cl <- BIOMOD_FormatingData(resp.var = myResp,
-                                          resp.xy = myRespXY,
-                                          expl.var = myExpl,
-                                          resp.name = myRespName,
-                                          PA.nb.rep = 1,
-                                          PA.nb.absences = sum(!is.na(myResp)), # PA num = same number as presences,
-                                          PA.strategy = "sre",
-                                          PA.sre.quant=0.05,
-                                          na.rm=TRUE
-  )
-
-  # for "MAXENT.Phillips",'MAXENT.Tsuruoka'
-  myBiomodData_ml <- BIOMOD_FormatingData(resp.var = myResp,
-                                          resp.xy = myRespXY,
-                                          expl.var = myExpl,
-                                          resp.name = myRespName,
-                                          PA.nb.rep = 10,
-                                          PA.nb.absences = 10000,
-                                          PA.strategy = "sre",
-                                          PA.sre.quant=0.05,
-                                          na.rm=TRUE
-  )
-
   #################################################################
   # DEFINE MODEL OPTIONS
   #################################################################
@@ -320,22 +266,21 @@ allmodels
   #################################################################
   
   # install.packages("ENMeval")
-  library(caret)
-  library(ENMeval)
-  library(Rmpi)
+  # library(caret)
+  # library(ENMeval)
+  
   # download new version of code from Frank Breiner (writer of BIOMOD_tuning), attached here: http://r-forge.wu.ac.at/forum/forum.php?max_rows=75&style=nested&offset=152&forum_id=995&group_id=302
   
-  source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
+  # source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
   # library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
-  devtools::install_github('topepo/caret/pkg/caret')
-  library(caret)
-  BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
-                                        models.options = BIOMOD_ModelOptions,
-                                 env.ME = myExpl,
-                                 n.bg.ME = ncell(myExpl)
-                                 )
-  stopCluster(cl)
-  BIOMOD_ModelOptions<-BIOMOD_TunedOptions$models.options
+  # devtools::install_github('topepo/caret/pkg/caret')
+  # library(caret)
+  # BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
+  #                                env.ME = myExpl,
+  #                                n.bg.ME = ncell(myExpl)
+  #                                )
+  # stopCluster(cl)
+  # BIOMOD_ModelOptions<-Biomod.tuning$models.options
   
 
   # capture.output(BIOMOD_TunedOptions$models.options,file=paste0(dir_out,"/model-opts/",myRespName,"_tuned_opts.txt"))
@@ -559,23 +504,34 @@ allmodels
   
 }
 
-## alternatively with lapply
-myLapply_SFModelsOut <- lapply( sp.n, BioModApply)
+#myModelsOutlapply <-lapply(sp.n,BioModApply)
 
+## alternatively with lapply
+# myLapply_SFModelsOut <- lapply( sp.n, BioModApply)
+
+# sph.umich.edu/biostat/computing/cluster/examples/r.html
+library(parallel)
+library(Rmpi)
+library(snowfall)
+#cl<-makeCluster(length(sp.n),type="MPI")
+# clusterCall(cl,BioModApply)
+# mySFModelsOut<-mpi.parLapply(sp.n, BioModApply)
+# stopCluster(cl)
 
 # snowfall initialization
-sfInit(parallel=TRUE, cpus=4)
+# library(snowfall)
+sfInit(parallel=TRUE,cpus=length(sp.n))
+
 ## Export packages to snowfall
 sfLibrary('biomod2', character.only=TRUE)
-sfExportAll()
+ sfExportAll()
 
 # you may also use sfExportAll() to export all your workspace variables
 ## Do the run
-mySFModelsOut <- sfLapply( sp.n, BioModApply)
-
+ mySFModelsOut <- sfLapply(sp.n,BioModApply)
 
 ## stop snowfall
-sfStop( nostop=FALSE )
+ sfStop( nostop=FALSE )
 
 projects<-c("proj_current","proj_rcp85_50","proj_rcp85_70")
 
