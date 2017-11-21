@@ -1,6 +1,7 @@
 
 # establish directories
 root<-"~/thesis"
+# root<-"E:/thesis"
 setwd(root)
 
 # new directories for biomod
@@ -108,9 +109,11 @@ f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
 # INITIALIZE FUNCTION TO APPLY TO EACH VARIETY
 #################################################################
 
-eval_metrics<-c( 'KAPPA', 'TSS')
 allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA",'MAXENT.Phillips','MAXENT.Tsuruoka')
 models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
+metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
+
+
 allmodels
 BioModApply <-function(sp.n) {
 
@@ -298,7 +301,7 @@ BioModApply <-function(sp.n) {
     NbRunEval=3,
     DataSplit=50,
     VarImport=3,
-    models.eval.meth = c( 'KAPPA', 'TSS'),
+    models.eval.meth = metrics,
     SaveObj = TRUE,
     rescal.all.models = TRUE,
     do.full.models = TRUE,
@@ -368,7 +371,7 @@ BioModApply <-function(sp.n) {
     new.env = myExpl,
     proj.name = 'current',
     selected.models = 'all',
-    binary.meth = c( 'KAPPA', 'TSS'),
+    binary.meth = metrics,
     compress = TRUE,
     clamping.mask = TRUE,
     output.format = '.grd')
@@ -381,7 +384,7 @@ BioModApply <-function(sp.n) {
     new.env = myExplFuture70,
     proj.name = 'rcp85_70',
     selected.models = 'all',
-    binary.meth = c( 'KAPPA', 'TSS'),
+    binary.meth = metrics,
     compress = 'xz',
     clamping.mask = T,
     output.format = '.grd')
@@ -394,7 +397,7 @@ BioModApply <-function(sp.n) {
     new.env = myExplFuture50,
     proj.name = 'rcp85_50',
     selected.models = 'all',
-    binary.meth = c( 'KAPPA', 'TSS'),
+    binary.meth = metrics,
     compress = 'xz',
     clamping.mask = T,
     output.format = '.grd')
@@ -412,7 +415,7 @@ BioModApply <-function(sp.n) {
     modeling.output = myBiomodModelOut,
     chosen.models = 'all',
     em.by="algo",
-    eval.metric = c( 'KAPPA', 'TSS'),
+    eval.metric = metrics,
     eval.metric.quality.threshold = NULL,
     prob.mean = F,
     prob.cv = T,
@@ -457,9 +460,9 @@ BioModApply <-function(sp.n) {
   myBiomodEF <- BIOMOD_EnsembleForecasting(
     EM.output = myBiomodEM,
     projection.output = myBiomodProj,
-    weight.method=c('KAPPA','TSS'),
+    weight.method=metrics,
     binary=T,
-    bin.method=c('KAPPA','TSS'),
+    bin.method=metrics,
     PCA.median=TRUE, 
     Test=TRUE, 
     decay='proportional',
@@ -472,9 +475,9 @@ BioModApply <-function(sp.n) {
   f70BiomodEF <- BIOMOD_EnsembleForecasting(
     EM.output = myBiomodEM,
     projection.output = myBiomodProjFuture70,
-    weight.method=c('KAPPA','TSS'),
+    weight.method=metrics,
     binary=T,
-    bin.method=c('KAPPA','TSS'),
+    bin.method=metrics,
     PCA.median=TRUE, 
     Test=TRUE, 
     decay='proportional',
@@ -490,9 +493,9 @@ BioModApply <-function(sp.n) {
   f50BiomodEF <- BIOMOD_EnsembleForecasting(
     EM.output = myBiomodEM,
     projection.output = myBiomodProjFuture50,
-    weight.method=c('KAPPA','TSS'),
+    weight.method=metrics,
     binary=T,
-    bin.method=c('KAPPA','TSS'),
+    bin.method=metrics,
     PCA.median=TRUE, 
     Test=TRUE, 
     decay='proportional',
@@ -500,8 +503,6 @@ BioModApply <-function(sp.n) {
   
 
   do.call(file.remove,list(list.files(pattern="temp*"))) 
-  
-  
 }
 
 #myModelsOutlapply <-lapply(sp.n,BioModApply)
