@@ -179,7 +179,8 @@ Ensemble Ecological Niche Modelling
 
 Data
 =======================================================
-- Climatological Data
+- Gridded Climatologies -> Bioclimatologies ("Bioclimatic Variables") (BIOCLIM modeling)
+-- Hutchinson further (Wahba & Wendelberger, 1980) developed thin-plate spline interpolation methods (see, e.g. Hutchinson & Bischof, 1983; Hutchinson et al., 1984).
 - Topographic Variables
 - Ethno-linguistic Data
 - Georeferenced maize observations
@@ -187,14 +188,90 @@ Data
 
 Climatological Data
 =======================================================
-- WorldClim Database
+- WorldClim, 30 arc-second resolution
+-- >2700 citations for ecological studies including ENMs and SDMs (Booth et al., 2014)
+
 - Current Data from WorldClim 2.0 (Fick & Hijmans, 2017)
--- Maximum, Mean, and Minimum Monthly Temperatures (&deg;C * 10)
+-- ANUSPLIN 9,000 - 60,000 weather stations, 1970-2000, 
+-- will use Maximum and Minimum Monthly Temperatures (&deg;C * 10)
 -- Monthly Precipitation (mm)
+-- Bioclimatic Variables
 - Future Data from Worldclim 1.7 (Hijmans et al., 2005)
--- downscaled from 19 GCM used in CMIP5
+-- dynamically-downscaled from 19 GCM used in CMIP5
+
+- Topographic variables from WorldClim via TK
 
 
+
+
+Georeferenced Maize Observations
+=======================================================
+- CONABIO
+
+```{r echo=FALSE}
+
+
+ 
+ unique(newmap@data$NAME)
+ library(spatstat)
+ maices<-readOGR(dsn=paste0(dir_maices,"/todos-maices-cleaned.shp"),layer="todos-maices-cleaned")
+ mdf<-maices@data
+ colnames(mdf)
+ mppp<-as(maices,"ppp")
+ 
+ nmaices<-rasterize(coordinates(maices),r,fun="count")
+plot(nmaices)
+
+library(dplyr)
+raza.counts<-maices@data %>% group_by(Raza_prima) %>% summarise(n()) 
+raza.counts
+rm(i)
+
+##  get mexico boundary
+library(rworldmap)
+newmap <- getMap(resolution = "coarse")
+colnames(newmap@data)
+mx<-newmap[newmap$NAME == "Mexico",]
+newmap@data$NAME_FORMA
+newmap<-newmap[!is.na(newmap@data$NAME),]
+
+ mex<-newmap[newmap@data$NAME == "Mexico",])
+ 
+## rasterize mexico boundary
+rasterize(mex, r)
+
+
+
+for (i in maices@data$Raza_prima){
+  # plot(density(mppp))
+  plot(mex)
+  plot(maices[maices@data$Raza_prima == i,],add=TRUE)
+  title(main=paste0(i," CONABIO Observations"))
+}
+
+
+library(maps)
+usa <- map_data("usa")
+
+```
+
+
+Ethno-linguistic Diversity Variables
+=======================================================
+```{r echo=FALSE}
+r<-raster(nrow=2304,ncol=3770)
+extent(r)<-c(-117.625,-86.20833,14.025,33.225)
+r
+
+
+shps <- dir(dir_ind, "*.shp",recursive = T)
+names <- gsub('\\.shp$',"",basename(shps))
+for (name in names) assign(name, readOGR(paste0(dir_ind,"/",name,"/",name,".shp"),layer=name)) # read in sp objects with filename
+
+
+spplot(presindigw@data$pobindi)
+colnames(presindigw@data)
+```
 
 
 Bioclimatic Variable Processing
@@ -221,6 +298,8 @@ Bioclimatic Variable Processing
 -- BIO18 = Precipitation of Warmest Quarter
 -- BIO19 = Precipitation of Coldest Quarter
 
+
+
 Future GCM Mean-Ensembles
 =======================================================
 - ENM increasingly utilizes averages of future climate models to reduce uncertainty across
@@ -241,17 +320,7 @@ Future GCM Mean-Ensembles
                       "GF") # GFDL-CM3 (Geophysical Fluid Dynamics Laboratory )
                   ,
 
-Topographic Variables
-=======================================================
 
-
-Ethno-linguistic Diversity Variables
-=======================================================
-- CONABIO
-
-Georeferenced Maize Observations
-=======================================================
-- CONABIO
 
 
 Proposed Methods
@@ -262,7 +331,41 @@ Proposed Methods
 Workflow
 =======================================================
 
-Pseudo-Absence Selection
+biomod2
+=======================================================
+- R-package for Objected-oriented ensemble platform for niche modeling 
+
+
+Pseudo-Absence Selection (Thuiller et. al, 2016)
+=======================================================
+
+
+  # Barbet-Massin et al 2012:
+  #   Overall, we recommend the 
+  # 1 -
+  # use of a large number (e.g. 10 000) of pseudo-absences with equal weighting for presences and absences when 
+  # using regression techniques (e.g. generalised linear model and generalised additive model);
+  # 2 -
+  # averaging several runs (e.g. 10) with fewer pseudo-absences
+  # (e.g. 100) with equal weighting for presences and absences with multiple adaptive regression splines
+  # and discriminant analyses; 
+  # 3 - 
+  # and using the same number of pseudo-absences as available presences averaging several runs if few pseudo-absences) 
+  # for classification techniques such as boosted regression trees, classification trees and random forest. 
+  
+  # In addition, we recommend 
+  # 4 -
+  # the random selection of pseudo-absences when using regression techniques and the random selection of geographically
+  # and 
+  # 5 - 
+  # environmentally stratified pseudo-absences when using classification and machine-learning techniques
+  
+  
+```{r}
+myBiomodData
+```
+
+Data Formatting 
 =======================================================
 
 
