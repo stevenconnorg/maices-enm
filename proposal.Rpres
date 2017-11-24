@@ -61,7 +61,7 @@ incremental: true
 
 - The IPCC reports numerous negative impacts of climate change on domesticated crops regardless of the emission scenario implemented <small> (Brown and Funk 2008; Ureta et al. 2012; IPCC 2013) </small>
 
-- Ensuring global food security in an increasingly warming world with  exponentially increasing world population requires multidisciplinary research <small> (Brown and Funk 2008; Ureta et al. 2012; IPCC 2013) </small>
+- Ensuring global food security in an increasingly warming world with  exponentially increasing world population requires multidisciplinary research <small> (Brown and Funk 2008; Ureta et al. 2012; IPCC 2013, 2015) </small>
 
 Global Importance of Maize Genetic Diversity at COD
 =======================================================
@@ -88,17 +88,6 @@ incremental: true
  # tk make image of balsas river basin
  
 ![my image](figs/Pepitilla_observations.png)
-
-
-
-Bioclimatic Envelopes of Maize Landraces
-=======================================================
-incremental: true
-[CONABIO Maize Diversity Shiny App](https://conabio.shinyapps.io/shiny_maiz/)
-
-
-
-    
 
 
 Maize as a Mirror of Humanity
@@ -134,8 +123,6 @@ To examine the interconnections between maize diversity, climate change, and ind
     - 6.	Which indigenous population are expected to be most heavily impacted by maize’s distribution and diversity change?
 
     
-
-
 
 Theoretical Background: Ecological Niche
 =======================================================
@@ -190,7 +177,8 @@ Climatological Data
 =======================================================
 - WorldClim, 30 arc-second resolution
 -- >2700 citations for ecological studies including ENMs and SDMs (Booth et al., 2014)
-
+-- rep. largest available archive of downscaled climate data for use in ecology, evolution and environmental science (Guisan et al., 2017)
+-- CMIP5 (Coupled Model Intercomparison Project 5; Meehl et al., 2009 ) and the Fifth Assessment Report (IPCC, 2013 )
 - Current Data from WorldClim 2.0 (Fick & Hijmans, 2017)
 -- ANUSPLIN 9,000 - 60,000 weather stations, 1970-2000, 
 -- will use Maximum and Minimum Monthly Temperatures (&deg;C * 10)
@@ -201,6 +189,38 @@ Climatological Data
 
 - Topographic variables from WorldClim via TK
 
+Climatic Data Processing
+=======================================================
+
+```{r}
+pres_cropstack<-stack(pres_cropstack,                       paste0(dir_topo,"/alt_cropped.grd")
+)
+stack<-pres_cropstack[[c(1:12,25:48,73:92)]] # select variables also in Worldclim 1.4 to project to these climatologies
+vifcor<-usdm::vifcor(stack,th=.75) # calculate correlations and VIFs
+vifcor2<-usdm::vifcor(stack[[c(vifcor@variables[-c(38,41)])]],th=.75) # remove variables with high VIFs and redov
+vifcor3<-usdm::vifcor(stack[[c(vifcor2@variables[-c(18)])]],th=.75) # remove highest VIF var
+
+pres_cropstack2<-pres_cropstack[[73:92]]
+
+
+vifcor<-usdm::vifcor(stack[[c(vifcor@variables)]],th=.75)
+pres_cropstack2@layers
+coll_vars_pres2<-virtualspecies::removeCollinearity(pres_cropstack2,multicollinearity.cutoff = 0.5, select.variables = FALSE, sample.points = F,plot = TRUE)
+
+coll_vars_pres2
+library(raster)
+jnk=layerStats(presmodstack, 'pearson', na.rm=T)
+corr_matrix=jnk$'pearson correlation coefficient'
+
+cor(values(r1), values(r2))
+
+library(quickPlot)
+names(presmodstack)<-gsub("crop_wc2.0_","",layerNames(presmodstack)) # remove prefix
+names(presmodstack)<-gsub("_30s","",layerNames(presmodstack))        # remove suffix
+names(f50modstack)<-layerNames(presmodstack)  # apply presmodstack layer names to future stacks
+names(f70modstack)<-layerNames(presmodstack)
+
+```
 
 
 
@@ -235,21 +255,23 @@ mx<-newmap[newmap$NAME == "Mexico",]
 newmap@data$NAME_FORMA
 newmap<-newmap[!is.na(newmap@data$NAME),]
 
- mex<-newmap[newmap@data$NAME == "Mexico",])
+ mex<-newmap[newmap@data$NAME == "Mexico",]
  
 ## rasterize mexico boundary
-rasterize(mex, r)
-
+m<-rasterize(mex, r)
+mc <- rasterize(maices, m, fun='count', background=0)
+plot(city, add=TRUE)
 
 
 for (i in maices@data$Raza_prima){
   # plot(density(mppp))
-  plot(mex)
+  plot(mc)
   plot(maices[maices@data$Raza_prima == i,],add=TRUE)
   title(main=paste0(i," CONABIO Observations"))
 }
 
 
+plot(mc)
 library(maps)
 usa <- map_data("usa")
 
