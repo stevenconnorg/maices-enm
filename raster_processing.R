@@ -411,7 +411,7 @@ layerNames(pres_cropstack)
 
 names(f50cropstack)
 names(f50cropstack)<-layerNames(pres_cropstack)  # apply presmodstack layer names to future stacks
-names(f50cropstack)<-layerNames(pres_cropstack)
+names(f70cropstack)<-layerNames(pres_cropstack)
 
 # save raster stacks
 f50brick<-brick(f50cropstack)
@@ -430,7 +430,7 @@ save.image(paste0(dir_clim,"/raster_processing.RData"))
 
 
 ### MAKE SOME PLOTS
-
+library(raster)
 # read in raster stacks
 grds<-list.files(path=dir_stacks,pattern=".grd",full.names = T)
 
@@ -439,16 +439,39 @@ f50cropstack<-stack(grds[3])
 f70cropstack<-stack(grds[6])
 
 # write rasters to file 
-cropstacks<-c(pres_cropstack,f50cropstack,f70cropstack)
+cropstacks<-list(pres_cropstack,f50cropstack,f70cropstack)
 library(rasterVis)
+library(quickPlot)
 levelplot(pres_cropstack[[1:19]])
-for (cropstack in cropstacks){
+
+
+s<-cropstacks[[1]]
+for (s in cropstacks[[1:3]]){
+  x<-deparse(substitute(s))
   
-  levelplot(cropstack[[1:19]]/10,main="Bioclimatic Variables, 2041-2060 avg., RCP 8.5") # bio
-  levelplot(cropstack[[20:31]]/10,main= "Annual Precipitation (cm), 1970-2000 avg.") # prcp
-  levelplot(cropstack[[32:43]]/10,main= "Monthly Minimum Temperature (ᵒC), 1970-2000 avg.") # tmin
-  levelplot(cropstack[[44:55]]/10,main= "Monthly Maximum Temperature (ᵒC), 1970-2000 avg.") # tmax
+  biolabel<-strsplit(layerNames(s[[1:19]]), "[_]")[[1]][1]
+  preclabel<-strsplit(layerNames(s[[20:31]]), "[_]")[[1]][1]
+  tminlabel<-strsplit(layerNames(s[[32:43]]), "[_]")[[1]][1]
+  tmaxlabel<-strsplit(layerNames(s[[44:55]]), "[_]")[[1]][1]
   
+  tmaxlabel<-strsplit(layerNames(s[[44:55]]), "[_]")[[1]][1]
+  
+  png(filename=paste0(dir_figs,"/",x,"_",biolabel,".png"))
+  rasterVis::levelplot(s[[1:19]],main="Bioclimatic Variables") # bio
+  dev.off()
+  
+  title(s)
+  png(filename=paste0(dir_figs,"/",x,"_",preclabel,".png"))
+  rasterVis::levelplot(s[[20:31]]/10,main= "Annual Precipitation (cm)") # prcp
+  dev.off()
+  
+  png(filename=paste0(dir_figs,"/",x,"_",tminlabel,".png"))
+  rasterVis::levelplot(s[[32:43]]/10,main= "Monthly Minimum Temperature (ᵒC)") # tmin
+  dev.off()
+  
+  png(filename=paste0(dir_figs,"/",x,"_",tmaxlabel,".png"))
+  rasterVis::levelplot(s[[44:55]]/10,main= "Monthly Maximum Temperature (ᵒC)") # tmax
+  dev.off()
 }
 
 
