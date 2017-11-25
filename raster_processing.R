@@ -350,7 +350,7 @@ for (i in cmip5files){
 }
 
 
-#  make present crop raster stack
+#  make  crop raster stack
 f50_croprasts<-list.files(paste0(dir_f.mosaics,"crop/ensemble/50/"),pattern="\\.grd$", full.names=TRUE)
 f70_croprasts<-list.files(paste0(dir_f.mosaics,"/crop/ensemble/70/"),pattern="\\.grd$", full.names=TRUE)
 
@@ -367,12 +367,100 @@ writeRaster(f50cropstack, paste0(dir_stacks,"/f50cropstack.grd"), bylayer=FALSE,
 writeRaster(f70cropstack, paste0(dir_stacks,"/f70cropstack.grd"), bylayer=FALSE, format='raster', overwrite=T)
 save.image(paste0(dir_clim,"/raster_processing.RData"))
 
+
+
+### READ IN ALL RASTER STACKS, OVERWRITE WITH MATCHING LAYER INDICES
+library(raster)
+library(quickPlot)
+library(usdm)
+# read in raster stacks
+grds<-list.files(path=dir_stacks,pattern=".grd",full.names = T)
+
+pres_cropstack<-stack(grds[7])
+f50cropstack<-stack(grds[3])
+f70cropstack<-stack(grds[6])
+
+# how many layers in each stack?
+nlayers(pres_cropstack)
+nlayers(f50cropstack)
+nlayers(f70cropstack)
+
+# get layer names
+layerNames(pres_cropstack)
+layerNames(f50cropstack)
+layerNames(f70cropstack)
+
+# rearrange to have matching layer vars
+# bioclimatic, prec
+# get preslayer crop stack to match future crop stacks
+
+preslayervecs<-c(73:91,1:12,37:48,25:36)
+layerNames(pres_cropstack[[preslayervecs]])
+nlayers(pres_cropstack[[preslayervecs]])
+
+
+pres_cropstack<-pres_cropstack[[preslayervecs]]
+layerNames(pres_cropstack)
+
+# make sure raster stack names are the same, formatting first
+library(quickPlot)
+names(pres_cropstack)<-gsub("crop_wc2.0","",layerNames(pres_cropstack)) # remove prefix
+names(pres_cropstack)<-gsub("30s_","",layerNames(pres_cropstack))        # remove suffix
+names(pres_cropstack)<-gsub("X_","",layerNames(pres_cropstack))        # remove suffix
+layerNames(pres_cropstack)
+
+names(f50cropstack)
+names(f50cropstack)<-layerNames(pres_cropstack)  # apply presmodstack layer names to future stacks
+names(f50cropstack)<-layerNames(pres_cropstack)
+
+# save raster stacks
+f50brick<-brick(f50cropstack)
+f70brick<-brick(f70cropstack)
+presbrick<-brick(pres_cropstack)
+
+hdr(f50brick, format = "ENVI") # to preserve layer names in other programs with .grd/.gri file types -- uncompressed, so they take a while
+hdr(f70brick, format = "ENVI")
+hdr(presbrick, format = "ENVI")
+
+
+writeRaster(presbrick, paste0(dir_stacks,"/present_cropstack.grd"), bylayer=FALSE, format='raster', overwrite=T)
+writeRaster(f50brick, paste0(dir_stacks,"/f50cropstack.grd"), bylayer=FALSE, format='raster', overwrite=T)
+writeRaster(f70brick, paste0(dir_stacks,"/f70cropstack.grd"), bylayer=FALSE, format='raster', overwrite=T)
+save.image(paste0(dir_clim,"/raster_processing.RData"))
+
+
+### MAKE SOME PLOTS
+
+# read in raster stacks
+grds<-list.files(path=dir_stacks,pattern=".grd",full.names = T)
+
+pres_cropstack<-stack(grds[7])
+f50cropstack<-stack(grds[3])
+f70cropstack<-stack(grds[6])
+
+# write rasters to file 
+cropstacks<-c(pres_cropstack,f50cropstack,f70cropstack)
+library(rasterVis)
+levelplot(pres_cropstack[[1:19]])
+for (cropstack in cropstacks){
+  
+  levelplot(cropstack[[1:19]]/10,main="Bioclimatic Variables, 2041-2060 avg., RCP 8.5") # bio
+  levelplot(cropstack[[20:31]]/10,main= "Annual Precipitation (cm), 1970-2000 avg.") # prcp
+  levelplot(cropstack[[32:43]]/10,main= "Monthly Minimum Temperature (ᵒC), 1970-2000 avg.") # tmin
+  levelplot(cropstack[[44:55]]/10,main= "Monthly Maximum Temperature (ᵒC), 1970-2000 avg.") # tmax
+  
+}
+
+
+
+###  Write graphics to file
 library(rasterVis)
 
 # levelplot(pres_cropstack[[73:91]],main= "Bioclimatic Variables, 1970-2000 avg.") # bio
 rasterVis::levelplot(pres_cropstack[[1:12]]/10,main= "Annual Precipitation (cm), 1970-2000 avg.") # prcp
 rasterVis::levelplot(pres_cropstack[[37:48]],main= "Monthly Minimum Temperature (ᵒC), 1970-2000 avg.") # tmin
 rasterVis::levelplot(pres_cropstack[[25:36]],main= "Monthly Maximum Temperature (ᵒC), 1970-2000 avg.") # tmax
+
 # levelplot(pres_cropstack[[49:60]]) # vpr
 # levelplot(pres_cropstack[[61:72]]) # wind
 # levelplot(pres_cropstack[[13:24]]) # tavg
@@ -388,17 +476,16 @@ levelplot(f70cropstack[[c(20,24:31,21:23)]]/10,main="Annual Precipitation (cm), 
 levelplot(f70cropstack[[c(32,36:43,33:35)]]/10,main="Monthly Minimum Temperature (ᵒC), 2061-2080 avg., RCP 8.5") # tmin
 levelplot(f70cropstack[[c(44,48:55,45:47)]]/10,main="Monthly Maximum Temperature (ᵒC), 2061-2080 avg., RCP 8.5") # tmax
 
-flayervecs<-c("1:19","20,24:31,21:23","32,36:43,33:35","44,48:55,45:47")
-preslayervecs<-c("73:91","1:12","37:48","44,48:55","25:36")
 
-fcropstacks<-c(f70cropstack,f50cropstack)
+
+
 
 f70cropstack@title<-"2061-2080"
 f50cropstack@title<-"2041-2060"
 fcropstacks
 for (cropstack in fcropstacks){
   # get max temp diff
-  <-levelplot((f70cropstack[[c(44,48:55,45:47)]]/10)-((pres_cropstack[[25:36]])))
+  tmaxdiff<-((f70cropstack[[c(44,48:55,45:47)]]/10)-((pres_cropstack[[25:36]])))
   names(tmaxdiff)<-names(pres_cropstack[[25:36]])
   library(quickPlot)
   names(tmaxdiff)<-gsub("crop_wc2.0_30s_","",layerNames(tmaxdiff)) # remove prefix
@@ -434,12 +521,27 @@ for (cropstack in fcropstacks){
 }
 
 #####################################
+# BUILD MODELLING STACKS 
 
-# grds<-list.files(path=dir_stacks,pattern=".grd",full.names = T)
+stackApply()
+cropstacks<-c(pres_cropstack,f50cropstack,f70cropstack)
 
-# f50cropstack<-stack(grds[1])
-# f70cropstack<-stack(grds[2])
-# pres_cropstack<-stack(grds[3])
+f<-function(x)max(x[1:12])-min(x[1:12])
+clima[["AnnualMaxTDif"]]<-apply(clima@data,1,f)
+f<-function(x)max(x[1:12]-x[13:24])
+clima[["DailyTDif"]]<-apply(clima@data,1,f)
+7More complex methods involve calculating evapotranspiration.
+24
+f<-function(x)sum(x[25:36]>100)
+clima[["GrowingMonths"]]<-apply(clima@data,1,f)
+
+
+for (cropstack in fcropstacks){
+ climdf<-as.data.frame(cropstack) 
+ write.csv(climdf,file=paste0(dir_stacks,"/",cropstack,"/-df.csv"))
+}
+
+
 
 
 # remove multicollinearity of full stack
@@ -508,6 +610,8 @@ for (stack in modstacks){
 }
 plot(f50modstack)
 plot(f70modstack)
+
+
 
 
 library(raster)
