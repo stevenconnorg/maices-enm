@@ -462,34 +462,33 @@ for (i in cropstacks[i]){
     dev.off()
   }  
 }
-cropstacks[[1]]@title
 
 for (i in cropstacks){
   x<-i@title
   biolabel<-strsplit(layerNames(i[[1:19]]), "[_]")[[1]][1]
-  preclabel<-strsplit(layerNames(i[[20:31]]), "[_]")[[1]][1]
-  tminlabel<-strsplit(layerNames(i[[32:43]]), "[_]")[[1]][1]
-  tmaxlabel<-strsplit(layerNames(i[[44:55]]), "[_]")[[1]][1]
+  #preclabel<-strsplit(layerNames(i[[20:31]]), "[_]")[[1]][1]
+  #tminlabel<-strsplit(layerNames(i[[32:43]]), "[_]")[[1]][1]
+  #tmaxlabel<-strsplit(layerNames(i[[44:55]]), "[_]")[[1]][1]
 
   png(filename=paste0(dir_figs,"/",x,"_",biolabel,".png"))
   par(mfrow=c(4,5))
-  plot(i[[1:16]])
+  plot(i[[1:19]])
   dev.off()
   
-  png(filename=paste0(dir_figs,"/",x,"_",preclabel,".png"))
-  par(mfrow=c(3,4))
-  plot(i[[20:31]]/10) # prcp
-  dev.off()
+  #png(filename=paste0(dir_figs,"/",x,"_",preclabel,".png"))
+  #par(mfrow=c(3,4))
+  #plot(i[[20:31]]/10) # prcp
+  #dev.off()
   
-  png(filename=paste0(dir_figs,"/",x,"_",tminlabel,".png"))
-  par(mfrow=c(3,4))
-  plot(i[[32:43]]/10) # tmin
-  dev.off()
+  #png(filename=paste0(dir_figs,"/",x,"_",tminlabel,".png"))
+  #par(mfrow=c(3,4))
+  #plot(i[[32:43]]/10) # tmin
+  #dev.off()
   
-  png(filename=paste0(dir_figs,"/",x,"_",tmaxlabel,".png"))
-  par(mfrow=c(3,4))
-  plot(i[[44:55]]/10) # tmax
-  dev.off()
+  #png(filename=paste0(dir_figs,"/",x,"_",tmaxlabel,".png"))
+  #par(mfrow=c(3,4))
+  #plot(i[[44:55]]/10) # tmax
+  #dev.off()
 }
 
 
@@ -542,7 +541,8 @@ for (i in cropstacks){
   tmax <- i[[44:55]]
   prec <- i[[20:31]]
   
-  GrowingMonths<-(i[[20:31]]/10)>100
+
+  GrowingMonths<-nlayers(i[[20:31]]>100)
   names(GrowingMonths)<-"GrowingMonths"
 
   # calculate temperature extremes
