@@ -439,13 +439,29 @@ f50cropstack<-stack(grds[3])
 f70cropstack<-stack(grds[6])
 
 # write rasters to file 
-pres_cropstack@title<-"present"
-f50cropstack@title<-"2050"
-f70cropstack@title<-"2070"
+pres_cropstack@title<-"1970-2000"
+f50cropstack@title<-"2041-2060"
+f70cropstack@title<-"2061-2080"
 
 cropstacks<-list(pres_cropstack,f50cropstack,f70cropstack)
 library(rasterVis)
 library(quickPlot)
+
+i[1:19]
+layerRanges<-list(1:19,20:31,32:43,44:55)
+l<-layerRanges[[1]]
+i<-cropstacks[[1]]
+for (i in cropstacks[i]){
+  for (l in layerRanges[[l]]){
+    as.integer(l)
+    layers<-as.character(l)
+    x<-i@title
+    label<-strsplit(layerNames(i[[l]]), "[_]")[[1]][1]
+    png(filename=paste0(dir_figs,"/",x,"_",label,".png"))
+    plot(i[[l]]) # prcp
+    dev.off()
+  }  
+}
 
 for (i in cropstacks){
   x<-i@title
@@ -453,91 +469,51 @@ for (i in cropstacks){
   preclabel<-strsplit(layerNames(i[[20:31]]), "[_]")[[1]][1]
   tminlabel<-strsplit(layerNames(i[[32:43]]), "[_]")[[1]][1]
   tmaxlabel<-strsplit(layerNames(i[[44:55]]), "[_]")[[1]][1]
-  tmaxlabel<-strsplit(layerNames(i[[44:55]]), "[_]")[[1]][1]
-  
+
   png(filename=paste0(dir_figs,"/",x,"_",biolabel,".png"))
   plot(i[[1:19]])
   dev.off()
   
   png(filename=paste0(dir_figs,"/",x,"_",preclabel,".png"))
-  plot(i[[20:31]]/10,main= "Annual Precipitation (cm)") # prcp
+  plot(i[[20:31]]/10) # prcp
   dev.off()
   
   png(filename=paste0(dir_figs,"/",x,"_",tminlabel,".png"))
-  plot(i[[32:43]]/10,main= "Monthly Minimum Temperature (ᵒC)") # tmin
+  plot(i[[32:43]]/10) # tmin
   dev.off()
   
   png(filename=paste0(dir_figs,"/",x,"_",tmaxlabel,".png"))
-  plot(i[[44:55]]/10,main= "Monthly Maximum Temperature (ᵒC)") # tmax
+  plot(i[[44:55]]/10) # tmax
   dev.off()
 }
 
 
-
-###  Write graphics to file
-library(rasterVis)
-
-# levelplot(pres_cropstack[[73:91]],main= "Bioclimatic Variables, 1970-2000 avg.") # bio
-rasterVis::levelplot(pres_cropstack[[1:12]]/10,main= "Annual Precipitation (cm), 1970-2000 avg.") # prcp
-rasterVis::levelplot(pres_cropstack[[37:48]],main= "Monthly Minimum Temperature (ᵒC), 1970-2000 avg.") # tmin
-rasterVis::levelplot(pres_cropstack[[25:36]],main= "Monthly Maximum Temperature (ᵒC), 1970-2000 avg.") # tmax
-
-# levelplot(pres_cropstack[[49:60]]) # vpr
-# levelplot(pres_cropstack[[61:72]]) # wind
-# levelplot(pres_cropstack[[13:24]]) # tavg
-
-names(f50cropstack)
-# levelplot(f50cropstack[[1:19]],main="Bioclimatic Variables, 2041-2060 avg., RCP 8.5") # bio
-levelplot(f50cropstack[[c(20,24:31,21:23)]]/10,main="Annual Precipitation (cm), 2041-2060 avg., RCP 8.5") # prcp
-levelplot(f50cropstack[[c(32,36:43,33:35)]]/10,main="Monthly Minimum Temperature (ᵒ C), 2041-2060 avg., RCP 8.5") # tmin
-levelplot(f50cropstack[[c(44,48:55,45:47)]]/10,main="Monthly Maximum Temperature (ᵒ C), 2041-2060 avg., RCP 8.5") # tmax
-
-# levelplot(f70cropstack[[1:19]],main="Bioclimatic Variables, 2061-2080 avg., RCP 8.5") # bio
-levelplot(f70cropstack[[c(20,24:31,21:23)]]/10,main="Annual Precipitation (cm), 2061-2080 avg., RCP 8.5") # prcp
-levelplot(f70cropstack[[c(32,36:43,33:35)]]/10,main="Monthly Minimum Temperature (ᵒC), 2061-2080 avg., RCP 8.5") # tmin
-levelplot(f70cropstack[[c(44,48:55,45:47)]]/10,main="Monthly Maximum Temperature (ᵒC), 2061-2080 avg., RCP 8.5") # tmax
-
-
-
-
-
+## Calculate differences in stacks 
 f70cropstack@title<-"2061-2080"
 f50cropstack@title<-"2041-2060"
 fcropstacks
 for (cropstack in fcropstacks){
+  preclabel<-strsplit(layerNames(cropstack[[20:31]]), "[_]")[[1]][1]
+  tminlabel<-strsplit(layerNames(cropstack[[32:43]]), "[_]")[[1]][1]
+  tmaxlabel<-strsplit(layerNames(cropstack[[44:55]]), "[_]")[[1]][1]
+
   # get max temp diff
-  tmaxdiff<-((f70cropstack[[c(44,48:55,45:47)]]/10)-((pres_cropstack[[25:36]])))
-  names(tmaxdiff)<-names(pres_cropstack[[25:36]])
-  library(quickPlot)
-  names(tmaxdiff)<-gsub("crop_wc2.0_30s_","",layerNames(tmaxdiff)) # remove prefix
-  names(tmaxdiff)
-  tmaxlabel<-substr(names(tmaxdiff),0,4)[1]
-  # png(filename=paste0(dir_figs,"/",tmaxlabel," (C) 1970 - 2000 avg. to ",cropstack@title," avg. Difference, RCP 8.5.png"))
+  tmaxdiff<-((f70cropstack[[44:55]]/10)-((pres_cropstack[[44:55]])))
+  png(filename=paste0(dir_figs,"/",tmaxlabel," (C) 1970 - 2000 avg. to ",cropstack@title," avg. Difference, RCP 8.5.png"))
   rasterVis::levelplot(tmaxdiff,main=paste0(tmaxlabel," (C) 1970 - 2000 avg. to ",cropstack@title," avg. Difference, RCP 8.5"))
-  # dev.off()
+  dev.off()
   
   # get max temp diff
-  tmindiff<-(cropstack[[c(32,36:43,33:35)]]/10)-(pres_cropstack[[37:48]])
-  names(tmindiff)<-names(pres_cropstack[[37:48]])
-  library(quickPlot)
-  names(tmindiff)<-gsub("crop_wc2.0_30s_","",layerNames(tmindiff)) # remove prefix
-  tminlabel<-substr(names(tmindiff),0,4)[1]
-  
-  # png(filename=paste0(dir_figs,"/",tminlabel," (C) 1970 - 2000 avg. to ",cropstack@title," avg. Difference, RCP 8.5.png"))
+  tmindiff<-(cropstack[[32:43]]/10)-(pres_cropstack[[32:43]])
+  png(filename=paste0(dir_figs,"/",tminlabel," (C) 1970 - 2000 avg. to ",cropstack@title," avg. Difference, RCP 8.5.png"))
   rasterVis::levelplot(tmindiff,main=paste0(tminlabel," (C) 1970 - 2000 avg. to ",cropstack@title," avg. Difference, RCP 8.5"))
-  # dev.off()
+  dev.off()
   
   # get prcp diff
-  pcpdiff<-(cropstack[[c(20,24:31,21:23)]]/10)-(pres_cropstack[[1:12]])
-  names(pcpdiff)<-names(pres_cropstack[[1:12]])
-  library(quickPlot)
-  names(pcpdiff)<-gsub("crop_wc2.0_30s_","",layerNames(pcpdiff)) # remove prefix
-  pclabel<-substr(names(pcpdiff),0,4)[1]
-  
-  
-  # png(filename=paste0(dir_figs,"/",pclabel," (mm) 1970 - 2000 avg. to ",cropstack@title," avg. Difference, RCP 8.5.png"))
+  pcpdiff<-(cropstack[[20:31]])-(pres_cropstack[[20:31]])
+  png(filename=paste0(dir_figs,"/",pclabel," (mm) 1970 - 2000 avg. to ",cropstack@title," avg. Difference, RCP 8.5.png"))
   rasterVis::levelplot(pcpdiff,main=paste0(pclabel," 1970 - 2000 avg. to ",cropstack@title," avg. Difference, RCP 8.5"))
-  # dev.off()
+  dev.off()
   
 }
 
@@ -547,12 +523,28 @@ for (cropstack in fcropstacks){
 stackApply()
 cropstacks<-c(pres_cropstack,f50cropstack,f70cropstack)
 
+for (i in cropstacks){
+  AnnualMaxTDif <- max(i[[44:45]])-min(i[[44:45]])
+  GrowingMonths<-sum(i[[20:31]]>100)
+  DailyTDif<-max(i[[44:55]] - i[[32:43]])
+  
+  i<-stack(i,AnnualMaxTDif,DailyTDif)
+  writeRaster(i, paste0(dir_stacks,"/",i@title,".grd"), bylayer=FALSE, format='raster', overwrite=T)
+  
+}
+
+biolabel i[[1:19]]
+prec i[[20:31]]
+tmin i[[32:43]]
+tmax i[[44:55]]
+
 f<-function(x)max(x[1:12])-min(x[1:12])
+
 clima[["AnnualMaxTDif"]]<-apply(clima@data,1,f)
+
 f<-function(x)max(x[1:12]-x[13:24])
 clima[["DailyTDif"]]<-apply(clima@data,1,f)
-7More complex methods involve calculating evapotranspiration.
-24
+
 f<-function(x)sum(x[25:36]>100)
 clima[["GrowingMonths"]]<-apply(clima@data,1,f)
 
