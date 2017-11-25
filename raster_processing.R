@@ -268,7 +268,7 @@ mods<-expand.grid(var=c("tn","tx","pr","bi"),   #tn, tx, pr, or bi, no bi?
                   ,
                   
                   year=c(50,70), ##50 or 70     # period 2050 or 2070
-                  res="30s") %>%                # resolution
+                  res="30s")                # resolution
   
   mutate(filename=paste0(tolower(model),rcp,var,year),
          url=paste0("http://biogeo.ucdavis.edu/data/climate/cmip5/",res,"/",filename,".zip"))
@@ -462,6 +462,7 @@ for (i in cropstacks[i]){
     dev.off()
   }  
 }
+cropstacks[[1]]@title
 
 for (i in cropstacks){
   x<-i@title
@@ -471,27 +472,28 @@ for (i in cropstacks){
   tmaxlabel<-strsplit(layerNames(i[[44:55]]), "[_]")[[1]][1]
 
   png(filename=paste0(dir_figs,"/",x,"_",biolabel,".png"))
-  plot(i[[1:19]])
+  par(mfrow=c(4,5))
+  plot(i[[1:16]])
   dev.off()
   
   png(filename=paste0(dir_figs,"/",x,"_",preclabel,".png"))
+  par(mfrow=c(3,4))
   plot(i[[20:31]]/10) # prcp
   dev.off()
   
   png(filename=paste0(dir_figs,"/",x,"_",tminlabel,".png"))
+  par(mfrow=c(3,4))
   plot(i[[32:43]]/10) # tmin
   dev.off()
   
   png(filename=paste0(dir_figs,"/",x,"_",tmaxlabel,".png"))
+  par(mfrow=c(3,4))
   plot(i[[44:55]]/10) # tmax
   dev.off()
 }
 
 
-## Calculate differences in stacks 
-f70cropstack@title<-"2061-2080"
-f50cropstack@title<-"2041-2060"
-fcropstacks
+#fcropstacks
 for (cropstack in fcropstacks){
   preclabel<-strsplit(layerNames(cropstack[[20:31]]), "[_]")[[1]][1]
   tminlabel<-strsplit(layerNames(cropstack[[32:43]]), "[_]")[[1]][1]
@@ -519,43 +521,62 @@ for (cropstack in fcropstacks){
 
 #####################################
 # BUILD MODELLING STACKS 
+# write rasters to file 
+pres_cropstack@title<-"1970-2000"
+f50cropstack@title<-"2041-2060"
+f70cropstack@title<-"2061-2080"
 
 stackApply()
 cropstacks<-c(pres_cropstack,f50cropstack,f70cropstack)
+i<-cropstacks[[1]]
+install.packages("envirem")
+library(envirem)
+f50cropstack
+names(f50cropstack)
+envirem::layerCreation(f50cropstack,var="all")
 
+i<-cropstacks[[1]]
 for (i in cropstacks){
-  AnnualMaxTDif <- max(i[[44:45]])-min(i[[44:45]])
-  GrowingMonths<-sum(i[[20:31]]>100)
-  DailyTDif<-max(i[[44:55]] - i[[32:43]])
+  tmean<-mosaic(i[[44:55]],i[[32:43]],fun=mean)
+  tmin <- i[[32:43]]
+  tmax <- i[[44:55]]
+  prec <- i[[20:31]]
   
-  i<-stack(i,AnnualMaxTDif,DailyTDif)
-  writeRaster(i, paste0(dir_stacks,"/",i@title,".grd"), bylayer=FALSE, format='raster', overwrite=T)
+  GrowingMonths<-(i[[20:31]]/10)>100
+  names(GrowingMonths)<-"GrowingMonths"
+
+  # calculate temperature extremes
+  temp <- otherTempExtremes(tmean, tmin, tmax)
+  meantempWarmest <- temp[['meanTempWarmest']]
+  meantempColdest <- temp[['meanTempColdest']]
+  cont<-continentality(meantempWarmest, meantempColdest)
+  names(cont)<-"continentality"
   
+  # growing degree days
+  ggd<-growingDegDays(tmean, 10)
+  names(ggd)<-"GrowingDegreeDays"
+  
+  alt<-raster(paste0(dir_topo,"/alt_cropped.grd"))
+  names(alt)<- "elev"
+  terrain<-terrain(alt, opt=c('slope','TRI'), unit='degrees', neighbors=8)
+  names(terrain)
+  
+  p<-stack(i,GrowingMonths,cont,ggd,alt,terrain)
+  names(p)<-c(layerNames(i),"GrowingMonths","cont","ggd","alt","terrain")
+  writeRaster(p, paste0(dir_stacks,"/",i@title,".grd"), bylayer=FALSE, format='raster', overwrite=T)
+  assign(i, p)
 }
 
-biolabel i[[1:19]]
-prec i[[20:31]]
-tmin i[[32:43]]
-tmax i[[44:55]]
-
-f<-function(x)max(x[1:12])-min(x[1:12])
-
-clima[["AnnualMaxTDif"]]<-apply(clima@data,1,f)
-
-f<-function(x)max(x[1:12]-x[13:24])
-clima[["DailyTDif"]]<-apply(clima@data,1,f)
-
-f<-function(x)sum(x[25:36]>100)
-clima[["GrowingMonths"]]<-apply(clima@data,1,f)
-
-
-for (cropstack in fcropstacks){
- climdf<-as.data.frame(cropstack) 
- write.csv(climdf,file=paste0(dir_stacks,"/",cropstack,"/-df.csv"))
-}
+#biolabel i[[1:19]]
+#prec i[[20:31]]
+#tmin i[[32:43]]
+#tmax i[[44:55]]
 
 
 
+vifstep<-vifstep(pres_cropstack,th=10)
+
+vifcor<-vifcor(pres_cropstack,th=0.75)
 
 # remove multicollinearity of full stack
 library(SpaDES)
