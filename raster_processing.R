@@ -439,38 +439,36 @@ f50cropstack<-stack(grds[3])
 f70cropstack<-stack(grds[6])
 
 # write rasters to file 
+pres_cropstack@title<-"present"
+f50cropstack@title<-"2050"
+f70cropstack@title<-"2070"
+
 cropstacks<-list(pres_cropstack,f50cropstack,f70cropstack)
 library(rasterVis)
 library(quickPlot)
-levelplot(pres_cropstack[[1:19]])
 
-
-s<-cropstacks[[1]]
-for (s in cropstacks[[1:3]]){
-  x<-deparse(substitute(s))
-  
-  biolabel<-strsplit(layerNames(s[[1:19]]), "[_]")[[1]][1]
-  preclabel<-strsplit(layerNames(s[[20:31]]), "[_]")[[1]][1]
-  tminlabel<-strsplit(layerNames(s[[32:43]]), "[_]")[[1]][1]
-  tmaxlabel<-strsplit(layerNames(s[[44:55]]), "[_]")[[1]][1]
-  
-  tmaxlabel<-strsplit(layerNames(s[[44:55]]), "[_]")[[1]][1]
+for (i in cropstacks){
+  x<-i@title
+  biolabel<-strsplit(layerNames(i[[1:19]]), "[_]")[[1]][1]
+  preclabel<-strsplit(layerNames(i[[20:31]]), "[_]")[[1]][1]
+  tminlabel<-strsplit(layerNames(i[[32:43]]), "[_]")[[1]][1]
+  tmaxlabel<-strsplit(layerNames(i[[44:55]]), "[_]")[[1]][1]
+  tmaxlabel<-strsplit(layerNames(i[[44:55]]), "[_]")[[1]][1]
   
   png(filename=paste0(dir_figs,"/",x,"_",biolabel,".png"))
-  rasterVis::levelplot(s[[1:19]],main="Bioclimatic Variables") # bio
+  plot(i[[1:19]])
   dev.off()
   
-  title(s)
   png(filename=paste0(dir_figs,"/",x,"_",preclabel,".png"))
-  rasterVis::levelplot(s[[20:31]]/10,main= "Annual Precipitation (cm)") # prcp
+  plot(i[[20:31]]/10,main= "Annual Precipitation (cm)") # prcp
   dev.off()
   
   png(filename=paste0(dir_figs,"/",x,"_",tminlabel,".png"))
-  rasterVis::levelplot(s[[32:43]]/10,main= "Monthly Minimum Temperature (ᵒC)") # tmin
+  plot(i[[32:43]]/10,main= "Monthly Minimum Temperature (ᵒC)") # tmin
   dev.off()
   
   png(filename=paste0(dir_figs,"/",x,"_",tmaxlabel,".png"))
-  rasterVis::levelplot(s[[44:55]]/10,main= "Monthly Maximum Temperature (ᵒC)") # tmax
+  plot(i[[44:55]]/10,main= "Monthly Maximum Temperature (ᵒC)") # tmax
   dev.off()
 }
 
