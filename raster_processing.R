@@ -27,7 +27,7 @@ dir_f.mosaics<-paste0(dir_fut,"/1.4/")
 
 dir_land<-paste0(dir_dat,"/land-cover")
 
-dir_stacks<-paste0(dir_clim,"/stacks/")
+dir_stacks<-paste0(dir_dat,"/stacks/")
 
 folders<-as.list(ls())
 i<-folders[[3]]
@@ -178,6 +178,12 @@ crs(alt.mosaic)<-"+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
 names(alt.mosaic)<-"altitude"
 alt.crop<-crop(alt.mosaic,r)
 writeRaster(alt.crop,filename=paste0(dir_topo,"/alt_cropped.grd"),format="raster",overwrite=T)
+
+alt.crop<-raster(paste0(dir_topo,"/alt_cropped.grd"))
+names(alt.crop)<- "elev"
+terrain<-terrain(alt.crop, opt=c('slope','TRI'), unit='degrees', neighbors=8)
+names(terrain)
+writeRaster(terrain, paste0(dir_topo,"/",c('slope','TRI'),".grd"), bylayer=TRUE, format='raster', overwrite=T)
 
 
 
@@ -464,7 +470,7 @@ for (i in cropstacks[i]){
     dev.off()
   }  
 }
-cropstacks[[1]]@title
+
 
 for (i in cropstacks){
   x<-i@title
@@ -475,7 +481,7 @@ for (i in cropstacks){
 
   png(filename=paste0(dir_figs,"/",x,"_",biolabel,".png"))
   par(mfrow=c(4,5))
-  plot(i[[1:16]])
+  plot(i[[1:19]])
   dev.off()
   
   png(filename=paste0(dir_figs,"/",x,"_",preclabel,".png"))
@@ -494,7 +500,9 @@ for (i in cropstacks){
   dev.off()
 }
 
-
+f50cropstack@title<-"2041-2060"
+f70cropstack@title<-"2061-2080"
+fcropstacks<-list(f50cropstack,f70cropstack)
 #fcropstacks
 for (cropstack in fcropstacks){
   preclabel<-strsplit(layerNames(cropstack[[20:31]]), "[_]")[[1]][1]
@@ -522,72 +530,173 @@ for (cropstack in fcropstacks){
 }
 
 #####################################
-# BUILD MODELLING STACKS 
+# Generate envirem data
 # write rasters to file 
+grds<-list.files(path=dir_stacks,pattern=".grd",full.names = T)
+
+pres_cropstack<-stack(grds[7])
+f50cropstack<-stack(grds[3])
+f70cropstack<-stack(grds[6])
+
+
 pres_cropstack@title<-"1970-2000"
 f50cropstack@title<-"2041-2060"
 f70cropstack@title<-"2061-2080"
 
-stackApply()
 cropstacks<-c(pres_cropstack,f50cropstack,f70cropstack)
-i<-cropstacks[[1]]
-install.packages("envirem")
+
 library(envirem)
-f50cropstack
-names(f50cropstack)
-envirem::layerCreation(f50cropstack,var="all")
+library(quickPlot)
+library(stringr)
 
-i<-cropstacks[[1]]
-for (i in cropstacks){
-  tmean<-mosaic(i[[44:55]],i[[32:43]],fun=mean)
-  tmin <- i[[32:43]]
-  tmax <- i[[44:55]]
+for (i in cropstacks[1]){
+  tmin <- i[[32:43]]  *10
+  tmax <- i[[44:55]]  *10
   prec <- i[[20:31]]
+  bio <- i[[1:19]]
+  tmean<-mosaic(tmin,tmax,fun=mean)
+  names(tmean)<-paste0("tmean_",str_pad(rep(01:12), 2, pad = "0"))
+  tmean
+  # tmean<-tmean*10 # for present cropstack
   
-  GrowingMonths<-sum(i[[20:31]]/10)>100
-  names(GrowingMonths)<-"GrowingMonths"
-
-  # calculate temperature extremes
-  temp <- otherTempExtremes(tmean, tmin, tmax)
-  meantempWarmest <- temp[['meanTempWarmest']]
-  meantempColdest <- temp[['meanTempColdest']]
-  cont<-continentality(meantempWarmest, meantempColdest)
-  names(cont)<-"continentality"
+  sradFiles<-list.files(paste0(dir_pres,"/2.0"),pattern="srad*.tif",full.names = T)
+  srad<-stack(sradFiles)
+  names(srad)<-paste0("srad_",str_pad(rep(01:12), 2, pad = "0"))
   
   # growing degree days
-  ggd<-growingDegDays(tmean, 10)
-  names(ggd)<-"GrowingDegreeDays"
+  #ggd<-growingDegDays(tmean, 10)
+  #plot(ggd)
   
-  alt<-raster(paste0(dir_topo,"/alt_cropped.grd"))
-  names(alt)<- "elev"
-  terrain<-terrain(alt, opt=c('slope','TRI'), unit='degrees', neighbors=8)
-  names(terrain)
-  writeRaster(terrain, paste0(dir_topo,"/",c('slope','TRI'),".grd"), bylayer=TRUE, format='raster', overwrite=T)
+  # calculate temperature extremes
+  #temp <- otherTempExtremes(tmean, tmin, tmax)
+  #meantempWarmest <- temp[['meanTempWarmest']]
+  #meantempColdest <- temp[['meanTempColdest']]
+  #cont<-continentality(meantempWarmest, meantempColdest)
+  #names(cont)<-"continentality"
   
-  p<-stack(i,GrowingMonths,cont,ggd,alt,terrain)
-  names(p)<-c(layerNames(i),"GrowingMonths","cont","ggd","alt","terrain")
-  writeRaster(p, paste0(dir_stacks,"/",i@title,".grd"), bylayer=FALSE, format='raster', overwrite=T)
-  assign(i, p)
+  
+  p<-stack(bio,prec,srad,tmax,tmin)
+  p@title<-i@title
+  names(p)<-c(layerNames(bio),layerNames(prec),layerNames(srad),layerNames(tmax),layerNames(tmin))
+  
+  
+  dir<-paste0(dir_stacks,i@title,".grd")
+  dir.create(dir,showWarnings = FALSE)
+  writeRaster(p, paste0(dir,"/",i@title,"_",names(p),".grd"), bylayer=TRUE,format='raster', overwrite=T)
+  
+  generateRasters(var='all', maindir=dir, resName="30as", timeName=p@title, outputDir=dir,
+                  rasterExt = ".grd", nTiles = 1, overwriteResults = TRUE,
+                  outputFormat = "raster", tempDir = "~/temp", gdalinfoPath = NULL,
+                  gdal_translatePath = NULL)
 }
+
+
+for (i in cropstacks[2:3]){
+  tmin <- i[[32:43]] # for present 1 *10
+  tmax <- i[[44:55]] # for present 1 *10
+  prec <- i[[20:31]]
+  bio <- i[[1:19]]
+  tmean<-mosaic(tmin,tmax,fun=mean)
+  names(tmean)<-paste0("tmean_",str_pad(rep(01:12), 2, pad = "0"))
+  tmean
+  # tmean<-tmean*10 # for present cropstack
+  
+  sradFiles<-list.files(paste0(dir_pres,"/2.0"),pattern="srad*.tif",full.names = T)
+  srad<-stack(sradFiles)
+  names(srad)<-paste0("srad_",str_pad(rep(01:12), 2, pad = "0"))
+  
+  # growing degree days
+  #ggd<-growingDegDays(tmean, 10)
+  #plot(ggd)
+  
+  # calculate temperature extremes
+  #temp <- otherTempExtremes(tmean, tmin, tmax)
+  #meantempWarmest <- temp[['meanTempWarmest']]
+  #meantempColdest <- temp[['meanTempColdest']]
+  #cont<-continentality(meantempWarmest, meantempColdest)
+  #names(cont)<-"continentality"
+  
+
+  alt<- raster(paste0(dir_topo,"/alt_cropped.grd"))
+  slope<-raster(paste0(dir_topo,"/slope.grd"))
+  tri<-raster(paste0(dir_topo,"/TRI.grd"))
+  
+  p<-stack(bio,prec,srad,tmax,tmin,cont,ggd,alt,slope,tri)
+  p@title<-i@title
+  names(p)<-c(layerNames(bio),layerNames(prec),layerNames(srad),layerNames(tmax),layerNames(tmin),"cont","ggd","elev","slope","TRI")
+  
+  
+  dir<-paste0(dir_stacks,i@title,".grd")
+  dir.create(dir,showWarnings = FALSE)
+  writeRaster(p, paste0(dir,"/",i@title,"_",names(p),".grd"), bylayer=TRUE, suffix=nlayers(p),format='raster', overwrite=T)
+  
+  generateRasters(var='all', maindir=dir, resName="30as", timeName=p@title, outputDir=dir,
+                  rasterExt = ".grd", nTiles = 1, overwriteResults = TRUE,
+                  outputFormat = "raster", tempDir = "~/temp", gdalinfoPath = NULL,
+                  gdal_translatePath = NULL)
+}
+
+
 
 #biolabel i[[1:19]]
 #prec i[[20:31]]
 #tmin i[[32:43]]
 #tmax i[[44:55]]
 
+###########################################################
+###       MODELLING STACK VARIABLE SELECTION            ###
+###########################################################
 
-vif<-vif(pres_cropstack)
-vifstep<-vifstep(pres_cropstack,th=10)
+# read in new cropstacks with all calculated variables
+grds<-list.files(path=dir_stacks,pattern=".grd",full.names = T)
 
-vifcor<-vifcor(pres_cropstack,th=0.75)
 
-# remove multicollinearity of full stack
-library(SpaDES)
-library(virtualspecies)
-coll_vars_pres<-virtualspecies::removeCollinearity(pres_cropstack,multicollinearity.cutoff = 0.45, select.variables = FALSE, sample.points = F,plot = TRUE)
-save.image(paste0(dir_clim,"/raster_processing.RData"))
-print(coll_vars_pres)
-coll_vars_pres
+pres_cropstack<-stack(grds[1])
+f50cropstack<-stack(grds[2])
+f70cropstack<-stack(grds[3])
+
+names(pres_cropstack)
+
+varstack<-pres_cropstack[[20:55]]
+biostack<-pres_cropstack[[c(1:19,56:60)]]
+
+names(biostack)
+par(mfrow=c(4,6))
+plot(biostack)
+plot(biostack[[17:24]])
+
+# create correlation matrix of bioclimatic variables
+library(corrplot)
+biostack[is.na(biostack)] <- 0
+mat<-as.matrix(biostack)
+
+write.csv(mat,file=paste0(dir_out,"/biovars_matrix.csv"))
+mat<-read.csv(file=paste0(dir_out,"/biovars_matrix.csv"))
+cormat<-cor(mat)
+write.csv(cormat,file=paste0(dir_out,"/biovars_corr_matrix.csv"))
+
+# visualize correlation matrix
+corrplot(cormat)
+
+library(usdm)
+# get variance inflation factors of pres_cropstack vars
+vif<-vif(mat)
+layers<-c() # remove layers with high vif, selecting variables appropriate to species (e.g.: maize)
+viflay<-mat[1:50]
+vifstep<-vifstep(viflay,th=10)
+
+vifcor<-vifcor(viflay,th=0.75)
+
+
+
+
+# remove multicollinearity of full stack3
+#library(SpaDES)
+#library(virtualspecies)
+#coll_vars_pres<-virtualspecies::removeCollinearity(pres_cropstack,multicollinearity.cutoff = 0.45, select.variables = FALSE, sample.points = F,plot = TRUE)
+#save.image(paste0(dir_clim,"/raster_processing.RData"))
+#print(coll_vars_pres)
+#coll_vars_pres
 
 
 # manually select raster layers to retain from climate pca, including other variables of interest
@@ -600,7 +709,7 @@ presmodstack<-raster::stack(paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_01.tif
                             paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_18.tif"),
                             paste0(dir_topo,"/alt_cropped.grd"),
                             paste0(dir_ind,"/pob-ind.grd"),
-                            paste0(dir_ind,"/pob-ind.grd")
+                            paste0(dir_land,"/crop-land-cover.tif")
                             
 )
 
