@@ -712,8 +712,6 @@ layernames<-names(pres_biostack)
 library(corrplot)
 pres_biostack[is.na(pres_biostack)] <- 0
 names(pres_biostack)<-layernames
-<<<<<<< HEAD
-
 
 mat<-as.matrix(pres_biostack)
 colnames(mat)<-names(pres_biostack)
