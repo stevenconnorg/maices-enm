@@ -789,8 +789,6 @@ write.csv(mat,file=paste0(dir_out,"/biovars_matrix.csv"))
 #mat<-read.csv(file=paste0(dir_out,"/biovars_matrix.csv"))
 write.csv(cormat,file=paste0(dir_out,"/biovars_corr_matrix.csv"))
 
->>>>>>> 7e624be3be034466e77ee95b6955d434d2cde684
-
 
 library(usdm)
 # get variance inflation factors of pres_cropstack vars
@@ -798,11 +796,9 @@ vif<-usdm::vif(pres_biostack)
 
 layers<-c() # remove layers with high vif, selecting variables appropriate to species (e.g.: maize)
 viflay<-mat[1:50]
-<<<<<<< HEAD
-=======
+
 
 vifstep<-vifstep(viflay,th=10)
->>>>>>> 7e624be3be034466e77ee95b6955d434d2cde684
 
 vifstep<-vifstep(pres_biostack,th=10)
 
