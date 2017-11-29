@@ -1,10 +1,6 @@
 # establish directories
 getwd()
-setwd("C:\\Users\\sgonzalez\\Desktop\\maices-enm-master")
-root<-getwd()
-# new directories for biomod
-dir_bm<-paste0(dir_R,"/01_biomod")
-# dir_bmz<-paste0(dir_R,"/02_biomodez")
+root<-"E:/thesis/"
 
 
 dir_dat<-paste0(root,"/01_data")
@@ -18,7 +14,10 @@ dir_presentations<-paste0(root,"/07_pres")
 dir_maices<-paste0(dir_dat,"/maices")
 dir_ind<-paste0(dir_dat,"/ind")
 
-# 
+# new directories for biomod
+dir_bm<-paste0(dir_R,"/01_biomod")
+# dir_bmz<-paste0(dir_R,"/02_biomodez")
+
 dir_clim<-paste0(dir_dat,"/clim")
 dir_pres<-paste0(dir_clim,"/present")
 dir_fut<-paste0(dir_clim,"/future")
@@ -35,27 +34,43 @@ for (i in folders)  {
   folder<-get(i)
   dir.create(folder,recursive=TRUE) 
 } 
-}
+
 ###################################################
 # Maize Observation Data Downloading and Cleaning # 
 ###################################################
 dir.create(paste0(dir_maices),recursive=T)
-download.file("http://www.conabio.gob.mx/informacion/gis/maps/geo/maizngw.zip",destfile = paste0(dir_maices,"/maizngw.zip"),method = "wget")
+zipurl<-"http://www.conabio.gob.mx/informacion/gis/maps/geo/maizngw.zip"
+outdir<-dir_maices
+replacement<-"testing"
 
-zipF<-paste0(dir_maices,"/maizngw.zip") # lets you choose a file and save its file path in R (at least for windows)
-outDir<-paste0(dir_maices) # Define the folder where the zip file should be unzipped to 
-unzip(zipF,exdir=outDir)  # unzip your file 
+downloadShapefile <- function(zipurl,outdir,replacement){
+  # zipurl as string
+  # dir_maices
+  # replacement as string
+  ext<-file_ext(zipurl)
+  filename<-basename(zipurl)
+  name<<-gsub(paste0(".",ext),"",filename)
+  download.file(zipurl,destfile = paste0(outdir,"/",filename),method = "wget")
 
+  outDir<-normalizePath(outdir,winslash = "\\") # outDir<-paste0(dir_maices) # Define the folder where the zip file should be unzipped to , normalized
+  zipF<-paste0(outDir,"/",filename) # lets you choose a file and save its file path in R (at least for windows)
+  unzip(zipF,exdir=outDir)  # unzip your file 
+  
+  files <- list.files(outDir,pattern = name,full.names = F) 
+  
+  # https://stackoverflow.com/questions/25673643/rename-multiple-files-in-a-folder-using-r
 
-files <- list.files(outDir,pattern = "maizngw",full.names = F) 
+  sapply(files,FUN=function(eachPath){ 
+    file.rename(from=eachPath,to= sub(pattern=name, paste0(replacement),eachPath))
+  })
 
-#  rename original .shp file name
-sapply(files,FUN=function(eachPath){
-  file.rename(from=eachPath,to=sub(pattern= "maizngw",replacement= "todos-maices",eachPath))
-})
+}
+
+downloadShapefile(zipurl,dir_maices,"todos-maices")
+
 
 library(rgdal)
-todos<-readOGR(paste0(dir_maices,"/maizngw.shp"),layer="maizngw",use_iconv=TRUE) 
+todos<-readOGR(paste0(dir_maices,"/todos-maices.shp"),layer=name,use_iconv=TRUE) 
 
 memory.size(max=T)
 memory.limit()
@@ -103,7 +118,6 @@ todos.6<-todos.5
 
 # subset races with greater than 20 samples
 maices=todos.6
-maices = subset(todos.6, length(todos.6$Raza_prima) > 20)
 
 
 
@@ -121,13 +135,14 @@ raza.counts
 # install.packages("letsR")
 library(letsR)
 xy<-cbind(maices@data$Longitud,maices@data$Latitud)
-for (i in maices@data$Raza_prima){
-letsR::lets.presab.points(i, resol = 0.01)
+
+# extent
 # xmin        : -117.625 
 # xmax        : -86.20833 
 # ymin        : 14.025 
 # ymax        : 33.225 
 # nrow=2304,ncol=3770
+
 PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn=-117.625, xmx=-86.20833 , ymn=14.025 , ymx=33.225 , resol = 0.00883333)
 plot(PA)
 plot(PA$Richness_Raster)
