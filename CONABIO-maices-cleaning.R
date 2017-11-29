@@ -146,22 +146,21 @@ xy<-cbind(maices@data$Longitud,maices@data$Latitud)
 # ymax        : 33.225 
 # nrow=2304,ncol=3770
 
-#PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn=-117.625, xmx=-86.20833 , ymn=14.025 , ymx=33.225 , resol = 0.00883333)
-#PA<-
-#  plot(PA)
-#plot(PA$Richness_Raster)
-#pam<-PA$Presence_and_Absence_Matrix
-#View(pam)
-#pam[pam == 0 ] <- NA
-#View(pam)
-#pa<-data.frame(pam)
-#pa_df_fn<-paste0(dir_out,"/pa_dataframe.csv")
-#pam_fn<-paste0(dir_out,"/pam.csv")
-#con_pa<-file(pa_df_fn,encoding="LATIN1")
-#con_pam<-file(pam_fn,encoding="LATIN1")
+PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn=-117.625, xmx=-86.20833 , ymn=14.025 , ymx=33.225 , resol = 0.00883333)
 
-#write.csv(pa,file=con_pa)
-#write.csv(pam,file=con_pam)
-read.csv(pam_fn)
+  plot(PA)
+plot(PA$Richness_Raster)
+pam<-PA$Presence_and_Absence_Matrix
+View(pam)
+pam[pam == 0 ] <- NA
+View(pam)
+pa<-data.frame(pam)
+pa_df_fn<-paste0(dir_out,"/pa_dataframe.csv")
+pam_fn<-paste0(dir_out,"/pam.csv")
+con_pa<-file(pa_df_fn,encoding="LATIN1")
+con_pam<-file(pam_fn,encoding="LATIN1")
+
+write.csv(pa,file=con_pa)
+write.csv(pam,file=con_pam)
 
 save.image(file=paste0(dir_maices,"/clean_maices_obs.RData"))

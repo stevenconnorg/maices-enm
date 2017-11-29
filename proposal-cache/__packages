@@ -7,3 +7,5 @@ usdm
 quickPlot
 dplyr
 corrplot
+rgdal
+pander

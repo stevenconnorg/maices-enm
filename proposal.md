@@ -1,0 +1,347 @@
+<style>
+body {
+    overflow: scroll;
+}
+</style>
+
+
+Evaluating Impacts of Climate Change on Traditional Mexican Maize
+========================================================
+author: Steven C. Gonzalez
+date: December 6th, 2017
+autosize: true
+width: 1920
+height: 1080
+font-family: arial
+css: exlaim.css
+Presented to:<br />
+Dr. Russell Weaver<br />
+Dr. Jennifer Jensen <br />
+Dr. Thomas Ballinger <br />
+
+
+
+
+
+
+
+
+
+
+
+
+Introduction
+=======================================================
+type: section
+
+- Climate change is expected heavily impact natural and human systems worldwide  (Walther, G.-R. et al., 2002; IPCC 2007, 2013; Kang, Y, S. Khan 2009; Hoegh-Guldberg, O. 2010)
+
+- The IPCC reports numerous negative impacts of climate change on domesticated crops regardless of the emission scenario implemented(Brown and Funk 2008; Ureta et al. 2012; IPCC 2013) 
+
+- Ensuring global food security in an increasingly warming world with  exponentially increasing world population requires multidisciplinary research  (Brown and Funk 2008; Ureta et al. 2012; IPCC 2013, 2015) 
+
+Global Importance of Maize Genetic Diversity at COD
+=======================================================
+type: section
+
+- Maize (<i>Zea mays</i> subsp. <i>mays</i> L.) supplies a staple food crop for more than 200 million people worldwide (Nuss and Tanumihardjo 2010; Ureta et al. 2013)
+
+- Climate change is expected to alter maize suitability, especially between the tropics (Ramirez-Cabral et al., 2017)
+
+- Mexico, maize's C.O.D., harbors traditional maize landraces that account for 60% of maize genetic diversity globally (Ureta et al. 2013)
+
+- Preservation of agrobiodiversity at centers of domestication critical for global food security (Thrupp 2000; Esquinas-Alcazar 2005; Ureta et al. 2013).  
+
+
+Maize Diversity & Evolution
+=======================================================
+type: section
+<img src="proposal-figure\maiz-y-teosinte.jpg";>
+<font size = "5px"> https://lacienciaysusdemonios.com/2009/10/06/el-huerto-evolutivo-4-del-teocinte-teosinte-al-maiz-la-evolucion-es-la-repanocha/ </font>
+
+***
+
+- > 9,000 years from Mexican annual teosinte (<i>Z. mays</i> ssp. <i>Parviglumus</i> and ssp. <i>mexicana</i> ) via artificial selection by indigenous cultures (Matsuoka et al. 2002; Kato et al. 2009)
+- Maize landraces have been grown (Ruiz Corral et al. 2008):
+      - from sea-level to 2,900 (m asl)
+      - avg. growing temp 12.0 &deg;C - 29.1 &deg;C
+      - avg. seasonal precip. 400 mm to 3555 mm 
+- Regional clusters of phenotypically similar landraces exist (Cutler 1942; Anderson 1947; E.J. Wellhausen et al., 1952; Dyer & Lopez-Feldman 2013)
+
+
+Maize Mirrors Humanity
+=======================================================
+type: section
+<img src="proposal-figure\reflecion-maiz.jpg";>
+<font size = "5px"> http://tarotdemaximo.blogspot.com </font>
+
+***
+
+- As a domesticated crop, maize is intimately contingent upon societal influences
+- Edgar Anderson - "maize [as] as sensitive mirror of the people of who grow it" (Anderson, 1942, 1947)
+- Today, numerous studies indicate human influences on maize distribution and diversity, including:
+      - Seed management practices (Anderson 1947; Dyer and Lopez-Feldman 2013)
+      - Indigenous religious practices (Rendon-Aguilar et al., 2015) 
+      - Ethnolinguistic diversity (Perales, Benz, and Brush 2005; Brush and Perales 2007; Rivero-Romero et al. 2016)
+      - Indigenous agricultural knowledge (Garcia-Martinez et al. 2016; Rivero-Romero et al. 2016)
+      - Agro-technological practices (Garcia-Martinez et al. 2016; Rivero-Romero et al. 2016; Toledo and Barrera-Bassols 2017)
+    
+
+
+
+Purpose Statements
+=======================================================
+1. Model current relationships between maize landraces and their niches 
+    + Project maize niches into geographic space 
+    + Forecast these projections with future climate models 
+2. Identify patterns
+    + Evaluate spatio-temporal relationships between indigeneity and maize diversity (Variable importance)
+    + Quantify maize landrace diversity and it's projected change (Shannon Diversity Index)
+    + Identify similarities among species occurrence patterns (Jaccard similarity)
+    + Geovisualization
+3. Provide the groundwork for future work
+
+
+
+Research Questions
+=======================================================
+1. How do social and environmental factors contribute to maize landraces' current distribution? 
+2.	What are the characteristics of each maize landraces ''bioclimate envelope''?
+3.	Can the contributions of indigeneity and society to maize landraces distribution and diversity be discerned and modelled at the national level?
+4.	What is the nature of the relationship between maize landrace diversity and indigeneity in Mexico? 
+5.	How is climate change projected to alter current maize landrace distributions?
+6.	Which maize landraces are suseptible of extinction/expansion?
+
+Ecological Niche
+=======================================================
+type: section
+<img src="proposal-figure\hutchinson_tree.jpg";>
+
+<font size = "5px"> http://lakes.chebucto.org/PEOPLE/PIC/hutchinson_tree.jpg </font>
+
+***
+
+- Strongly guided by developments of the term 'biological niche' in the 20th century. 
+- Joseph Grinnell and Charles Elton pioneered early conceptions of biological niches by systematically associating environmental attributes to specific niches, thereby regulating niches to particular environments 
+- George Evelyn Hutchinson claimed biological niches as the roles a community or species performs at any particular time (Colwell and Rangel 2009). 
+- The Hutchinsonian Niche is an attribute of a species in relation to its biotic and abiotic environment to <i>n</i>-level of ecological space (Colwell and Rangel 2009; Holt 2009). 
+- Under this definition, a species' biological niche defines its role in its habitat, but not solely its habitat itself.
+
+
+
+Fundamental vs. Realized Niche
+=======================================================
+type: sub-section
+<img src="proposal-figure\niches.jpg";>
+
+<font size = "5px"> https://www.frontiersin.org/files/Articles/257078/fvets-04-00105-HTML/image_m/fvets-04-00105-g001.jpg </font>
+
+*** 
+
+- hyper-dimensional niche volume in which "every point... corresponds to a state of the environment that would permit [a] species... to exist indefinitely" (Hutchinson 1957; Holt 2009). 
+- A species' potential geographic distribution in true 4D space, constrained by its n-dimensional bioclimatic envelope. 
+- scenopoetic variables -> 'Grinnellian niche'
+- In reality, a species'niche is inherently limited by biotic interactions. 
+- Hutchinson argued that two species that shared resources cannot coexist in a "limited system" (Pulliam 2000), therefore requiring a true "realized niche" smaller than the fundamental niche. 
+- A species' realized niches represents the portion of a species' fundamental niche that exists in reality and that does not overlap with other species niches (Griesemer 1992)
+
+
+
+Biotic-Abiotic-Mobility Diagram
+=======================================================
+
+<img src="proposal-figure\BAM.png";>
+(Guisan et al., 2017; A. Townsend Peterson et al. 2011; Soberon & Peterson, 2005)
+
+***
+
+- G : Studied geographic area
+  - A : Suitable abiotic environment (Grinellean niche)
+  - B : Suitable biotic environment (Eltonian niche)
+  - C : Colonizable range
+
+1.  Realize Niche, suitable to all three (Hutchinson's Niche)
+2. Sutiable abiotic with unsuitable biotic conditions (e.g.: high competition)
+3. Colonization outside of suitable environment (sink populations)
+4. Sink in unsuitable biotic and abiotic environments (historical effects)
+
+Ecological Niche Modelling
+=======================================================
+type: section
+
+- Uses species presence and/or absence observation data and ecological data at those observation sites to estimate complex relationships of species niche (Elith et al. 2011). 
+- Project hyperdimensional ecological space onto 2- or 3D geographic space
+- Numerous uses including:
+      1. Identifying potential spread of vector borne diseases 
+      2. Identifying range of invasive species
+      3. Threatened species management
+      4. Crop modelling
+- Numerous ecological niche modeling algorithms have been developed to project ecological niche spaces into geographic spaces (e.g.: Bioclimatic Envelopes, Genetic Algorithm Rule-set Production, Maximum Entropy, Artificial Neural Networks, Support Vector Machines, Boosted Regression Trees)
+- Ensemble forecasting minimizes errors (e.g.: sensitivity to data, lack of absence data, errors in environmental variables)  (Filho et. al, 2010, Araujo & New 2007)
+- Ensemble Ecological Niche Modelling weights individual models based on performance.
+- WA and Mean consensus methods provided significantly more robust predictions than all the single-models and the other consensus methods (Marimon et al., 2009)
+
+
+Data
+=======================================================
+1. Gridded Climatologies
+  - derived "Bioclimatic Variables"
+2. Topographic Variables
+3. Ethno-linguistic Data
+4. Georeferenced maize observations
+
+Climatological Data
+=======================================================
+type: section
+
+- WorldClim, 
+  - >2,700 citations for ecological studies including ENMs and SDMs (Booth et al., 2014)
+  - largest available archive of downscaled climate data for use in ecology, evolution and environmental science (Guisan et al., 2017)
+  - ANUSPLIN 9,000 - 60,000 weather stations, , 
+  - 30 arc-second resolution
+- Current Data from WorldClim 2.0 (Fick & Hijmans, 2017)
+  - 1970-2000
+  -Maximum and Minimum Monthly Temperatures (&deg;C * 10)
+  -Monthly Precipitation (mm)
+
+- Future Data from Worldclim 1.4 (Hijmans et al., 2005)
+  - 2041-2060, 2061-2080
+  - dynamically-downscaled from 19 GCM used in CMIP5 (Coupled Model Intercomparison Project 5; Meehl et al., 2009 ) and the Fifth Assessment Report (IPCC, 2013 )
+
+
+
+Projecting onto Future Climatologies
+=======================================================
+type: sub-section
+- ENM increasingly utilizes averages of future climate models to reduce uncertainty across
+    - Relative Concentration Pathways
+    - GCM
+- Monthly means were averaged for five GCMs
+- 5th National Communication of Mexico for the United Nations Framework Convention on Climate Change (2012)
+- Any of these five model performs better singularly than ensemble of all other models in predicting previous climatologies (Conde et al. 2011)
+    - CCSM4 (Community Climate System Model, UCAR)
+    - MIROC5 (Model for Interdisciplinary Research on Climate)
+    - MPI-ESM-LR (Max-Plank Institute) 
+    - HADGEM2-ES (Met Office Hadley)
+    - GFDL-CM3 (Geophysical Fluid Dynamics Laboratory )
+- Here, using updated GCM versions
+
+
+Bioclimatic Variable Processing
+=======================================================
+type: sub-section
+
+- More ecologically importance predictor variables
+- Harkens back to first ecological niche modelling alogorithm 'BIOCLIM'
+- Calculated from monthly mean Tmax, Tmin, Tmean, and Prec
+- 19 Bioclimatic proxy variables from monthly means using 'dismo' (2017) 
+- 16 'complementary' variables from 'envirem' (2017) packages in R, using WorldClim 2.0 terrestial solar radiation
+
+Bioclimatic Variables
+=======================================================
+- BIO1 = Annual Mean Temperature
+- BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
+- BIO3 = Isothermality (BIO2/BIO7) (* 100)
+- BIO4 = Temperature Seasonality (standard deviation *100)
+- BIO5 = Max Temperature of Warmest Month
+- BIO6 = Min Temperature of Coldest Month
+- BIO7 = Temperature Annual Range (BIO5-BIO6)
+- BIO8 = Mean Temperature of Wettest Quarter
+- BIO9 = Mean Temperature of Driest Quarter
+- BIO10 = Mean Temperature of Warmest Quarter
+- BIO11 = Mean Temperature of Coldest Quarter
+- BIO12 = Annual Precipitation
+- BIO13 = Precipitation of Wettest Month
+- BIO14 = Precipitation of Driest Month
+- BIO15 = Precipitation Seasonality (Coefficient of Variation)
+- BIO16 = Precipitation of Wettest Quarter
+- BIO17 = Precipitation of Driest Quarter
+- BIO18 = Precipitation of Warmest Quarter
+- BIO19 = Precipitation of Coldest Quarter
+- Growing Months - sum(Monthly with Precipitation > 100 mm)
+- Growing degree days (days above 10 &deg; C )
+    
+***
+
+- Annual PET
+- Thornthwaite Aridity Index 
+- Climatic Moisture Index
+- Continentality
+- EmbergerQ
+- Growing Deg Days 0
+- Growing Deg Days 5
+- Max Temp Coldest
+- Min Temp Warmest
+- Month Count By Temp 10
+- PET Coldest Quarter
+- PET Driest Quarter
+- 10 Growing Deg Days
+- PET seasonality
+- PET Warmest Quarter
+- PET Wettest Quarter
+- Thermicity Index
+
+======================================================
+<div align="center">
+<img src="proposal-figure\biovars_cormat.png" >
+</div>
+
+Topographic Variable Processing
+======================================================
+- Land-cover classification (GLCF_ AVHRR Global Land Cover Classification Data)
+- Elevation from WorldClim 1.4 via SRTM (Shuttle Radar Topographic Mission)
+  - TRI (Terrain Ruggedness Index) 
+      - mean of the absolute differences between cell evel and the value of its 8 surrounding cells
+      
+![plot of chunk unnamed-chunk-4](proposal-figure/unnamed-chunk-4-1.png)![plot of chunk unnamed-chunk-4](proposal-figure/unnamed-chunk-4-2.png)![plot of chunk unnamed-chunk-4](proposal-figure/unnamed-chunk-4-3.png)
+
+
+
+Final Explanatory Variables Raster Stack
+======================================================
+- Indigenous Population Percentage
+
+- Land Cover Classification
+
+Georeferenced Maize Observations
+=======================================================
+
+
+```
+# A tibble: 64 x 2
+           Raza_prima `n()`
+                <chr> <int>
+ 1              Ancho   314
+ 2           Apachito    62
+ 3 Arrocillo Amarillo   306
+ 4               Azul    99
+ 5             Blando    41
+ 6               Bofo    37
+ 7             Bolita   524
+ 8      Cacahuacintle    62
+ 9             Celaya   910
+10          Chalqueño   602
+# ... with 54 more rows
+```
+
+- Comission
+- `r length(maices@data)'
+
+
+
+
+
+
+Ethno-linguistic Diversity Variables
+=======================================================
+
+
+
+
+
+
+
+```
+Error in (function (classes, fdef, mtable)  : 
+  unable to find an inherited method for function 'spplot' for signature '"numeric"'
+```

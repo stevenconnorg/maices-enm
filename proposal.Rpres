@@ -351,10 +351,24 @@ Final Explanatory Variables Raster Stack
 
 Georeferenced Maize Observations
 =======================================================
-- CONABIO
-- 
 
 ```{r echo=FALSE}
+
+load(paste0(dir_maices,"/clean_maices_obs.RData"))
+library(dplyr)
+library(rgdal)
+library(pander)
+raza.counts<-maices@data %>% group_by(Raza_prima) %>% summarise(n()) 
+raza.counts
+#pander::pander(raza.counts)
+```
+
+- Comission
+- `r length(maices@data)'
+
+
+
+```{r echo=FALSE,eval=FALSE}
 
  library(spatstat)
  maices<-readOGR(dsn=paste0(dir_maices,"/todos-maices-cleaned.shp"),layer="todos-maices-cleaned")
@@ -365,10 +379,7 @@ Georeferenced Maize Observations
  nmaices<-rasterize(coordinates(maices),r,fun="count")
 plot(nmaices)
 
-library(dplyr)
-raza.counts<-maices@data %>% group_by(Raza_prima) %>% summarise(n()) 
-raza.counts
-rm(i)
+
 
 ##  get mexico boundary
 library(rworldmap)
