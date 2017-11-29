@@ -731,45 +731,6 @@ write.csv(mat,file=paste0(dir_out,"/biovars_matrix.csv"))
 #mat<-read.csv(file=paste0(dir_out,"/biovars_matrix.csv"))
 write.csv(cormat,file=paste0(dir_out,"/biovars_corr_matrix.csv"))
 
-=======
-library(quickPlot)
-names(pres_biostack) <-c("BIO1AnnMeanTemp",
-                                "BIO2MeanDiurnalRange",
-                                "BIO3Isotherm",
-                                "BIO4TSeas",
-                                "BIO5TWarmestMonth",
-                                "BIO6MinTColdestMonth",
-                                "BIO7TAnnRange",
-                                "BIO8MeanTWettestQ",
-                                "BIO9MeanTDriestQ",
-                                "BIO10MeanTWarmestQ",
-                                "BIO11MeanTColdestQ",
-                                "BIO12AnnPrec",
-                                "BIO13PrecWettestMonth",
-                                "BIO14PrecDriestMonth",
-                                "BIO15PrecSeas-COV",
-                                "BIO16PrecWettestQ",
-                                "BIO17PrecDriestQ",
-                                "BIO18PrecWarmestQ",
-                                "BIO19PrecColdestQ",
-                               "EVMannPET",
-                               "EVMthornthwaiteAI",
-                               "EVMclimaticMI",
-                               "EVMcontinentality",
-                               "EVMembergerQ",
-                               "EVMgrowingDegDays0",
-                               "EVMgrowingDegDays5",
-                               "EVMmaxTempColdest",
-                               "EVMminTempWarmest",          
-                                "EVMmonthCountByT10",
-                               "EVMPETColdestQ",
-                               "EVMPETDriestQ",
-                               "EVMPETseas",
-                               "EVMPETWarmestQ",
-                               "EVMPETWettestQ",
-                               "EVMthermicityIndex"         
-                                )
-
 
 mat<-as.matrix(pres_biostack)
 colnames(mat)<-names(pres_biostack)
