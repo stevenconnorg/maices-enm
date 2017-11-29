@@ -1,6 +1,6 @@
 # establish directories
 getwd()
-root<-"E:/thesis/"
+root<-"E:/thesis"
 
 
 dir_dat<-paste0(root,"/01_data")
@@ -65,18 +65,18 @@ downloadShapefile <- function(zipurl,outdir,replacement){
   })
 
 }
-
-downloadShapefile(zipurl,dir_maices,"todos-maices")
+replacement <- "todos-maices"
+downloadShapefile(zipurl,dir_maices,replacement)
 
 
 library(rgdal)
-todos<-readOGR(paste0(dir_maices,"/todos-maices.shp"),layer=name,use_iconv=TRUE) 
+todos<-readOGR(paste0(dir_maices,"/",replacement,".shp"),layer=replacement,use_iconv=TRUE) 
 
-memory.size(max=T)
-memory.limit()
-for(i in todos@data){
-  iconv(i, from="UTF-8", to="LATIN1")
-}
+#for(i in todos@data$i){
+#  i<-iconv(todos@data$i, to="LATIN1")
+#}
+#iconv(todos@data, from="UTF-8", to="LATIN1")
+
 todos@data$Raza_prima<-iconv(todos@data$Raza_prima, from="UTF-8", to="LATIN1")
 todos@data$NomComun<-iconv(todos@data$Raza_prima, from="UTF-8", to="LATIN1")
 todos@data$Complejo_r<-iconv(todos@data$Complejo_r, from="UTF-8", to="LATIN1")
@@ -107,14 +107,15 @@ todos.3<-todos.2[todos.2@data$Longitud != 0 , ]
 todos.4<-todos.3[todos.3@data$Altitud!=9999,] 
 
 # remove inconsistent data samples
-todos.5<-todos.4 # [todos.4@data$Validacion!="Inconsistente",]
+todos.5<-todos.4[todos.4@data$Validacion!="Inconsistente",]
 
 # create new column for species 
 todos.5$maiz<-"Zea mays mays"
 
 # make maices object
 todos.6<-todos.5
-
+summary(todos.6)
+summary(todos)
 
 # subset races with greater than 20 samples
 maices=todos.6
@@ -127,6 +128,8 @@ writeOGR(maices,dsn=paste0(dir_maices),layer="todos-maices-cleaned",driver="ESRI
 library(dplyr)
 raza.counts<-maices@data %>% group_by(Raza_prima) %>% summarise(n()) 
 raza.counts
+unique(maices@data$Raza_prima)
+unique(maices@data$Complejo_r)
 
 
 # make presence/absence matrix
@@ -143,20 +146,22 @@ xy<-cbind(maices@data$Longitud,maices@data$Latitud)
 # ymax        : 33.225 
 # nrow=2304,ncol=3770
 
-PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn=-117.625, xmx=-86.20833 , ymn=14.025 , ymx=33.225 , resol = 0.00883333)
-plot(PA)
-plot(PA$Richness_Raster)
-pam<-PA$Presence_and_Absence_Matrix
-View(pam)
-pam[pam == 0 ] <- NA
-View(pam)
-pa<-data.frame(pam)
-pa_df_fn<-paste0(dir_out,"/pa_dataframe.csv")
-pam_fn<-paste0(dir_out,"/pam.csv")
-con_pa<-file(pa_df_fn,encoding="LATIN1")
-con_pam<-file(pam_fn,encoding="LATIN1")
+#PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn=-117.625, xmx=-86.20833 , ymn=14.025 , ymx=33.225 , resol = 0.00883333)
+#PA<-
+#  plot(PA)
+#plot(PA$Richness_Raster)
+#pam<-PA$Presence_and_Absence_Matrix
+#View(pam)
+#pam[pam == 0 ] <- NA
+#View(pam)
+#pa<-data.frame(pam)
+#pa_df_fn<-paste0(dir_out,"/pa_dataframe.csv")
+#pam_fn<-paste0(dir_out,"/pam.csv")
+#con_pa<-file(pa_df_fn,encoding="LATIN1")
+#con_pam<-file(pam_fn,encoding="LATIN1")
 
-write.csv(pa,file=con_pa)
-write.csv(pam,file=con_pam)
+#write.csv(pa,file=con_pa)
+#write.csv(pam,file=con_pam)
+read.csv(pam_fn)
 
 save.image(file=paste0(dir_maices,"/clean_maices_obs.RData"))
