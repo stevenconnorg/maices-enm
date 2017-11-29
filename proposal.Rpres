@@ -10,8 +10,8 @@ Evaluating Impacts of Climate Change on Traditional Mexican Maize
 author: Steven C. Gonzalez
 date: December 6th, 2017
 autosize: true
-width: 1440
-height: 900
+width: 1920
+height: 1080
 font-family: arial
 css: exlaim.css
 Presented to:<br />
@@ -114,14 +114,14 @@ type: section
 
 ***
 
-- As a domesticated crop, maize is intimately contingent upon societal influences, also
-- Edgar Anderson , first formalized maize diversity using maize landrace classification, first noted "maize [as] as sensitive mirror of the people of who grow it" (Anderson, 1942, 1947)
-- Today, numerous studies indicate human influences on maize distribution and diversity, including
-    - Seed management practices (Anderson 1947; Dyer and López-Feldman 2013)
-    - Indigenous religious practices (Rendón-Aguilar et al., 2015) 
-    - Ethnolinguistic diversity (Perales, Benz, and Brush 2005; Brush and Perales 2007; Rivero-Romero et al. 2016)
-    - Indigenous agricultural knowledge (García-Martínez et al. 2016; Rivero-Romero et al. 2016)
-    - Agro-technological practices (García-Martínez et al. 2016; Rivero-Romero et al. 2016; Toledo and Barrera-Bassols 2017)
+- As a domesticated crop, maize is intimately contingent upon societal influences
+- Edgar Anderson - "maize [as] as sensitive mirror of the people of who grow it" (Anderson, 1942, 1947)
+- Today, numerous studies indicate human influences on maize distribution and diversity, including:
+      - Seed management practices (Anderson 1947; Dyer and Lopez-Feldman 2013)
+      - Indigenous religious practices (Rendon-Aguilar et al., 2015) 
+      - Ethnolinguistic diversity (Perales, Benz, and Brush 2005; Brush and Perales 2007; Rivero-Romero et al. 2016)
+      - Indigenous agricultural knowledge (Garcia-Martinez et al. 2016; Rivero-Romero et al. 2016)
+      - Agro-technological practices (Garcia-Martinez et al. 2016; Rivero-Romero et al. 2016; Toledo and Barrera-Bassols 2017)
     
 
 
@@ -153,33 +153,44 @@ Theoretical Background: Ecological Niche
 =======================================================
 type: section
 
-- The theory and methodology developed in this proposal is guided strongly by developments of the term ‘biological niche’ in the 20th century. Joseph Grinnell and Charles Elton pioneered early conceptions of biological niches by systematically associating environmental attributes to specific niches, thereby regulating niches to particular environments 
-- George Evelyn Hutchinson revolutionized this definition by claiming biological niches as the roles a community or species performs at any particular time (Colwell and Rangel 2009). Niche, as defined by Hutchinson, is an attribute of a species in relation to its biotic and abiotic environment to n-level of ecological space (Colwell and Rangel 2009; Holt 2009). Under this definition, a species’ biological niche defines its role in its habitat, but not solely its habitat itself.
+![hutchinson_tree](hutchinson_tree.jpg)
+<font size = "5px"> http://lakes.chebucto.org/PEOPLE/PIC/hutchinson_tree.jpg </font>
+
+***
+
+- 
+- Strongly guided by developments of the term 'biological niche' in the 20th century. 
+- Joseph Grinnell and Charles Elton pioneered early conceptions of biological niches by systematically associating environmental attributes to specific niches, thereby regulating niches to particular environments 
+- George Evelyn Hutchinson claimed biological niches as the roles a community or species performs at any particular time (Colwell and Rangel 2009). 
+- The Hutchinsonian Niche is an attribute of a species in relation to its biotic and abiotic environment to n-level of ecological space (Colwell and Rangel 2009; Holt 2009). 
+- Under this definition, a species' biological niche defines its role in its habitat, but not solely its habitat itself.
 
 
-Theoretical Background: Fundamental Niche
+
+Theoretical Background: Fundamental vs. Realized Niche
 =======================================================
 type: sub-section
 
-- hyper-dimensional niche volume in which “every point … corresponds to a state of the environment that would permit [a] species … to exist indefinitely” (Hutchinson 1957; Holt 2009). 
-- A species’ potential geographic distribution in true 4D space, constrained by its n-dimensional bioclimatic envelope. 
-- scenopoetic variables
-- 'Grinnellian niche'
+- 
+- hyper-dimensional niche volume in which "every point... corresponds to a state of the environment that would permit [a] species... to exist indefinitely" (Hutchinson 1957; Holt 2009). 
+- A species' potential geographic distribution in true 4D space, constrained by its n-dimensional bioclimatic envelope. 
+- scenopoetic variables -> 'Grinnellian niche'
+- In reality, a species'niche is inherently limited by biotic interactions. 
+- Hutchinson argued that two species that shared resources cannot coexist in a "limited system" (Pulliam 2000), therefore requiring a true "realized niche" smaller than the fundamental niche. 
+- A species' realized niches represents the portion of a species' fundamental niche that exists in reality and that does not overlap with other species niches (Griesemer 1992)
 
-Theoretical Background: Realized Niche
-=======================================================
-type: sub-section
-- In reality, a species\’ niche is inherently limited by biotic interactions. 
-- Hutchinson argued that two species that shared resources cannot coexist in a “limited system” (Pulliam 2000), therefore requiring a true “realized niche” smaller than the fundamental niche. 
-- A species’ realized niches represents the portion of a species’ fundamental niche that exists in reality and that does not overlap with other species niches (Griesemer 1992)
-- scenopoetic variables
-- 'Grinnellian niche'
+*** 
+![niches](niches.jpg)
 
-Methodological Framework/Heuristic BAM Diagram
+<font size = "5px"> https://www.frontiersin.org/files/Articles/257078/fvets-04-00105-HTML/image_m/fvets-04-00105-g001.jpg </font>
+
+
+
+Biotic-Abiotic-Mobility Diagram
 =======================================================
 ![BAM](BAM.png)
 
-(Guisan et al., 2017, A. Townsend Peterson et al. 2011)
+(Guisan et al., 2017; A. Townsend Peterson et al. 2011; Soberon & Peterson, 2005)
 
 ***
 
@@ -188,10 +199,10 @@ Methodological Framework/Heuristic BAM Diagram
   - B : Suitable biotic environment (Eltonian niche)
   - C : Colonizable range
 
-    - 1 : Realize Niche, suitable to all three (Hutchinson's Niche)
-    - 2 : Sutiable abiotic with unsuitable biotic conditions (e.g.: high competition)
-    - 3 : Colonization outside of suitable environment (sink populations)
-    - 4 : Sink in unsuitable biotic and abiotic environments (historical effects)
+1.  Realize Niche, suitable to all three (Hutchinson's Niche)
+2. Sutiable abiotic with unsuitable biotic conditions (e.g.: high competition)
+3. Colonization outside of suitable environment (sink populations)
+4. Sink in unsuitable biotic and abiotic environments (historical effects)
 
 Ecological Niche Modelling
 =======================================================
@@ -200,57 +211,41 @@ type: section
 - Uses species presence and/or absence observation data and ecological data at those observation sites to estimate complex relationships of species niche (Elith et al. 2011). 
 - Project hyperdimensional ecological space onto 2- or 3D geographic space
 - Numerous uses including:
-      1.
-      2.
-      3.
-      4.
-- Numerous ecological niche modeling algorithms have been developed to project ecological niche spaces into geographic spaces. 
-    - Bioclimatic Envelopes, Genetic Algorithm Rule-set Production, Maximum Entropy, Artificial Neural Networks, Support Vector Machines, Boosted Regression Trees, etc.
-    
-
-
-Ensemble Ecological Niche Modelling
-=======================================================
-type: section
-
-- Ensemble Ecological Niche Modelling has been proposed as a method to increase validity of modelled distributions by weighting individual models based on performance.
-- ensemble forecasting minimizes errors (e.g.: sensitivity to data, lack of absence data, errors in environmental variables) 
-- produces a trustworthy and more conservative solution (Filho et. al, 2010, Araújo & New 2007).
+      1. Identifying potential spread of vector borne diseases 
+      2. Identifying range of invasive species
+      3. Threatened species management
+      4. Crop modelling
+- Numerous ecological niche modeling algorithms have been developed to project ecological niche spaces into geographic spaces (e.g.: Bioclimatic Envelopes, Genetic Algorithm Rule-set Production, Maximum Entropy, Artificial Neural Networks, Support Vector Machines, Boosted Regression Trees)
+- Ensemble forecasting minimizes errors (e.g.: sensitivity to data, lack of absence data, errors in environmental variables)  (Filho et. al, 2010, Araujo & New 2007)
+- Ensemble Ecological Niche Modelling weights individual models based on performance.
 - WA and Mean consensus methods provided significantly more robust predictions than all the single-models and the other consensus methods (Marimon et al., 2009)
+
 
 Data
 =======================================================
-- Gridded Climatologies
---  Bioclimatologies ("Bioclimatic Variables") (BIOCLIM modeling)
-- Topographic Variables
-- Ethno-linguistic Data
-- Georeferenced maize observations
-- & pre-processing/variable selection
+1. Gridded Climatologies
+  - derived "Bioclimatic Variables"
+2. Topographic Variables
+3. Ethno-linguistic Data
+4. Georeferenced maize observations
 
 Climatological Data
 =======================================================
-type: sub-section
+type: section
 
-- WorldClim, 30 arc-second resolution
-    -- >2700 citations for ecological studies including ENMs and SDMs (Booth et al., 2014)
-    -- largest available archive of downscaled climate data for use in ecology, evolution and environmental science (Guisan et al., 2017)
-
+- WorldClim, 
+  - >2,700 citations for ecological studies including ENMs and SDMs (Booth et al., 2014)
+  - largest available archive of downscaled climate data for use in ecology, evolution and environmental science (Guisan et al., 2017)
+  - ANUSPLIN 9,000 - 60,000 weather stations, , 
+  - 30 arc-second resolution
 - Current Data from WorldClim 2.0 (Fick & Hijmans, 2017)
-    -- ANUSPLIN 9,000 - 60,000 weather stations, 1970-2000, 
-    -- will use Maximum and Minimum Monthly Temperatures (&deg;C * 10)
-    -- Monthly Precipitation (mm)
-    -- Bioclimatic Variables
+  - 1970-2000
+  -Maximum and Minimum Monthly Temperatures (&deg;C * 10)
+  -Monthly Precipitation (mm)
 
-- Future Data from Worldclim 1.7 (Hijmans et al., 2005)
-    -- dynamically-downscaled from 19 GCM used in CMIP5 (Coupled Model Intercomparison Project 5; Meehl et al., 2009 ) and the Fifth Assessment Report (IPCC, 2013 )
-
-
-Climatic Data Processing
-=======================================================
-type: sub-section
-- Future GCM Mean Ensembles
-- Bioclimatic Variable Processing
-
+- Future Data from Worldclim 1.4 (Hijmans et al., 2005)
+  - 2041-2060, 2061-2080
+  - dynamically-downscaled from 19 GCM used in CMIP5 (Coupled Model Intercomparison Project 5; Meehl et al., 2009 ) and the Fifth Assessment Report (IPCC, 2013 )
 
 
 
@@ -328,31 +323,33 @@ Bioclimatic Variables
 
 Topographic Variable Processing
 ======================================================
+- Land-cover classification (GLCF_ AVHRR Global Land Cover Classification Data)
+- Elevation from WorldClim 1.4 via SRTM (Shuttle Radar Topographic Mission)
+  - TRI (Terrain Ruggedness Index) 
+      - mean of the absolute differences between cell evel and the value of its 8 surrounding cells
+      
+```{r echo=FALSE, fig.height=200,fig.width=200}
+plot(raster(paste0(dir_topo,"/alt_cropped.grd")))
+title(main = "Elevation (m)")
 
-- Topographic variables from WorldClim 1.4 via SRTM (Shuttle Radar Topographic Mission)
--- Calculated:
-    --  Slope (degrees)
-    -- TRI (Terrain Ruggedness Index) 
-        -- mean of the absolute differences between cell evel and the value of its 8 surrounding cells
-    
+plot(raster(paste0(dir_topo,"/tri.grd")))
+title(main = "TRI")
 
-Removing Multicollinearity
-======================================================
-- using 'usdm' package in R
-
-```{r, echo=FALSE}
-library(corrplot)
-mat<-read.csv(paste0(dir_out,"/biovars_matrix.csv"))
-cormat<-cor(mat)
-corrplot(cormat)
+dir_land<-paste0(dir_dat,"/land-cover")
+plot(raster(paste0(dir_land,"/crop-land-cover.grd")))
+title(main = "Land Cover Class")
 
 ```
 
+======================================================
+<div align="center">
+<img src="biovars_cormat.png" >
+</div>
 
 Final Explanatory Variables Raster Stack
 ======================================================
 - Indigenous Population Percentage
-- ....
+
 - Land Cover Classification
 
 Georeferenced Maize Observations
