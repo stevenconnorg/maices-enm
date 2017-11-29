@@ -20,7 +20,7 @@ Dr. Jennifer Jensen <br />
 Dr. Thomas Ballinger <br />
 
 
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 ```
 
 ```{r,echo=FALSE} 
@@ -85,14 +85,13 @@ type: section
 
 - Mexico, maize's C.O.D., harbors traditional maize landraces that account for 60% of maize genetic diversity globally (Ureta et al. 2013)
 
-- Preservation of agrobiodiversity at centers of domestication critical for global food security (Thrupp 2000; Esquinas-Alcázar 2005; Ureta et al. 2013).  
+- Preservation of agrobiodiversity at centers of domestication critical for global food security (Thrupp 2000; Esquinas-Alcazar 2005; Ureta et al. 2013).  
 
 
-Maize Diversity and Evolution
+Maize Diversity & Evolution
 =======================================================
 type: section
-
-![Teosinte](maiz-y-teosinte.jpg)
+<img src="proposal-figure\maiz-y-teosinte.jpg";>
 <font size = "5px"> https://lacienciaysusdemonios.com/2009/10/06/el-huerto-evolutivo-4-del-teocinte-teosinte-al-maiz-la-evolucion-es-la-repanocha/ </font>
 
 ***
@@ -105,11 +104,10 @@ type: section
 - Regional clusters of phenotypically similar landraces exist (Cutler 1942; Anderson 1947; E.J. Wellhausen et al., 1952; Dyer & Lopez-Feldman 2013)
 
 
-Maize as a Mirror of Humanity
+Maize Mirrors Humanity
 =======================================================
 type: section
-
-![Reflecion](reflecion-maiz.jpg)
+<img src="proposal-figure\reflecion-maiz.jpg";>
 <font size = "5px"> http://tarotdemaximo.blogspot.com </font>
 
 ***
@@ -149,29 +147,32 @@ Research Questions
 5.	How is climate change projected to alter current maize landrace distributions?
 6.	Which maize landraces are suseptible of extinction/expansion?
 
-Theoretical Background: Ecological Niche
+Ecological Niche
 =======================================================
 type: section
+<img src="proposal-figure\hutchinson_tree.jpg";>
 
-![hutchinson_tree](hutchinson_tree.jpg)
 <font size = "5px"> http://lakes.chebucto.org/PEOPLE/PIC/hutchinson_tree.jpg </font>
 
 ***
 
-- 
 - Strongly guided by developments of the term 'biological niche' in the 20th century. 
 - Joseph Grinnell and Charles Elton pioneered early conceptions of biological niches by systematically associating environmental attributes to specific niches, thereby regulating niches to particular environments 
 - George Evelyn Hutchinson claimed biological niches as the roles a community or species performs at any particular time (Colwell and Rangel 2009). 
-- The Hutchinsonian Niche is an attribute of a species in relation to its biotic and abiotic environment to n-level of ecological space (Colwell and Rangel 2009; Holt 2009). 
+- The Hutchinsonian Niche is an attribute of a species in relation to its biotic and abiotic environment to <i>n</i>-level of ecological space (Colwell and Rangel 2009; Holt 2009). 
 - Under this definition, a species' biological niche defines its role in its habitat, but not solely its habitat itself.
 
 
 
-Theoretical Background: Fundamental vs. Realized Niche
+Fundamental vs. Realized Niche
 =======================================================
 type: sub-section
+<img src="proposal-figure\niches.jpg";>
 
-- 
+<font size = "5px"> https://www.frontiersin.org/files/Articles/257078/fvets-04-00105-HTML/image_m/fvets-04-00105-g001.jpg </font>
+
+*** 
+
 - hyper-dimensional niche volume in which "every point... corresponds to a state of the environment that would permit [a] species... to exist indefinitely" (Hutchinson 1957; Holt 2009). 
 - A species' potential geographic distribution in true 4D space, constrained by its n-dimensional bioclimatic envelope. 
 - scenopoetic variables -> 'Grinnellian niche'
@@ -179,17 +180,12 @@ type: sub-section
 - Hutchinson argued that two species that shared resources cannot coexist in a "limited system" (Pulliam 2000), therefore requiring a true "realized niche" smaller than the fundamental niche. 
 - A species' realized niches represents the portion of a species' fundamental niche that exists in reality and that does not overlap with other species niches (Griesemer 1992)
 
-*** 
-![niches](niches.jpg)
-
-<font size = "5px"> https://www.frontiersin.org/files/Articles/257078/fvets-04-00105-HTML/image_m/fvets-04-00105-g001.jpg </font>
-
 
 
 Biotic-Abiotic-Mobility Diagram
 =======================================================
-![BAM](BAM.png)
 
+<img src="proposal-figure\BAM.png";>
 (Guisan et al., 2017; A. Townsend Peterson et al. 2011; Soberon & Peterson, 2005)
 
 ***
@@ -320,6 +316,10 @@ Bioclimatic Variables
 - PET Wettest Quarter
 - Thermicity Index
 
+======================================================
+<div align="center">
+<img src="proposal-figure\biovars_cormat.png" >
+</div>
 
 Topographic Variable Processing
 ======================================================
@@ -341,10 +341,7 @@ title(main = "Land Cover Class")
 
 ```
 
-======================================================
-<div align="center">
-<img src="biovars_cormat.png" >
-</div>
+
 
 Final Explanatory Variables Raster Stack
 ======================================================
