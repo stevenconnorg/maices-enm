@@ -1,6 +1,6 @@
-
+SLURMdat<-load(".RData")
 # establish directories
-root<-"~/thesis"
+root<-"/gpfs/home/scg67/thesis"
 # root<-"E:/thesis"
 setwd(root)
 
@@ -20,6 +20,8 @@ dir_presentations<-paste0(root,"/07_pres")
 
 dir_maices<-paste0(dir_dat,"/maices")
 dir_ind<-paste0(dir_dat,"/ind")
+
+
 dir_bm<-paste0(dir_R,"/00_biomod")
 dir_topo<-paste0(dir_dat,"/topo")
 
@@ -109,15 +111,15 @@ f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
 # INITIALIZE FUNCTION TO APPLY TO EACH VARIETY
 #################################################################
 
-allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA",'MAXENT.Phillips','MAXENT.Tsuruoka')
-models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka')
+allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips","MAXENT.Tsuruoka")
+models = c("GLM","GAM","GBM")
 metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
 
 
-allmodels
+
 BioModApply <-function(sp.n) {
 
-  
+  load("/gpfs/home/scg67/thesis/02_R/maices-enm/.RData")
   rasterOptions()$tmpdir      # get raster temp directory
   rasterOptions(tmpdir=root)  # set raster temp directory
   options(max.print=1000000)  # set max.print option high to capture outputs
@@ -160,7 +162,7 @@ BioModApply <-function(sp.n) {
                                        PA.nb.rep = 10,
                                       PA.nb.absences = 500,
                                        PA.strategy = "sre",
-					PA.sre.quant=0.025,
+										PA.sre.quant=0.025,
                                        na.rm=TRUE
   )
   
@@ -296,11 +298,11 @@ BioModApply <-function(sp.n) {
   # modeling
   myBiomodModelOut <- BIOMOD_Modeling(
     myBiomodData, 
-    models = c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips",'MAXENT.Tsuruoka'), 
+    models = models, 
     models.options = BIOMOD_ModelOptions, 
-    NbRunEval=3,
+    NbRunEval=10,
     DataSplit=50,
-    VarImport=3,
+    VarImport=5,
     models.eval.meth = metrics,
     SaveObj = TRUE,
     rescal.all.models = TRUE,
@@ -333,26 +335,26 @@ BioModApply <-function(sp.n) {
   write.csv(modevalimport,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_var_imp.csv"))
   
   ### get model summaries
-  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_ANN",sep="")))))
-                 ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_ANN_summary.txt"))
+  #capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_ANN",sep="")))))
+                # ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_ANN_summary.txt"))
   
-   capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_CTA",sep="")))))
-                  ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_CTA_summary.txt"))
+  # capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_CTA",sep="")))))
+                 # ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_CTA_summary.txt"))
   
   # fda1<-get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_FDA",sep=""))))
   # capture.output(as.table(fda1$confusion),file==paste0(dir_out,"/",myRespName,"/",myRespName,"_FDA-conf_summary.csv"))
 
-    capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GAM",sep="")))))
-                 ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_GAM_summary.txt"))
+   # capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GAM",sep="")))))
+   #              ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_GAM_summary.txt"))
     
-  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GBM",sep="")))))
-                 ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_GBM_summary.txt"))
+  #capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GBM",sep="")))))
+  #               ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_GBM_summary.txt"))
   
-  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GLM",sep="")))))
-                 ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_GLM_summary.txt"))
+  #capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_GLM",sep="")))))
+  #               ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_GLM_summary.txt"))
   
-  capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_MARS",sep="")))))
-                 ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_MARS_summary.txt"))
+  #capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_MARS",sep="")))))
+  #               ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_MARS_summary.txt"))
   
   # copy()
   # summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"/",myRespName,"_PA1_Full_MAXENT.Phillips",sep="")))))
@@ -370,10 +372,11 @@ BioModApply <-function(sp.n) {
     modeling.output = myBiomodModelOut,
     new.env = myExpl,
     proj.name = 'current',
-    selected.models = 'all',
+    selected.models = models,
     binary.meth = metrics,
+	filtered.meth = metrics,
     compress = TRUE,
-    clamping.mask = TRUE,
+    clamping.mask = T,
     output.format = '.grd')
   
   print(paste0("Projecting onto Future (2070) for ",myRespName))
@@ -383,9 +386,10 @@ BioModApply <-function(sp.n) {
     modeling.output = myBiomodModelOut,
     new.env = myExplFuture70,
     proj.name = 'rcp85_70',
-    selected.models = 'all',
+    selected.models = models,
     binary.meth = metrics,
-    compress = 'xz',
+	filtered.meth = metrics,
+    compress = TRUE,
     clamping.mask = T,
     output.format = '.grd')
   
@@ -396,9 +400,10 @@ BioModApply <-function(sp.n) {
     modeling.output = myBiomodModelOut,
     new.env = myExplFuture50,
     proj.name = 'rcp85_50',
-    selected.models = 'all',
+    selected.models = models,
     binary.meth = metrics,
-    compress = 'xz',
+	filtered.meth = metrics,
+    compress = TRUE,
     clamping.mask = T,
     output.format = '.grd')
   
@@ -413,11 +418,11 @@ BioModApply <-function(sp.n) {
   # ensemble modeling
   myBiomodEM <- BIOMOD_EnsembleModeling(
     modeling.output = myBiomodModelOut,
-    chosen.models = 'all',
+    chosen.models = models,
     em.by="algo",
     eval.metric = metrics,
-    eval.metric.quality.threshold = NULL,
-    prob.mean = F,
+    eval.metric.quality.threshold = .7,
+    prob.mean = T,
     prob.cv = T,
     prob.ci = F,
     prob.median = F,
@@ -460,14 +465,10 @@ BioModApply <-function(sp.n) {
   myBiomodEF <- BIOMOD_EnsembleForecasting(
     EM.output = myBiomodEM,
     projection.output = myBiomodProj,
-    weight.method=metrics,
-    binary=T,
-    bin.method=metrics,
-    PCA.median=TRUE, 
-    Test=TRUE, 
-    decay='proportional',
-    repetition.models=TRUE 
-    )
+    selected.models = models,
+	binary.meth=metrics,
+	filtered.meth=metrics,
+	compress=TRUE)
   
 
   print(paste0("Performing Ensemble Forcasting onto Future (2070) Data for ",myRespName))
@@ -475,13 +476,10 @@ BioModApply <-function(sp.n) {
   f70BiomodEF <- BIOMOD_EnsembleForecasting(
     EM.output = myBiomodEM,
     projection.output = myBiomodProjFuture70,
-    weight.method=metrics,
-    binary=T,
-    bin.method=metrics,
-    PCA.median=TRUE, 
-    Test=TRUE, 
-    decay='proportional',
-    repetition.models=TRUE )
+    selected.models = models,
+	binary.meth=metrics,
+	filtered.meth=metrics,
+	compress=TRUE)
   
   cat("\n\nExporting Ensemble as grd ...\n\n")
   
@@ -493,17 +491,17 @@ BioModApply <-function(sp.n) {
   f50BiomodEF <- BIOMOD_EnsembleForecasting(
     EM.output = myBiomodEM,
     projection.output = myBiomodProjFuture50,
-    weight.method=metrics,
-    binary=T,
-    bin.method=metrics,
-    PCA.median=TRUE, 
-    Test=TRUE, 
-    decay='proportional',
-    repetition.models=TRUE )
+    selected.models = models,
+	binary.meth=metrics,
+	filtered.meth=metrics,
+	compress=TRUE)
   
 
   do.call(file.remove,list(list.files(pattern="temp*"))) 
 }
+
+
+
 
 #myModelsOutlapply <-lapply(sp.n,BioModApply)
 
@@ -514,22 +512,107 @@ BioModApply <-function(sp.n) {
 library(parallel)
 library(Rmpi)
 library(snowfall)
-#cl<-makeCluster(length(sp.n),type="MPI")
-# clusterCall(cl,BioModApply)
-# mySFModelsOut<-mpi.parLapply(sp.n, BioModApply)
-# stopCluster(cl)
+library(snow)
 
+# following http://www.glennklockwood.com/data-intensive/r/lapply-parallelism.html#3-1-lapply-halfway-to-parallel
+
+# cl <- makeCluster( mpi.universe.size(), type="MPI" )
+
+########
+#or try...  following https://rcc.uchicago.edu/docs/software/environments/R/index.html
+#np <- 27
+#cl <- makeMPIcluster(np)
+#worker.init <- function(packages) {
+#  for (p in packages) {
+#  library(p, character.only=TRUE) }
+#NULL }
+#clusterCall(cl, worker.init, c('biomod2','raster'))
+
+#clusterExport(cl,c('sp.n','SLURMdat','presmodstack','f50modstack','f70modstack'))
+#myModelsOut<-parLapply(cl,sp.n,BioModApply)
+#mySFModelsOutCL <- clusterApply(cl, sp.n,BioModApply)
+
+#stopCluster(cl)
+#mpi.exit()
+#########
+
+
+
+
+
+#########
+library(Rmpi)
+library(snow)
+# https://rcc.uchicago.edu/docs/software/environments/R/index.html
+# Initialize SNOW using MPI communication. The first line will get the number of
+# MPI processes the scheduler assigned to us. Everything else is standard SNOW
+#np <- mpi.universe.size() - 1
+#cluster <- makeMPIcluster(np)
+#clusterExport(cl, SLURMdat)
+#mySFModelsOut<-parLapplyLB(cl,sp.n,BioModApply)
+#stopCluster(cl)
+#mpi.exit()
+
+########
+
+#mpi.spawn.Rslaves(); cl = getMPIcluster()
+
+
+
+## JOB 22645 -- WORKING??
+########
+# https://www.osc.edu/~kmanalo/r_parallel
+slaves <- as.numeric(Sys.getenv(c("PBS_NP")))-1
+cl <- makeCluster(64, type = "MPI")
+clusterExport(cl, SLURMdat)
+
+tick <- proc.time()
+mySFModelsOut<-parLapplyLB(cl,sp.n,BioModApply)
+tock <- proc.time() - tick
+
+cat("\nsnow w/ Rmpi test times using", slaves, "MPI slaves: \n")
+
+stopCluster(cl)
+
+mpi.quit()
+
+########
+
+
+
+
+
+
+########
+#cl <- makeCluster(64, type = "MPI")
+#clusterExport(cl, SLURMdat)
+
+#mySFModelsOut<-clusterApply(cl,sp.n,fun=BioModApply)
+#mySFModelsOut<-parLapplyLB(cl,sp.n,BioModApply)
+#mySFModelsOut<-parLapply(cl,sp.n,BioModApply)
+#stopCluster(cl)
+#Rmpi:mpi.finalize()
+#######
+
+
+
+
+#######
 # snowfall initialization
 # library(snowfall)
-sfInit(parallel=TRUE,cpus=length(sp.n))
+# cl <- makeCluster(length(sp.n), type = "MPI") 
+# sfInit(parallel=TRUE,cpus=27)
 
 ## Export packages to snowfall
-sfLibrary('biomod2', character.only=TRUE)
- sfExportAll()
+# sfLibrary('biomod2', character.only=TRUE)
+# sfExportAll()
 
 # you may also use sfExportAll() to export all your workspace variables
 ## Do the run
- mySFModelsOut <- sfLapply(sp.n,BioModApply)
+# mySFModelsOut <- sfLapply(sp.n,BioModApply)
 
 ## stop snowfall
- sfStop( nostop=FALSE )
+
+# sfStop( nostop=FALSE )
+#######
+
