@@ -669,7 +669,16 @@ fullpresstack<-stack(pres_biostack,landstack,topostack)
 
 # create correlation matrix of bioclimatic variables
 library(corrplot)
-fullpresstack[is.na(fullpresstack)] <- 0
+fullpresstack[is.na(fullpresstack)] <- 0 
+
+# OR try
+funNA <- function(x) {x[is.na(x)] <- 0; return(x)} 
+fullpresstack <- calc(fullpresstack,funNA) 
+
+# OR maybe
+fullpresstack <- reclassify(fullpresstack, cbind(NA, 0))
+
+
 
 mat<-as.matrix(fullpresstack)
 colnames(mat)<-names(fullpresstack)
@@ -686,26 +695,26 @@ dev.off()
 
 
 
-write.csv(mat,file=paste0(dir_out,"/biovars_matrix.csv"))
-#mat<-read.csv(file=paste0(dir_out,"/biovars_matrix.csv"))
-write.csv(cormat,file=paste0(dir_out,"/biovars_corr_matrix.csv"))
+write.csv(mat,file=paste0(dir_out,"/fullpresstack_matrix.csv"))
+#mat<-read.csv(file=paste0(dir_out,"/fullpresstack_matrix.csv"))
+write.csv(cormat,file=paste0(dir_out,"/fullpresstack_corr_matrix.csv"))
 
 
 library(usdm)
 # get variance inflation factors of pres_cropstack vars
-presvif<-usdm::vif(fullpresstack)
-
+#presvif<-usdm::vif(fullpresstack)
+#save(presvif,file=paste0(dir_out,"/vif.RData"))
+load(paste0(dir_out,"/vif.RData"))
+presvif
 layers<-c() # remove layers with high vif, selecting variables appropriate to species (e.g.: maize)
 presviflay<-mat[1:50]
 
 
 presvifstep<-vifstep(fullpresstack,th=10)
-
-presvifstep<-vifstep(pres_biostack,th=10)
-
+save(presvifstep,file=paste0(dir_out,"/vifstep.RData"))
 presvifcor<-vifcor(fullpresstack,th=0.75)
-save.image(file=paste0(dir_out,"/vif.RData"))
-
+save(presvifcor,file=paste0(dir_out,"/vifcor.RData"))
+?save
 
 
 # remove multicollinearity of full stack3

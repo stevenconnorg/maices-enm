@@ -15,10 +15,15 @@ height: 1080
 font-family: arial
 css: exlaim.css
 Presented to:<br />
-Dr. Russell Weaver<br />
+Dr. Russell Weaver (Chair) <br />
 Dr. Jennifer Jensen <br />
 Dr. Thomas Ballinger <br />
 
+M.S.Thesis Proposal <br />
+Department of Geography, Texas State University <br />
+601 University Drive San Marcos, TX 78666-4684<br />
+code: www.github.com/stevenconnorg/maices-enm <br />
+contact: scg67@txstate.edu
 
 
 
@@ -391,7 +396,71 @@ Method
 - select variables of ecological importance
 - 'vifstep' with VIF threshold of 10 to get remaining variables (Guisan et al., 2017)
 
+'vifstep' results
+======================================================
 
+
+
+
+```r
+presvifstep@results
+```
+
+```
+               Variables      VIF
+1      BIO8MeanTWettestQ 3.169749
+2  BIO13PrecWettestMonth 7.203552
+3      BIO15PrecSeas.COV 5.426713
+4      BIO18PrecWarmestQ 5.112587
+5      BIO19PrecColdestQ 6.479971
+6      EVMminTempWarmest 3.258270
+7     EVMmonthCountByT10 2.206976
+8         EVMPETColdestQ 5.539127
+9          EVMPETDriestQ 2.507005
+10        EVMPETWarmestQ 4.670706
+11               IrrCult 1.169090
+12          Rain.fedCult 1.599255
+13        Grass.Woodland 2.314950
+14                Barren 1.730909
+15                 Urban 1.075483
+16                 Water 1.107406
+17                aspect 1.023113
+18                 slope 1.446115
+```
+
+'vifcor' results
+======================================================
+
+
+```r
+presvifcor@results
+```
+
+```
+              Variables       VIF
+1  BIO2MeanDiurnalRange 18.522678
+2          BIO3Isotherm 23.926854
+3     BIO8MeanTWettestQ  3.749390
+4      BIO9MeanTDriestQ 23.234599
+5     BIO15PrecSeas.COV  6.459824
+6     BIO18PrecWarmestQ  3.463208
+7     BIO19PrecColdestQ  7.060739
+8             EVMannPET 55.203847
+9     EVMminTempWarmest 28.195976
+10   EVMmonthCountByT10  2.540841
+11        EVMPETDriestQ 15.802205
+12       EVMPETWarmestQ 45.516679
+13   EVMthermicityIndex 13.293752
+14              IrrCult  4.539498
+15         Rain.fedCult 14.357032
+16             Forested 45.296046
+17       Grass.Woodland 40.844532
+18               Barren 15.374231
+19                Urban  1.777139
+20                Water  2.225376
+21               aspect  1.027214
+22                slope  1.546577
+```
 
 
 

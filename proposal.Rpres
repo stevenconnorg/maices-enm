@@ -15,10 +15,15 @@ height: 1080
 font-family: arial
 css: exlaim.css
 Presented to:<br />
-Dr. Russell Weaver<br />
+Dr. Russell Weaver (Chair) <br />
 Dr. Jennifer Jensen <br />
 Dr. Thomas Ballinger <br />
 
+M.S.Thesis Proposal <br />
+Department of Geography, Texas State University <br />
+601 University Drive San Marcos, TX 78666-4684<br />
+code: www.github.com/stevenconnorg/maices-enm <br />
+contact: scg67@txstate.edu
 
 ```{r,echo=FALSE} 
 
@@ -477,11 +482,26 @@ Method
 - select variables of ecological importance
 - 'vifstep' with VIF threshold of 10 to get remaining variables (Guisan et al., 2017)
 
+'vifstep' results
+======================================================
 
-```{r eval=FALSE, echo=FALSE}
+```{r eval=TRUE, echo=FALSE}
 load(paste0(dir_out,"/vif.RData"))
-vif
+load(paste0(dir_out,"/vifstep.RData"))
+load(paste0(dir_out,"/vifcor.RData"))
 ```
+
+```{r eval=TRUE, echo=TRUE}
+presvifstep@results
+```
+
+'vifcor' results
+======================================================
+
+```{r eval=TRUE, echo=TRUE}
+presvifcor@results
+```
+
 
 
 
