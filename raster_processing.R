@@ -59,109 +59,63 @@ r<-raster(nrow=2304,ncol=3770)
 extent(r)<-c(-117.625,-86.20833,14.025,33.225)
 r
 
-###################################################
-# Maize Observation Data Downloading and Cleaning # 
-###################################################
 
-download.file("http://www.conabio.gob.mx/informacion/gis/maps/geo/maizngw.zip",destfile = paste0(dir_maize,"/maizngw.zip"),method = "wget")
+##############################################
+# get soil data from FAO harmonilzed world soil db v1.2
+##############################################
 
-zipF<-paste0(dir_maices,"maizngw.zip") # lets you choose a file and save its file path in R (at least for windows)
-outDir<-paste0(dir_maices) # Define the folder where the zip file should be unzipped to 
-unzip(zipF,exdir=outDir)  # unzip your file 
-
-
-file <- list.files(outDir,pattern = "maizngw",full.names = F) 
-
-#  rename original .shp file name
-sapply(files,FUN=function(eachPath){
-  file.rename(from=eachPath,to=sub(pattern= paste("maizngw.*"),replacement= "todos-maices.*",eachPath))
-})
-
-todos<-readOGR(paste0(dir_dat,"/maices/todos.shp"),layer="todos",use_iconv=TRUE) 
-
-# set encolding to latin 1 for some columns to read special characters
-todos@data$Raza_prima<-iconv(todos@data$Raza_prima, from="UTF-8", to="LATIN1")
-todos@data$Nom_ent<-iconv(todos@data$Nom_ent, from="UTF-8", to="LATIN1")
-todos@data$Nom_mun<-iconv(todos@data$Nom_mun, from="UTF-8", to="LATIN1")
-
-# inspect data
-colnames(todos@data) 
-str(todos@data)
-head(todos@data$Nom_ent)
-head(todos@data$Nom_mun)
-head(todos@data$NomComun)
-length(todos@data[is.na(todos@data$NomComun),])
-length(todos@data[is.na(todos@data$Raza_prima),])
-unique(todos@data$Raza_prima)
-
-
-# remove data without prime race information
-todos.1<-todos[!is.na(todos@data$Raza_prima),]
-# remove data without prime race information
-todos.2<-todos.1[todos.1@data$Raza_prima != "ND",]
-
-# remove data where longitude is equal to zero
-todos.3<-todos.2[todos.2@data$Longitud != 0 , ]
-
-# remove data with missing altitude data
-todos.4<-todos.3[todos.3@data$Altitud!=9999,] 
-
-# remove inconsistent data samples
-todos.5<-todos.4[todos.4@data$Validacion!="Inconsistente",]
-
-# create new column for species 
-todos.5$maiz<-"Zea mays mays"
-
-# make maices object
-todos.6<-todos.5
-
-
-# subset races with greater than 20 samples
-maices = subset(todos.6, length(todos.6$Raza_prima) > 20)
-# get sample counts of races
-raza.counts<-maices@data %>% group_by(Raza_prima) %>% summarise(n()) 
-raza.counts
-
-dir.create(paste0(dir_maices))
-writeOGR(maices,dsn=paste0(dir_maices),layer="maices",driver="ESRI Shapefile",overwrite=TRUE)
-
-
-
-
-# make presence/absence matrix
-install.packages("letsR")
-library(letsR)
-xy<-cbind(maices@data$Longitud,maices@data$Latitud)
-PA<-letsR::lets.presabip.points(xy,maices@data$Raza_prima, resol = 0.01)
-plot(PA)
-plot(PA$Richness_Raster)
-pam<-PA$Presence_and_Absence_Matrix
-View(pam)
-pam[pam == 0 ] <- NA
-
-write.csv(pam,file=paste0(dir_out,"/pam.csv"))
-save.image(file=paste0(dir_out,"/clean_maices_obs.RData"))
-
-save.image(paste0(dir_pres,"/raster_processing.RData"))
-
-
-# get topographic variables
-urltopo<-c("http://biogeo.ucdavis.edu/data/climate/worldclim/1_4/tiles/cur/")
-doctopo<-htmlParse(urltopo)
+urlsoil<-c("http://www.fao.org/soils-portal/soil-survey/soil-maps-and-databases/harmonized-world-soil-database-v12/en/")
+docsoil<-htmlParse(urlsoil)
 #get <a> nodes.
-Anodes<-getNodeSet(doctopo,"//a")
-
+Anodes<-getNodeSet(docsoil,"//a")
+grep("*.asc*",Anodes,value=T)
 #make the full url
-urls<-grep("30s",sapply(Anodes, function(Anode) xmlGetAttr(Anode,"href")),value=TRUE)
-
-#Select the files of interest 
-r<-regexpr("wc.*?zip",urls)
-files<-regmatches(urls,r)
+urls<-grep("asc",sapply(Anodes, function(Anode) xmlGetAttr(Anode,"href")),value=TRUE)
+urls<-paste0("http://www.fao.org/",urls)
+filename<-basename(urls)
+library(tools)
+ext<-file_ext(filename)
+asc<-paste0(".",ext[1])
+file<-gsub(asc,"",filename)
+landfiles<-paste0(dir_land,"/",filename)
 mapply(function(x,y) download.file(x,y),urls,files)
-lapply(grep(".zip",files, value=TRUE),unzip)
+
+r<-raster(nrow=2304,ncol=3770)
+extent(r)<-c(-117.625,-86.20833,14.025,33.225)
 
 
-### DOWNLOAD WORLDCLIM ALTITUDE SRTM
+bbox<-bbox(r)
+for(i in landfiles){ ##140:173
+  name<-gsub(".asc","",basename(i))
+  ras<-raster(i)
+  ri<-resample(ras,r)
+  ri<-round(ri,0)
+  croplay<-crop(ri,bbox) ##filtered
+  writeRaster(croplay,filename=paste0(dir_land,"/crop/crop_",name,".grd"),overwrite=TRUE)
+  do.call(file.remove,list(list.files(pattern="temp*"))) 
+}
+
+# rename and reorder stack layers
+
+landfiles<-list.files(paste0(dir_land,"/crop"),full.names = T,pattern = ".grd")
+landstack<-stack(landfiles)
+names(landstack)
+names(landstack)<-c("TotalCult","IrrCult","Rain-fedCult","Forested","Grass/Woodland","Barren","SQ1NutAvail","SQ2NutRetn","SQ3RootingCond","SQ4OxyAvailRoots","SQ5ExcessSalts","SQ6Toxicity","SQ7Workability","Urban","Water")
+#plot(landstack)
+landcoverstack<-landstack[[c(1:6,14:15)]] #extract land cover layers
+writeRaster(landcoverstack,filename=paste0(dir_stacks,"/FAOlandstack.grd"),bylayer=FALSE,format="raster",overwrite=TRUE)
+
+soilqualstack<-landstack[[7:13]] # extract soil quality variables
+library(raster)
+for (i in 1:nlayers(soilqualstack)){
+  soilqualstack[[i]]<-raster::as.factor(soilqualstack[[i]]) # assign soil quality variables as factors
+  
+}
+writeRaster(soilqualstack,filename=paste0(dir_stacks,"/FAOsoilstack.grd"),bylayer=FALSE,format="raster",overwrite=TRUE)
+
+##############################################
+# Download WorldClim altitude Rasters by tile
+##############################################
 tiles<-(c("11","12","13","21","22","23"))
 for (i in tiles){
   download.file(paste0("http://biogeo.ucdavis.edu/data/climate/worldclim/1_4/tiles/cur/alt_",i,"_tif.zip"),destfile = paste0(dir_topo,"/alt_",i,".zip"),method = "wget")
@@ -182,14 +136,15 @@ writeRaster(alt.crop,filename=paste0(dir_topo,"/alt_cropped.grd"),format="raster
 
 alt.crop<-raster(paste0(dir_topo,"/alt_cropped.grd"))
 names(alt.crop)<- "elev"
-terrain<-terrain(alt.crop, opt=c('slope','TRI'), unit='degrees', neighbors=8)
+terrain<-terrain(alt.crop, opt=c('aspect','slope','Roughness'), unit='degrees', neighbors=8)
 names(terrain)
-writeRaster(terrain, paste0(dir_topo,"/",c('slope','TRI'),".grd"), bylayer=TRUE, format='raster', overwrite=T)
-
+writeRaster(terrain, paste0(dir_topo,"/crop/",c('aspect','slope','Roughness'),".grd"), bylayer=TRUE, format='raster', overwrite=T)
+topostack<-stack(terrain,alt.crop)
+writeRaster(topostack, paste0(dir_stacks,"topostack.grd"), bylayer=FALSE, format='raster', overwrite=T)
 
 
 ##############################################
-# download and unzip present 2.0 climate data
+# download and unzip present Wordclim 2.0 climate data
 ##############################################
 setwd(dir_p.mosaics)
 url<-c("http://worldclim.org/version2")
@@ -706,34 +661,18 @@ for (cropstack in cropstacks){
 
 
 
-pres_biostack<-stack(paste0(dir_stacks,"/1970-2000_biostack",".grd"))
-layernames<-names(pres_biostack)
+pres_biostack<-stack(paste0(dir_stacks,"/1970-2000_biostack.grd"))
+landstack<-stack(paste0(dir_stacks,"/FAOlandstack.grd"))
+topostack<-stack(paste0(dir_stacks,"/topostack.grd"))
+
+fullpresstack<-stack(pres_biostack,landstack,topostack)
+
 # create correlation matrix of bioclimatic variables
 library(corrplot)
-pres_biostack[is.na(pres_biostack)] <- 0
-names(pres_biostack)<-layernames
+fullpresstack[is.na(fullpresstack)] <- 0
 
-mat<-as.matrix(pres_biostack)
-colnames(mat)<-names(pres_biostack)
-
-#View(mat)
-cormat<-cor(mat)
-# visualize correlation matrix
-
-png(filename=paste0(dir_figs,"/biovars_cormat.png"),
-    width = 1000, height = 1000)
-par(mfrow=c(1,1))
-corrplot(cormat)
-dev.off()
-
-
-write.csv(mat,file=paste0(dir_out,"/biovars_matrix.csv"))
-#mat<-read.csv(file=paste0(dir_out,"/biovars_matrix.csv"))
-write.csv(cormat,file=paste0(dir_out,"/biovars_corr_matrix.csv"))
-
-
-mat<-as.matrix(pres_biostack)
-colnames(mat)<-names(pres_biostack)
+mat<-as.matrix(fullpresstack)
+colnames(mat)<-names(fullpresstack)
 
 #View(mat)
 cormat<-cor(mat)
@@ -744,6 +683,7 @@ png(filename=paste0(dir_figs,"/biovars_cormat.png"),
 par(mfrow=c(1,1))
 corrplot(cormat)
 dev.off()
+
 
 
 write.csv(mat,file=paste0(dir_out,"/biovars_matrix.csv"))
@@ -753,18 +693,18 @@ write.csv(cormat,file=paste0(dir_out,"/biovars_corr_matrix.csv"))
 
 library(usdm)
 # get variance inflation factors of pres_cropstack vars
-vif<-usdm::vif(pres_biostack)
+presvif<-usdm::vif(fullpresstack)
 
 layers<-c() # remove layers with high vif, selecting variables appropriate to species (e.g.: maize)
-viflay<-mat[1:50]
+presviflay<-mat[1:50]
 
 
-vifstep<-vifstep(viflay,th=10)
+presvifstep<-vifstep(fullpresstack,th=10)
 
-vifstep<-vifstep(pres_biostack,th=10)
+presvifstep<-vifstep(pres_biostack,th=10)
 
-vifcor<-vifcor(pres_biostack,th=0.75)
-
+presvifcor<-vifcor(fullpresstack,th=0.75)
+save.image(file=paste0(dir_out,"/vif.RData"))
 
 
 

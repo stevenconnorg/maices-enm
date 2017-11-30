@@ -148,7 +148,6 @@ xy<-cbind(maices@data$Longitud,maices@data$Latitud)
 
 PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn=-117.625, xmx=-86.20833 , ymn=14.025 , ymx=33.225 , resol = 0.00883333)
 
-  plot(PA)
 plot(PA$Richness_Raster)
 pam<-PA$Presence_and_Absence_Matrix
 View(pam)

@@ -28,8 +28,6 @@ Dr. Thomas Ballinger <br />
 
 
 
-
-
 Introduction
 =======================================================
 type: section
@@ -40,7 +38,15 @@ type: section
 
 - Ensuring global food security in an increasingly warming world with  exponentially increasing world population requires multidisciplinary research  (Brown and Funk 2008; Ureta et al. 2012; IPCC 2013, 2015) 
 
-Global Importance of Maize Genetic Diversity at COD
+***
+
+<img src="proposal-figure\future-of-food.jpg";><br/>
+
+https://www.elsevier.com 
+
+
+
+Mexico: Maize's 'C.O.D.'
 =======================================================
 type: section
 
@@ -52,12 +58,19 @@ type: section
 
 - Preservation of agrobiodiversity at centers of domestication critical for global food security (Thrupp 2000; Esquinas-Alcazar 2005; Ureta et al. 2013).  
 
+***
+
+
+<img src="proposal-figure\maize-diversity.jpg";>
+<div align="center">
+Credit: The International Maize and Wheat Improvement Center (CIMMYT)
+</div>
 
 Maize Diversity & Evolution
 =======================================================
 type: section
 <img src="proposal-figure\maiz-y-teosinte.jpg";>
-<font size = "5px"> https://lacienciaysusdemonios.com/2009/10/06/el-huerto-evolutivo-4-del-teocinte-teosinte-al-maiz-la-evolucion-es-la-repanocha/ </font>
+https://lacienciaysusdemonios.com/2009/10/06/el-huerto-evolutivo-4-del-teocinte-teosinte-al-maiz-la-evolucion-es-la-repanocha/ 
 
 ***
 
@@ -73,20 +86,21 @@ Maize Mirrors Humanity
 =======================================================
 type: section
 <img src="proposal-figure\reflecion-maiz.jpg";>
-<font size = "5px"> http://tarotdemaximo.blogspot.com </font>
-
+<div align="center">
+ http://tarotdemaximo.blogspot.com
+</div>
 ***
 
 - As a domesticated crop, maize is intimately contingent upon societal influences
 - Edgar Anderson - "maize [as] as sensitive mirror of the people of who grow it" (Anderson, 1942, 1947)
 - Today, numerous studies indicate human influences on maize distribution and diversity, including:
       - Seed management practices (Anderson 1947; Dyer and Lopez-Feldman 2013)
-      - Indigenous religious practices (Rendon-Aguilar et al., 2015) 
+      - Indigenous religious practices (relating to shape and color) (R. Ortega-Paczka., 2003) 
       - Ethnolinguistic diversity (Perales, Benz, and Brush 2005; Brush and Perales 2007; Rivero-Romero et al. 2016)
       - Indigenous agricultural knowledge (Garcia-Martinez et al. 2016; Rivero-Romero et al. 2016)
       - Agro-technological practices (Garcia-Martinez et al. 2016; Rivero-Romero et al. 2016; Toledo and Barrera-Bassols 2017)
+      - variations across ethnic groups (Perales, Benz, and Brush 2005; Brush and Perales 2007)
     
-
 
 
 Purpose Statements
@@ -115,16 +129,19 @@ Research Questions
 Ecological Niche
 =======================================================
 type: section
-<img src="proposal-figure\hutchinson_tree.jpg";>
-
-<font size = "5px"> http://lakes.chebucto.org/PEOPLE/PIC/hutchinson_tree.jpg </font>
+<img src="proposal-figure\hutchinson_tree.jpg" ;>
+<div align="center">
+http://lakes.chebucto.org/PEOPLE/PIC/hutchinson_tree.jpg
+</div>
 
 ***
-
+<br />
 - Strongly guided by developments of the term 'biological niche' in the 20th century. 
-- Joseph Grinnell and Charles Elton pioneered early conceptions of biological niches by systematically associating environmental attributes to specific niches, thereby regulating niches to particular environments 
+- Joseph Grinnell, Charles Elton 
+    - systematically associating environmental attributes to specific niches
+    - niches corresponded to species' environments 
 - George Evelyn Hutchinson claimed biological niches as the roles a community or species performs at any particular time (Colwell and Rangel 2009). 
-- The Hutchinsonian Niche is an attribute of a species in relation to its biotic and abiotic environment to <i>n</i>-level of ecological space (Colwell and Rangel 2009; Holt 2009). 
+- The Hutchinsonian Niche is an attribute of a species in relation to its biotic (bionomic) and abiotic (scenopoetic) environment to <i>n</i>-level of ecological space (Colwell and Rangel 2009; Holt 2009). 
 - Under this definition, a species' biological niche defines its role in its habitat, but not solely its habitat itself.
 
 
@@ -137,12 +154,14 @@ type: sub-section
 <font size = "5px"> https://www.frontiersin.org/files/Articles/257078/fvets-04-00105-HTML/image_m/fvets-04-00105-g001.jpg </font>
 
 *** 
-
+<br />
+<br />
 - hyper-dimensional niche volume in which "every point... corresponds to a state of the environment that would permit [a] species... to exist indefinitely" (Hutchinson 1957; Holt 2009). 
 - A species' potential geographic distribution in true 4D space, constrained by its n-dimensional bioclimatic envelope. 
-- scenopoetic variables -> 'Grinnellian niche'
-- In reality, a species'niche is inherently limited by biotic interactions. 
-- Hutchinson argued that two species that shared resources cannot coexist in a "limited system" (Pulliam 2000), therefore requiring a true "realized niche" smaller than the fundamental niche. 
+- 'Grinnellian niche'
+- In reality, a species'niche is inherently limited by 'bionomic' interactions. 
+- Hutchinson argued that two species that shared resources cannot coexist in a "limited system" (Pulliam 2000)
+- A true "realized niche" is necessarily smaller than the fundamental niche. 
 - A species' realized niches represents the portion of a species' fundamental niche that exists in reality and that does not overlap with other species niches (Griesemer 1992)
 
 
@@ -177,68 +196,86 @@ type: section
       3. Threatened species management
       4. Crop modelling
 - Numerous ecological niche modeling algorithms have been developed to project ecological niche spaces into geographic spaces (e.g.: Bioclimatic Envelopes, Genetic Algorithm Rule-set Production, Maximum Entropy, Artificial Neural Networks, Support Vector Machines, Boosted Regression Trees)
-- Ensemble forecasting minimizes errors (e.g.: sensitivity to data, lack of absence data, errors in environmental variables)  (Filho et. al, 2010, Araujo & New 2007)
-- Ensemble Ecological Niche Modelling weights individual models based on performance.
-- WA and Mean consensus methods provided significantly more robust predictions than all the single-models and the other consensus methods (Marimon et al., 2009)
+- Ensemble Ecological Niche Modelling weights individual models based on performance; increases performance (Filho et. al, 2010, Araujo & New 2007)
+- WA and Mean consensus methods provided significantly more robust predictions than single-models and the other consensus methods (Marimon et al., 2009)
 
 
 Data
 =======================================================
-1. Gridded Climatologies
+1. Georeferenced maize observations
+2. Ethno-linguistic Data
+3. Gridded Climatologies
   - derived "Bioclimatic Variables"
-2. Topographic Variables
-3. Ethno-linguistic Data
-4. Georeferenced maize observations
+4. Topography/Land Cover
+
+Georeferenced Maize Observations
+=======================================================
+
+
+- 22931 available through <i>La Comision Nacional para el Conocimiento y Uso de la Biodiversidad </i>(CONABIO)
+- Cleaned records of erroneous records and those flagged 'Inconsistent'
+- 18060 remaining records
+- 64 unique maize races
+
+
+*** 
+
+<img src="proposal-figure/unnamed-chunk-4-1.png" title="plot of chunk unnamed-chunk-4" alt="plot of chunk unnamed-chunk-4" style="display: block; margin: auto;" /><img src="proposal-figure/unnamed-chunk-4-2.png" title="plot of chunk unnamed-chunk-4" alt="plot of chunk unnamed-chunk-4" style="display: block; margin: auto;" />
+
 
 Climatological Data
 =======================================================
 type: section
-
-- WorldClim, 
-  - >2,700 citations for ecological studies including ENMs and SDMs (Booth et al., 2014)
-  - largest available archive of downscaled climate data for use in ecology, evolution and environmental science (Guisan et al., 2017)
-  - ANUSPLIN 9,000 - 60,000 weather stations, , 
+- WorldClim 
   - 30 arc-second resolution
+  - ANUSPLIN up to 60,000 weather stations (with >10 years data)
+  - largest available archive of downscaled climate data for ecology  (Guisan et al., 2017)
+  - >2,700 citations for ecological studies including ENMs and SDMs (Booth et al., 2014)
+
 - Current Data from WorldClim 2.0 (Fick & Hijmans, 2017)
   - 1970-2000
-  -Maximum and Minimum Monthly Temperatures (&deg;C * 10)
-  -Monthly Precipitation (mm)
+  - Maximum and Minimum Monthly Temperatures (&deg;C * 10)
+  - Monthly Precipitation (mm)
+  - also includes solar radiation, windspeed, water vapor pressure
 
 - Future Data from Worldclim 1.4 (Hijmans et al., 2005)
   - 2041-2060, 2061-2080
-  - dynamically-downscaled from 19 GCM used in CMIP5 (Coupled Model Intercomparison Project 5; Meehl et al., 2009 ) and the Fifth Assessment Report (IPCC, 2013 )
-
-
+  - dynamically-downscaled from 19 GCM used in CMIP5 (Coupled Model Intercomparison Project 5; Meehl et al., 2009) and the Fifth Assessment Report (IPCC, 2013 )
+  - RCP 8.5 
 
 Projecting onto Future Climatologies
 =======================================================
 type: sub-section
-- ENM increasingly utilizes averages of future climate models to reduce uncertainty across
+- Ensemble future climate models to reduce uncertainty across:
     - Relative Concentration Pathways
     - GCM
-- Monthly means were averaged for five GCMs
-- 5th National Communication of Mexico for the United Nations Framework Convention on Climate Change (2012)
-- Any of these five model performs better singularly than ensemble of all other models in predicting previous climatologies (Conde et al. 2011)
+- Monthly future climatologies were averaged across five GCMs:
     - CCSM4 (Community Climate System Model, UCAR)
     - MIROC5 (Model for Interdisciplinary Research on Climate)
     - MPI-ESM-LR (Max-Plank Institute) 
     - HADGEM2-ES (Met Office Hadley)
     - GFDL-CM3 (Geophysical Fluid Dynamics Laboratory )
-- Here, using updated GCM versions
+- Any of these five model performs better singularly than ensemble of all other models in predicting previous climatologies (Conde et al. 2011)
+- 5th National Communication of Mexico for the United Nations Framework Convention on Climate Change (2012)
+- Here, using updated analogs of GCMs used in (Conde et al. 2011) 
 
 
 Bioclimatic Variable Processing
 =======================================================
 type: sub-section
 
+- Derived from first ecological niche modelling alogorithm 'BIOCLIM' (Nix, 1986)
 - More ecologically importance predictor variables
-- Harkens back to first ecological niche modelling alogorithm 'BIOCLIM'
-- Calculated from monthly mean Tmax, Tmin, Tmean, and Prec
-- 19 Bioclimatic proxy variables from monthly means using 'dismo' (2017) 
-- 16 'complementary' variables from 'envirem' (2017) packages in R, using WorldClim 2.0 terrestial solar radiation
+- Can reduce multicollineary, VIF; expands options
+- Calculated from monthly Tmax, Tmin, Tmean, and Prec
+- 19 Bioclimatic proxy variables from monthly means using 'dismo' (Hijmans et al., 2017)
+- Potentially 16 'complementary' variables from 'envirem' package in R (Title & Bemmels, 2017)
+    - Must use (WorldClim 2.0) current terrestial solar radiation for both current and future climatologies
+    - Must average Tmin and Tmax to get Tmean (.99 R^2) (Title & Bemmels, 2017)
 
-Bioclimatic Variables
+'dismo' Biovars
 =======================================================
+
 - BIO1 = Annual Mean Temperature
 - BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
 - BIO3 = Isothermality (BIO2/BIO7) (* 100)
@@ -248,7 +285,10 @@ Bioclimatic Variables
 - BIO7 = Temperature Annual Range (BIO5-BIO6)
 - BIO8 = Mean Temperature of Wettest Quarter
 - BIO9 = Mean Temperature of Driest Quarter
-- BIO10 = Mean Temperature of Warmest Quarter
+- BIO10 = Mean Temperature of Warmest Quarter 
+
+***
+
 - BIO11 = Mean Temperature of Coldest Quarter
 - BIO12 = Annual Precipitation
 - BIO13 = Precipitation of Wettest Month
@@ -258,10 +298,9 @@ Bioclimatic Variables
 - BIO17 = Precipitation of Driest Quarter
 - BIO18 = Precipitation of Warmest Quarter
 - BIO19 = Precipitation of Coldest Quarter
-- Growing Months - sum(Monthly with Precipitation > 100 mm)
-- Growing degree days (days above 10 &deg; C )
-    
-***
+
+'envirem' Biovars
+=======================================================
 
 - Annual PET
 - Thornthwaite Aridity Index 
@@ -270,12 +309,15 @@ Bioclimatic Variables
 - EmbergerQ
 - Growing Deg Days 0
 - Growing Deg Days 5
+- Growing Deg Days 10
 - Max Temp Coldest
 - Min Temp Warmest
+
+***
+
 - Month Count By Temp 10
 - PET Coldest Quarter
 - PET Driest Quarter
-- 10 Growing Deg Days
 - PET seasonality
 - PET Warmest Quarter
 - PET Wettest Quarter
@@ -283,57 +325,71 @@ Bioclimatic Variables
 
 ======================================================
 <div align="center">
-<img src="proposal-figure\biovars_cormat.png" >
+
+<img src="proposal-figure\biovars_cormat.png">
 </div>
 
 Topographic Variable Processing
 ======================================================
-- Land-cover classification (GLCF_ AVHRR Global Land Cover Classification Data)
-- Elevation from WorldClim 1.4 via SRTM (Shuttle Radar Topographic Mission)
-  - TRI (Terrain Ruggedness Index) 
-      - mean of the absolute differences between cell evel and the value of its 8 surrounding cells
-      
-![plot of chunk unnamed-chunk-4](proposal-figure/unnamed-chunk-4-1.png)![plot of chunk unnamed-chunk-4](proposal-figure/unnamed-chunk-4-2.png)![plot of chunk unnamed-chunk-4](proposal-figure/unnamed-chunk-4-3.png)
+- Terrain Indices from Elevation from WorldClim 1.4 via SRTM (Shuttle Radar Topographic Mission)  with 'raster' package (Hijmans, 2017)
+  - Aspect
+  - Slope
+  - Roughness (difference between the maximum and the minimum value of a cell and its 8 surrounding cells) as in Wilson et al. (2007)
 
+***
 
+<img src="proposal-figure/unnamed-chunk-5-1.png" title="plot of chunk unnamed-chunk-5" alt="plot of chunk unnamed-chunk-5" width="1920px" height="1080px" style="display: block; margin: auto;" />
 
-Final Explanatory Variables Raster Stack
+Land Cover and Soils
 ======================================================
-- Indigenous Population Percentage
-
-- Land Cover Classification
-
-Georeferenced Maize Observations
-=======================================================
-
-
-```
-# A tibble: 64 x 2
-           Raza_prima `n()`
-                <chr> <int>
- 1              Ancho   314
- 2           Apachito    62
- 3 Arrocillo Amarillo   306
- 4               Azul    99
- 5             Blando    41
- 6               Bofo    37
- 7             Bolita   524
- 8      Cacahuacintle    62
- 9             Celaya   910
-10          Chalqueño   602
-# ... with 54 more rows
-```
-
-- Comission
-- `r length(maices@data)'
-
-
-
-
+FAO Harmonized Soil Database 1.2 (Fischer et al., 2008)
+- Soil Quality Data  (Ordered Factor 1-4; 'No or slight limitations' to 'Very severe limitations')
+    1. Nutrient availability
+    2. Nutrient retention capacity
+    3. Rooting conditions
+    4. Oxygen availability to roots
+    5. Excess salts
+    6. Toxicity
+    7. Workability (constraining field management)
+- Land cover (Continuous)
+    1. rain-fed cultivated land
+    2. irrigated cultivated land, according to GMIA 4.0
+    3. total cultivated land
+    4. forest land, calibrated to FRA2000 land statistics
+    5. grass/scrub/woodland
+    6. built-up land (residential and infrastructure)
+    7. barren/very sparsely vegetated land
+    8. Mapped Water Bodies
 
 
 Ethno-linguistic Diversity Variables
 =======================================================
+- La ComisiÃ³n Nacional para el Conocimiento y Uso de la Biodiversidad (CONABIO)
+- 1990 indigenous population % at <i>municipio</i> level
+- Rasterized identical resolution
+
+*** 
+
+<img src="proposal-figure/unnamed-chunk-6-1.png" title="plot of chunk unnamed-chunk-6" alt="plot of chunk unnamed-chunk-6" width="1920px" height="1080px" />
+
+========================================================
+
+
+
+Variables to Thin
+======================================================
+- Indigenous Population Percentage
+- Land Cover Classification
+- Soil Quality 1-7
+- 19 'dismo' bioclimatic variables
+- 16 supplemental 'envirem' bioclimatic variables
+
+Method
+- 'usdm' R package vif function
+- preferred over correlation thresholds due to 'hidden' correlation structures (Guisan et al., 2017)
+- correlation structures may change over time
+- select variables of ecological importance
+- 'vifstep' with VIF threshold of 10 to get remaining variables (Guisan et al., 2017)
 
 
 
@@ -341,7 +397,72 @@ Ethno-linguistic Diversity Variables
 
 
 
-```
-Error in (function (classes, fdef, mtable)  : 
-  unable to find an inherited method for function 'spplot' for signature '"numeric"'
-```
+Proposed Methods
+=======================================================
+-  Ecological Niche modelling with biomod2 with up to 
+    - 10 modelling algorithms
+        - 'GLM','GBM','GAM','CTA','ANN','SRE','FDA','MARS','RF','MAXENT.Phillips', 'MAXENT.Tsuruoka'
+    - 10 evaluation metrics
+        - 'KAPPA', 'TSS', 'ROC', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI' and 'ETS'
+    - <i> n </i> modelling repetitions
+    - <i> n </i> PA pseudo-absence repetitions
+- Data format tuning with 'BIOMOD_Tuning' function
+- Ensemble landrace models by weighted-average by model
+- Average weighted-averages across models
+- Parallel process on TxState LEAP HPC Cluster with OpenMpi/Rmpi and SLURM
+    - 64 nodes with 28 CPUs, up to 128 Gb RAM
+    
+Pseudo-absence selection
+=======================================================
+- 'biomod2' requires daata formatting with pseudo-absences
+- 4 strategies
+    - 'random' - random
+    - 'disk' - minimal and maximal distance
+    - 'sre' - environmental stratefied 
+    - 'user-defined' - predefined/true absences
+    
+***
+
+<div align="center">
+<img src="proposal-figure\pabsence.png">
+https://support.bccvl.org.au
+</div>
+
+Pseudo-absence selection Recommendations  
+=======================================================
+Barbet-Massin et al. 2012
+
+1. ~ 10,000 of pseudo-absences when using regression techniques 
+2. ~ 10 runs with ~100 pseudo-absences with multiple adaptive regression splines and discriminant analyses;
+3. Equal number of pseudo-absences/presences with ~10 runs for classification techniques (e.g.: BRT, CART and RF). 
+4. Random selection of pseudo-absences when using regression techniques 
+5. Environmentally stratified pseudo-absences when using classification and machine-learning techniques
+
+Potential Subsequent Analyses
+=======================================================
+- Binary distribution maps using probability thereshold
+- Alpha-Diversity and Range Change/Extinction Rate
+- Diversity Indices (and change)
+- Evaluation across model type, maize landrace
+- Cluster Analysis of Variable Importance
+- Evaluation Importance of Indigeneity
+- Dendrogram of distribution similarities ('fuzzySim' in R)
+- Geovisulation of Impacted Indigenous Communities
+
+Novelty of Research
+=======================================================
+- Averaging good-performing updated GCMs for forcasting
+- Ensemble modelling
+- Expanded datasets
+- Careful pseudo-absence selection
+- WorldClim 2.0 > 1.4
+- CMIP5 Data
+
+Bibliography
+========================================================
+class: small-code
+<font size = "5px">
+Use the `bibliography` function to add the bibliography.
+
+
+</font>
