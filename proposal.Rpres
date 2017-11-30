@@ -476,20 +476,26 @@ Variables to Thin
 - 16 supplemental 'envirem' bioclimatic variables
 
 Method
-- 'usdm' R package vif function
+- 'usdm' R package vif function (Naimi et al., 2014)
 - preferred over correlation thresholds due to 'hidden' correlation structures (Guisan et al., 2017)
 - correlation structures may change over time
 - select variables of ecological importance
 - 'vifstep' with VIF threshold of 10 to get remaining variables (Guisan et al., 2017)
 
-'vifstep' results
+
+'vif' results
 ======================================================
 
 ```{r eval=TRUE, echo=FALSE}
 load(paste0(dir_out,"/vif.RData"))
 load(paste0(dir_out,"/vifstep.RData"))
 load(paste0(dir_out,"/vifcor.RData"))
+
+presvif
 ```
+
+'vifstep' results
+======================================================
 
 ```{r eval=TRUE, echo=TRUE}
 presvifstep@results

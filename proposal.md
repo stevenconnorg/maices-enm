@@ -390,16 +390,69 @@ Variables to Thin
 - 16 supplemental 'envirem' bioclimatic variables
 
 Method
-- 'usdm' R package vif function
+- 'usdm' R package vif function (Naimi et al., 2014)
 - preferred over correlation thresholds due to 'hidden' correlation structures (Guisan et al., 2017)
 - correlation structures may change over time
 - select variables of ecological importance
 - 'vifstep' with VIF threshold of 10 to get remaining variables (Guisan et al., 2017)
 
-'vifstep' results
+
+'vif' results
 ======================================================
 
 
+```
+               Variables          VIF
+1        BIO1AnnMeanTemp 1.261212e+05
+2   BIO2MeanDiurnalRange 3.433839e+02
+3           BIO3Isotherm 1.008546e+02
+4              BIO4TSeas 6.573645e+03
+5      BIO5TWarmestMonth          Inf
+6   BIO6MinTColdestMonth          Inf
+7          BIO7TAnnRange          Inf
+8      BIO8MeanTWettestQ 5.934433e+01
+9       BIO9MeanTDriestQ 7.722524e+01
+10    BIO10MeanTWarmestQ 2.508201e+03
+11    BIO11MeanTColdestQ 1.265249e+04
+12          BIO12AnnPrec 4.731866e+02
+13 BIO13PrecWettestMonth 9.654969e+01
+14  BIO14PrecDriestMonth 7.876804e+01
+15     BIO15PrecSeas.COV 1.770142e+01
+16     BIO16PrecWettestQ 1.680402e+02
+17      BIO17PrecDriestQ 1.399311e+02
+18     BIO18PrecWarmestQ 8.106017e+00
+19     BIO19PrecColdestQ 2.657508e+01
+20             EVMannPET 1.820028e+02
+21     EVMthornthwaiteAI 1.348320e+08
+22         EVMclimaticMI 1.348336e+08
+23     EVMcontinentality 2.263212e+03
+24          EVMembergerQ 7.249427e+01
+25    EVMgrowingDegDays0 1.255414e+05
+26    EVMgrowingDegDays5 1.173782e+02
+27     EVMmaxTempColdest 5.476294e+02
+28     EVMminTempWarmest 3.243490e+02
+29    EVMmonthCountByT10 4.614369e+00
+30        EVMPETColdestQ 2.230254e+02
+31         EVMPETDriestQ 6.754274e+01
+32            EVMPETseas 4.166684e+02
+33        EVMPETWarmestQ 1.473191e+02
+34        EVMPETWettestQ 5.270414e+01
+35    EVMthermicityIndex 6.416108e+01
+36             TotalCult 5.655149e+03
+37               IrrCult 1.057087e+03
+38          Rain.fedCult 4.608966e+03
+39              Forested 4.483750e+01
+40        Grass.Woodland 4.050543e+01
+41                Barren 1.699018e+01
+42                 Urban 1.927545e+00
+43                 Water 2.626440e+00
+44             roughness 1.458907e+01
+45                aspect 1.029889e+00
+46                 slope 1.279400e+01
+```
+
+'vifstep' results
+======================================================
 
 
 ```r
