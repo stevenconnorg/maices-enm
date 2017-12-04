@@ -19,10 +19,10 @@ Dr. Russell Weaver (Chair) <br />
 Dr. Jennifer Jensen <br />
 Dr. Thomas Ballinger <br />
 
-M.S.Thesis Proposal <br />
-Department of Geography, Texas State University <br />
-601 University Drive San Marcos, TX 78666-4684<br />
-code: www.github.com/stevenconnorg/maices-enm <br />
+M.S. Thesis Proposal <br />
+Department of Geography  <br />
+Texas State University, San Marcos, TX <br />
+github: www.github.com/stevenconnorg/maices-enm <br />
 contact: scg67@txstate.edu
 
 ```{r,echo=FALSE} 
@@ -73,18 +73,17 @@ Introduction
 =======================================================
 type: section
 
+
+
 - Climate change is expected heavily impact natural and human systems worldwide  (Walther, G.-R. et al., 2002; IPCC 2007, 2013; Kang, Y, S. Khan 2009; Hoegh-Guldberg, O. 2010)
 
 - The IPCC reports numerous negative impacts of climate change on domesticated crops regardless of the emission scenario implemented(Brown and Funk 2008; Ureta et al. 2012; IPCC 2013) 
 
 - Ensuring global food security in an increasingly warming world with  exponentially increasing world population requires multidisciplinary research  (Brown and Funk 2008; Ureta et al. 2012; IPCC 2013, 2015) 
 
-***
-
+*** 
 <img src="proposal-figure\future-of-food.jpg";><br/>
-
-https://www.elsevier.com 
-
+<font size = "5px">  Five percent reduction in crop season, sensitivity to change, capacity to cope. Source: CGIAR. </font>
 
 
 Mexico: Maize's 'C.O.D.'
@@ -102,16 +101,14 @@ type: section
 ***
 
 
-<img src="proposal-figure\maize-diversity.jpg";>
-<div align="center">
-Credit: The International Maize and Wheat Improvement Center (CIMMYT)
-</div>
+<img src="proposal-figure\maize-diversity.jpg";></br>
+<font size = "5px">  Source: The International Maize and Wheat Improvement Center (CIMMYT) </font>
 
 Maize Diversity & Evolution
 =======================================================
 type: section
-<img src="proposal-figure\maiz-y-teosinte.jpg";>
-https://lacienciaysusdemonios.com/2009/10/06/el-huerto-evolutivo-4-del-teocinte-teosinte-al-maiz-la-evolucion-es-la-repanocha/ 
+<img src="proposal-figure\maiz-y-teosinte.jpg";></br>
+<font size = "5px">  Source: https://lacienciaysusdemonios.com </font>
 
 ***
 
@@ -126,10 +123,8 @@ https://lacienciaysusdemonios.com/2009/10/06/el-huerto-evolutivo-4-del-teocinte-
 Maize Mirrors Humanity
 =======================================================
 type: section
-<img src="proposal-figure\reflecion-maiz.jpg";>
-<div align="center">
- http://tarotdemaximo.blogspot.com
-</div>
+<img src="proposal-figure\reflecion-maiz.jpg";></br>
+<font size = "5px">  Source: http://tarotdemaximo.blogspot.com </font>
 ***
 
 - As a domesticated crop, maize is intimately contingent upon societal influences
@@ -142,6 +137,53 @@ type: section
       - Agro-technological practices (Garcia-Martinez et al. 2016; Rivero-Romero et al. 2016; Toledo and Barrera-Bassols 2017)
       - variations across ethnic groups (Perales, Benz, and Brush 2005; Brush and Perales 2007)
     
+Ethno-linguistic Diversity of Mexico
+=======================================================
+```{r, echo=FALSE}
+
+
+leng<-readOGR(dsn=paste0(dir_ind,"/lengmun90gw/lengmun90gw.shp"),layer="lengmun90gw",verbose = FALSE)
+#colnames(leng@data)
+#leng@data$LENGUA1<-as.factor(leng@data$LENGUA1)
+#summary(leng@data)
+#str(leng@data)
+#spplot(leng,"LENGUA1")
+#map(add=TRUE)
+```
+- <i> La Comisión Nacional para el Conocimiento y Uso de la Biodiversidad </i>(CONABIO)
+- 2000 indigenous population % at <i>municipio</i> level
+    - Rasterized identical resolution
+- 68 indigenous macro-languages in Mexico  <i>(Instituto Nacional de Lenguas Indigenas (INALI)) </i>
+    - In reality, many more distinct languages
+    - 10-14% identify as indigenous, but only 6% speak an indigenous language
+    
+*** 
+
+```{r echo=FALSE,fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
+pobind<-raster(paste0(dir_ind,"/pob-ind.grd"))
+plot(pobind)
+title(main="Indigenous Population Percentage (2010)")
+
+```
+
+
+68 macro-languages of Mexico
+========================================================
+1990 1^st - 4^th major indigenous languages at <i>municipio</i> level 
+
+```{r echo=F,results='asis',error=F,warning=F}
+library(knitr)
+library(kableExtra)
+df<- leng@data
+lang<-unique(df[c("LENGUA1", "LENGUA2", "LENGUA3", "LENGUA4")])
+
+kable(lang,"html") %>%
+  kable_styling() %>%
+  scroll_box(height = "400px")
+
+```
+
+
 
 
 Purpose Statements
@@ -170,15 +212,13 @@ Research Questions
 Ecological Niche
 =======================================================
 type: section
-<img src="proposal-figure\hutchinson_tree.jpg" ;>
-<div align="center">
-http://lakes.chebucto.org/PEOPLE/PIC/hutchinson_tree.jpg
-</div>
+<img src="proposal-figure\hutchinson_tree.jpg" ;></br>
+<font size = "5px">  Source: http://lakes.chebucto.org/PEOPLE/PIC/hutchinson_tree.jpg </font>
 
 ***
 <br />
-- Strongly guided by developments of the term 'biological niche' in the 20th century. 
-- Joseph Grinnell, Charles Elton 
+- Strongly guided by developments of the term 'ecological niche' in the 20th century. 
+- Joseph Grinnell (Grinnell, 1917), Charles Elton (Elton, 1927)
     - systematically associating environmental attributes to specific niches
     - niches corresponded to species' environments 
 - George Evelyn Hutchinson claimed biological niches as the roles a community or species performs at any particular time (Colwell and Rangel 2009). 
@@ -190,12 +230,10 @@ http://lakes.chebucto.org/PEOPLE/PIC/hutchinson_tree.jpg
 Fundamental vs. Realized Niche
 =======================================================
 type: sub-section
-<img src="proposal-figure\niches.jpg";>
-
-<font size = "5px"> https://www.frontiersin.org/files/Articles/257078/fvets-04-00105-HTML/image_m/fvets-04-00105-g001.jpg </font>
+<img src="proposal-figure\niches.jpg";></br>
+<font size = "5px"> Source: https://www.frontiersin.org/ </font>
 
 *** 
-<br />
 <br />
 - hyper-dimensional niche volume in which "every point... corresponds to a state of the environment that would permit [a] species... to exist indefinitely" (Hutchinson 1957; Holt 2009). 
 - A species' potential geographic distribution in true 4D space, constrained by its n-dimensional bioclimatic envelope. 
@@ -210,8 +248,8 @@ type: sub-section
 Biotic-Abiotic-Mobility Diagram
 =======================================================
 
-<img src="proposal-figure\BAM.png";>
-(Guisan et al., 2017; A. Townsend Peterson et al. 2011; Soberon & Peterson, 2005)
+<img src="proposal-figure\BAM.png";> </br>
+<font size = "5px"> Source: (Guisan et al., 2017) Credit: (Guisan et al., 2017,A. Townsend Peterson et al. 2011; Soberon & Peterson, 2005) </font>
 
 ***
 
@@ -438,33 +476,6 @@ FAO Harmonized Soil Database 1.2 (Fischer et al., 2008)
     8. Mapped Water Bodies
 
 
-Ethno-linguistic Diversity Variables
-=======================================================
-- La Comisión Nacional para el Conocimiento y Uso de la Biodiversidad (CONABIO)
-- 1990 indigenous population % at <i>municipio</i> level
-- Rasterized identical resolution
-
-*** 
-
-```{r echo=FALSE,fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
-pobind<-raster(paste0(dir_ind,"/pob-ind.grd"))
-plot(pobind)
-title(main="Indigenous Population Percentage (2010)")
-
-```
-
-========================================================
-```{r echo=FALSE,eval=FALSE}
-
-
-leng<-readOGR(dsn=paste0(dir_ind,"/lengmun90gw/lengmun90gw.shp"),layer="lengmun90gw")
-colnames(leng@data)
-leng@data$LENGUA1<-as.factor(leng@data$LENGUA1)
-summary(leng@data)
-str(leng@data)
-spplot(leng,"LENGUA1")
-map(add=TRUE)
-```
 
 
 Variables to Thin
@@ -507,6 +518,8 @@ presvifstep@results
 ```{r eval=TRUE, echo=TRUE}
 presvifcor@results
 ```
+
+
 
 
 

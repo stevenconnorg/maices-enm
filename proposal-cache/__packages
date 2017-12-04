@@ -10,3 +10,4 @@ nlme
 rpart
 spatstat
 maps
+kableExtra
