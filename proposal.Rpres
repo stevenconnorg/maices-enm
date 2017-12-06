@@ -111,7 +111,7 @@ type: section
 <font size = "5px">  Source: https://lacienciaysusdemonios.com </font>
 
 ***
-
+</br>
 - > 9,000 years from Mexican annual teosinte (<i>Z. mays</i> ssp. <i>Parviglumus</i> and ssp. <i>mexicana</i> ) via artificial selection by indigenous cultures (Matsuoka et al. 2002; Kato et al. 2009)
 - Maize landraces have been grown (Ruiz Corral et al. 2008):
       - from sea-level to 2,900 (m asl)
@@ -123,13 +123,9 @@ type: section
 Maize Mirrors Humanity
 =======================================================
 type: section
-<img src="proposal-figure\reflecion-maiz.jpg";></br>
-<font size = "5px">  Source: http://tarotdemaximo.blogspot.com </font>
-***
 
-- As a domesticated crop, maize is intimately contingent upon societal influences
-- Edgar Anderson - "maize [as] as sensitive mirror of the people of who grow it" (Anderson, 1942, 1947)
-- Today, numerous studies indicate human influences on maize distribution and diversity, including:
+</br>
+- As a domesticated crop, maize is intimately contingent upon societal influences:
       - Seed management practices (Anderson 1947; Dyer and Lopez-Feldman 2013)
       - Indigenous religious practices (relating to shape and color) (R. Ortega-Paczka., 2003) 
       - Ethnolinguistic diversity (Perales, Benz, and Brush 2005; Brush and Perales 2007; Rivero-Romero et al. 2016)
@@ -137,8 +133,40 @@ type: section
       - Agro-technological practices (Garcia-Martinez et al. 2016; Rivero-Romero et al. 2016; Toledo and Barrera-Bassols 2017)
       - variations across ethnic groups (Perales, Benz, and Brush 2005; Brush and Perales 2007)
     
+    
+***
+
+
+</br>
+</br>
+</br>
+</br>
+
+<div align="center">
+
+"Maize is a sensitive mirror of the people who grow it" (1942)
+</br>
+</br>
+</br>
+</br>
+
+"Mexico, more than any other country in the New World, is the land of corn" (1946)
+</br>
+</br>
+</br>
+</br>
+</div>
+
+<div align="right">
+
+- Edgar Anderson (1897-1969)</br>
+American researcher of corn </br> 
+
+</div>
+
 Ethno-linguistic Diversity of Mexico
 =======================================================
+type: section
 ```{r, echo=FALSE}
 
 
@@ -150,17 +178,16 @@ leng<-readOGR(dsn=paste0(dir_ind,"/lengmun90gw/lengmun90gw.shp"),layer="lengmun9
 #spplot(leng,"LENGUA1")
 #map(add=TRUE)
 ```
+</br>
 - <i> La Comisión Nacional para el Conocimiento y Uso de la Biodiversidad </i>(CONABIO)
-- 2000 indigenous population % at <i>municipio</i> level
-    - Rasterized identical resolution
+- 2000 indigenous population % by <i>municipio</i> (n= 2446 + 16)
 - 68 indigenous macro-languages in Mexico  <i>(Instituto Nacional de Lenguas Indigenas (INALI)) </i>
     - In reality, many more distinct languages
     - 10-14% identify as indigenous, but only 6% speak an indigenous language
-    - Loss of potentially useful indigenous climatic knowledge ()
-  
-+ 
+    - Loss of potentially irrecoverable deep climatic knowledge
 
 *** 
+</br>
 
 ```{r echo=FALSE,fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
 pobind<-raster(paste0(dir_ind,"/pob-ind.grd"))
@@ -170,7 +197,11 @@ title(main="Indigenous Population Percentage (2000)")
 
 ```
 
-1^st - 4^th major indigenous languages at <i>municipio</i> level (1990)
+
+
+
+1st - 4th major indigenous languages at by municipality/io (1990)
+=======================================================
 
 ```{r echo=F,results='asis',error=F,warning=F}
 library(knitr)
@@ -180,7 +211,7 @@ lang<-unique(df[c("LENGUA1", "LENGUA2", "LENGUA3", "LENGUA4")])
 
 kable(lang,"html") %>%
   kable_styling() %>%
-  scroll_box(height = "400px")
+  scroll_box(height = "1000px")
 
 ```
 
@@ -188,20 +219,21 @@ kable(lang,"html") %>%
 
 Purpose Statements
 =======================================================
+type: section
 1. Model current relationships between maize landraces and their niches
     + Project maize niches into geographic space 
     + Forecast these projections with future climate models 
 2. Identify patterns
-    + Evaluate spatio-temporal relationships between indigeneity and maize diversity (Variable importance)
-    + Quantify maize landrace diversity and it's projected change (Shannon Diversity Index)
-    + Identify similarities among species occurrence patterns (Jaccard similarity)
-    + Geovisualization
+    + Evaluate spatio-temporal relationships between indigeneity and maize diversity 
+    + Quantify maize landrace diversity and it's projected change 
+    + Identify similarities among species occurrence patterns
 3. Provide the groundwork for future work
 
 
 
 Research Questions
 =======================================================
+type: section
 1. How do social and environmental factors contribute to maize landraces' current distribution? 
 2.	What are the characteristics of each maize landraces ''bioclimate envelope''?
 3.	Can the contributions of indigeneity and society to maize landraces distribution and diversity be discerned and modelled at the national level?
@@ -217,42 +249,25 @@ type: section
 
 ***
 <br />
-- Strongly guided by developments of the term 'ecological niche' in the 20th century. 
-- Joseph Grinnell (Grinnell, 1917), Charles Elton (Elton, 1927)
-    - systematically associating environmental attributes to specific niches
-    - niches corresponded to species' environments 
-- George Evelyn Hutchinson claimed biological niches as the roles a community or species performs at any particular time (Colwell and Rangel 2009). 
-- The Hutchinsonian Niche is an attribute of a species in relation to its biotic (bionomic) and abiotic (scenopoetic) environment to <i>n</i>-level of ecological space (Colwell and Rangel 2009; Holt 2009). 
-- Under this definition, a species' biological niche defines its role in its habitat, but not solely its habitat itself.
-
-
-
-Fundamental vs. Realized Niche
-=======================================================
-type: sub-section
-<img src="proposal-figure\niches.jpg";></br>
-<font size = "5px"> Source: https://www.frontiersin.org/ </font>
-
-*** 
-<br />
-- hyper-dimensional niche volume in which "every point... corresponds to a state of the environment that would permit [a] species... to exist indefinitely" (Hutchinson 1957; Holt 2009). 
-- A species' potential geographic distribution in true 4D space, constrained by its n-dimensional bioclimatic envelope. 
-- 'Grinnellian niche'
-- In reality, a species'niche is inherently limited by 'bionomic' interactions. 
-- Hutchinson argued that two species that shared resources cannot coexist in a "limited system" (Pulliam 2000)
-- A true "realized niche" is necessarily smaller than the fundamental niche. 
-- A species' realized niches represents the portion of a species' fundamental niche that exists in reality and that does not overlap with other species niches (Griesemer 1992)
+- Joseph Grinnell (Grinnell, 1917) - niches corresponded to species' environments 
+- Charles Elton (Elton, 1927) - associated species niches through biotic relationships
+- George Evelyn Hutchinson  - species role in environment (Hutchinson, 1957; Colwell and Rangel 2009). 
+    - The Hutchinsonian Niche - an "n-dimensional hypervolume" in ecological space in which a species can persist (Colwell and Rangel 2009; Holt 2009)
+    - Fundmental Niche - A species' potential geographic distribution in true 4D space, constrained by its n-dimensional bioclimatic envelope
+    - Realized Niche - fundamental niche constrained by 'bionomic' interactions; the niche that exists in reality and that does not overlap with other species niches (Griesemer 1992,Pulliam 2000)
 
 
 
 Biotic-Abiotic-Mobility Diagram
 =======================================================
-
+type: section
 <img src="proposal-figure\BAM.png";> </br>
 <font size = "5px"> Source: (Guisan et al., 2017) Credit: (Guisan et al., 2017,A. Townsend Peterson et al. 2011; Soberon & Peterson, 2005) </font>
 
 ***
-
+ </br>
+  </br>
+  
 - G : Studied geographic area
   - A : Suitable abiotic environment (Grinellean niche)
   - B : Suitable biotic environment (Eltonian niche)
@@ -266,23 +281,21 @@ Biotic-Abiotic-Mobility Diagram
 Ecological Niche Modelling
 =======================================================
 type: section
+<img src="proposal-figure\ensemble-modelling.png";> </br>
 
+***
+</br>
 - Uses species presence and/or absence observation data and ecological data at those observation sites to estimate complex relationships of species niche (Elith et al. 2011). 
 - Project hyperdimensional ecological space onto 2- or 3D geographic space
-- Numerous uses including:
-      1. Identifying potential spread of vector borne diseases 
-      2. Identifying range of invasive species
-      3. Threatened species management
-      4. Crop modelling
-- Numerous ecological niche modeling algorithms have been developed to project ecological niche spaces into geographic spaces (e.g.: Bioclimatic Envelopes, Genetic Algorithm Rule-set Production, Maximum Entropy, Artificial Neural Networks, Support Vector Machines, Boosted Regression Trees)
-- Reduce uncertainty across model type, model repetition, Pseudo-absence selection, etc.
+- Numerous algorithms developed for and adapted to ENM
 - Ensemble Ecological Niche Modelling weights individual models based on performance(Filho et. al, 2010, Araujo & New 2007)
+- Reduce uncertainty across model type, model repetition, Pseudo-absence selection, etc.
 - WA and Mean consensus methods provided significantly more robust predictions than single-models and the other consensus methods (Marimon et al., 2009)
-- 
 
 
 Data
 =======================================================
+type: section
 1. Georeferenced maize observations
 2. Ethno-linguistic Data
 3. Gridded Climatologies
@@ -291,6 +304,7 @@ Data
 
 Georeferenced Maize Observations
 =======================================================
+type: section
 ```{r echo=FALSE}
 
 load(paste0(dir_maices,"/clean_maices_obs.RData"))
@@ -304,15 +318,14 @@ raza.counts<-maices@data %>% group_by(Raza_prima) %>% summarise(n())
 
 ```
 
+</br>
+</br>
 - `r sum(todos.counts[,2])` available through <i>La Comision Nacional para el Conocimiento y Uso de la Biodiversidad </i>(CONABIO)
 - Cleaned records of erroneous records and those flagged 'Inconsistent'
 - `r sum(raza.counts[,2])` remaining records
 - `r length(unique(maices@data$Raza_prima))` unique maize races
 
-
-*** 
-
-```{r echo=FALSE, fig.align="center"}
+```{r echo=FALSE}
 MaizeObservations<-as.data.frame(raza.counts)
 MaizeObservations$Count<-MaizeObservations$'n()'
 hist(MaizeObservations$Count, breaks=20, main= 'Histogram of Maize Observation')
@@ -330,6 +343,15 @@ plot(nmaices)
 library(maps)
 map(add=TRUE)
 title(main = "Count of Maize Observations by 150 km^2")
+```
+***
+```{r echo=FALSE,fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
+# plot maize obs
+maices@data$Raza_prima<-as.factor(maices@data$Raza_prima)
+spplot(maices,"Raza_prima",
+	key.space="right",
+	scales=list(draw=T),
+	 cex = .2)
 ```
 
 
@@ -355,7 +377,7 @@ type: section
 
 Projecting onto Future Climatologies
 =======================================================
-type: sub-section
+type: section
 - Ensemble future climate models to reduce uncertainty across:
     - Relative Concentration Pathways
     - GCM
@@ -371,7 +393,7 @@ type: sub-section
 
 Bioclimatic Variables
 =======================================================
-type: sub-section
+type: section
 
 - Derived from first ecological niche modelling alogorithm 'BIOCLIM' (Nix, 1986)
 - More ecologically importance predictor variables
@@ -384,7 +406,7 @@ type: sub-section
 
 'dismo' Biovars
 =======================================================
-
+type: section
 - BIO1 = Annual Mean Temperature
 - BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
 - BIO3 = Isothermality (BIO2/BIO7) (* 100)
@@ -410,7 +432,7 @@ type: sub-section
 
 'envirem' Biovars
 =======================================================
-
+type: section
 - Annual PET
 - Thornthwaite Aridity Index 
 - Climatic Moisture Index
@@ -432,7 +454,9 @@ type: sub-section
 - PET Wettest Quarter
 - Thermicity Index
 
+Correlation Matrix - 'dismo' and 'envirem' 
 ======================================================
+type: section
 <div align="center">
 
 <img src="proposal-figure\biovars_cormat.png">
@@ -440,6 +464,7 @@ type: sub-section
 
 Topographic Variable Processing
 ======================================================
+type: section
 - Terrain Indices from Elevation from WorldClim 1.4 via SRTM (Shuttle Radar Topographic Mission)  with 'raster' package (Hijmans, 2017)
   - Aspect
   - Slope
@@ -457,6 +482,7 @@ plot(topostack)
 
 Land Cover and Soils
 ======================================================
+type: section
 FAO Harmonized Soil Database 1.2 (Fischer et al., 2008)
 - Soil Quality Data  (Ordered Factor 1-4; 'No or slight limitations' to 'Very severe limitations')
     1. Nutrient availability
@@ -481,41 +507,39 @@ FAO Harmonized Soil Database 1.2 (Fischer et al., 2008)
 
 Variables to Thin
 ======================================================
-- Indigenous Population Percentage
+type: section
+</br>
 - Land Cover Classification
 - Soil Quality 1-7
 - 19 'dismo' bioclimatic variables
 - 16 supplemental 'envirem' bioclimatic variables
 
 Method
-- 'usdm' R package vif function (Naimi et al., 2014)
+- 'usdm' R package for vif objects (Naimi et al., 2014)
 - preferred over correlation thresholds due to 'hidden' correlation structures (Guisan et al., 2017)
 - correlation structures may change over time
 - select variables of ecological importance
 - 'vifstep' with VIF threshold of 10 to get remaining variables (Guisan et al., 2017)
 
+***
+```{r eval=T, echo=F}
 
-'vif' results
-======================================================
-
-```{r eval=TRUE, echo=FALSE}
 load(paste0(dir_out,"/vif.RData"))
 load(paste0(dir_out,"/vifstep.RData"))
 load(paste0(dir_out,"/vifcor.RData"))
-
-presvif
 ```
 
-'vifstep' results
-======================================================
-
-```{r eval=TRUE, echo=TRUE}
+```{r eval=TRUE, echo=T}
+# using all data, no pre-selection
 presvifstep@results
+
 ```
+
+
 
 'vifcor' results
 ======================================================
-
+type: section
 ```{r eval=TRUE, echo=TRUE}
 presvifcor@results
 ```
