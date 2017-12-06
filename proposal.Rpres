@@ -169,7 +169,7 @@ title(main="Indigenous Population Percentage (2010)")
 
 68 macro-languages of Mexico
 ========================================================
-1990 1^st - 4^th major indigenous languages at <i>municipio</i> level 
++ 1990 1^st - 4^th major indigenous languages at <i>municipio</i> level 
 
 ```{r echo=F,results='asis',error=F,warning=F}
 library(knitr)
@@ -188,7 +188,7 @@ kable(lang,"html") %>%
 
 Purpose Statements
 =======================================================
-1. Model current relationships between maize landraces and their niches 
+1. Model current relationships between maize landraces and their niches
     + Project maize niches into geographic space 
     + Forecast these projections with future climate models 
 2. Identify patterns
@@ -364,11 +364,10 @@ type: sub-section
     - HADGEM2-ES (Met Office Hadley)
     - GFDL-CM3 (Geophysical Fluid Dynamics Laboratory )
 - Any of these five model performs better singularly than ensemble of all other models in predicting previous climatologies (Conde et al. 2011)
-- 5th National Communication of Mexico for the United Nations Framework Convention on Climate Change (2012)
 - Here, using updated analogs of GCMs used in (Conde et al. 2011) 
+- 5th National Communication of Mexico for the United Nations Framework Convention on Climate Change (2012)
 
-
-Bioclimatic Variable Processing
+Bioclimatic Variables
 =======================================================
 type: sub-section
 
@@ -523,23 +522,54 @@ presvifcor@results
 
 
 
-
-
 Proposed Methods
 =======================================================
 -  Ecological Niche modelling with biomod2 with up to 
-    - 10 modelling algorithms
-        - 'GLM','GBM','GAM','CTA','ANN','SRE','FDA','MARS','RF','MAXENT.Phillips', 'MAXENT.Tsuruoka'
+    - 11 modelling algorithms
+        - 'GLM','GBM','GAM','CTA','ANN','SRE','FDA','MARS',</br>
+        'RF','MAXENT.Phillips', 'MAXENT.Tsuruoka'
     - 10 evaluation metrics
-        - 'KAPPA', 'TSS', 'ROC', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI' and 'ETS'
-    - <i> n </i> modelling repetitions
-    - <i> n </i> PA pseudo-absence repetitions
+        - 'KAPPA', 'TSS', 'ROC', 'FAR', 'SR', 'ACCURACY', ,</br>
+        'BIAS', 'POD', 'CSI' and 'ETS'
+    - <i> n </i> modelling repetitions (~10 proposed)
+    - <i> n </i> PA pseudo-absence repetitions (variable)
 - Data format tuning with 'BIOMOD_Tuning' function
+- Modelling with 50% data split for evaluation
 - Ensemble landrace models by weighted-average by model
 - Average weighted-averages across models
 - Parallel process on TxState LEAP HPC Cluster with OpenMpi/Rmpi and SLURM
     - 64 nodes with 28 CPUs, up to 128 Gb RAM
-    
+
+
+```{r echo=F,eval=F}
+ myBiomodData <- BIOMOD_FormatingData(resp.var = myResp,
+                                       resp.xy = myRespXY,
+                                       expl.var = myExpl,
+                                       resp.name = myRespName,
+                                       PA.nb.rep = 10,
+                                      PA.nb.absences = 500,
+                                       PA.strategy = "sre",
+										                  PA.sre.quant=0.025,
+                                       na.rm=TRUE
+  )
+```
+
+
+```{r echo=F,eval=F}
+  myBiomodModelOut <- BIOMOD_Modeling(
+    myBiomodData, 
+    models = models, 
+    models.options = BIOMOD_ModelOptions, 
+    NbRunEval=10,
+    DataSplit=50,
+    VarImport=5,
+    models.eval.meth = metrics,
+    SaveObj = TRUE,
+    rescal.all.models = TRUE,
+    do.full.models = TRUE,
+    modeling.id = paste0(myRespName,"_current"))
+```
+
 Pseudo-absence selection
 =======================================================
 - 'biomod2' requires daata formatting with pseudo-absences
@@ -549,6 +579,8 @@ Pseudo-absence selection
     - 'sre' - environmental stratefied 
     - 'user-defined' - predefined/true absences
     
+    
+
 ***
 
 <div align="center">

@@ -33,5 +33,5 @@ NO_OF_CORES=`cat $PBS_NODEFILE | egrep -v '^#'\|'^$' | wc -l | awk '{print $1}'`
 ulimit -c unlimited
 
 
-mpirun -n 1 -machinefile $PBS_NODEFILE  R CMD BATCH modelling.R
 
+mpirun -n 1 -machinefile $PBS_NODEFILE Rscript  modelling.R	

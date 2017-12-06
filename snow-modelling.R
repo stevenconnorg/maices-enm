@@ -111,7 +111,7 @@ f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
 
 allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips","MAXENT.Tsuruoka")
 models = c("GLM","GAM","GBM")
-metrics = c(  'KAPPA', 'TSS', 'ROC', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
+metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
 
 
 
@@ -537,7 +537,7 @@ library(Rmpi)
 
 
 #########
-library(Rmpi)
+#library(Rmpi)
 # https://rcc.uchicago.edu/docs/software/environments/R/index.html
 # Initialize SNOW using MPI communication. The first line will get the number of
 # MPI processes the scheduler assigned to us. Everything else is standard SNOW
@@ -575,7 +575,7 @@ library(Rmpi)
 
 ## JOB 22645 -- WORKING??
 ########
-library(snow)
+#library(snow)
 # https://www.osc.edu/~kmanalo/r_parallel
 #slaves <- as.numeric(Sys.getenv(c("PBS_NP")))-1
 #slaves <- mpi.universe.size() - 1
@@ -585,26 +585,44 @@ library(snow)
 #cl <- getMPIcluster()
 #clusterExport(cl, SLURMdat)
 
-tick <- proc.time()
-mySFModelsOut<-parLapplyLB(cl,sp.n,BioModApply)
-tock <- proc.time() - tick
+#tick <- proc.time()
+#mySFModelsOut<-parLapplyLB(cl,sp.n,BioModApply)
+#tock <- proc.time() - tick
 
-cat("\nsnow w/ Rmpi test times using", slaves, "MPI slaves: \n")
+#cat("\nsnow w/ Rmpi test times using", slaves, "MPI slaves: \n")
 
-stopCluster(cl)
-mpi.quit()
+#stopCluster(cl)
+#mpi.quit()
 
 ########
 
+# snow-modelling.R
+library(Rmpi)
+library(snow)
+
+# via https://rcc.uchicago.edu/docs/software/environments/R/index.html#multicore
+np <- mpi.universe.size() - 1
+cluster <- makeMPIcluster(np)
+
+# Print the hostname for each cluster member
+sayhello <- function() {
+  info <- Sys.info()[c("nodename", "machine")]
+  paste("Hello from", info[1], "with CPU type", info[2])
+}
 
 
 
+parLapply(cluster, sp.n,BioModApply)
+
+stopCluster(cluster)
+mpi.exit()
 
 
 ########
 #cl <- makeCluster(64, type = "MPI")
 #clusterExport(cl, SLURMdat)
 
+q
 #mySFModelsOut<-clusterApply(cl,sp.n,fun=BioModApply)
 #mySFModelsOut<-parLapplyLB(cl,sp.n,BioModApply)
 #mySFModelsOut<-parLapply(cl,sp.n,BioModApply)
