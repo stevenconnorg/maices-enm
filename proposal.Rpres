@@ -210,7 +210,7 @@ lang<-unique(df[c("LENGUA1", "LENGUA2", "LENGUA3", "LENGUA4")])
 
 kable(lang,"html") %>%
   kable_styling() %>%
-  scroll_box(height = "1000px")
+  scroll_box(height = "700px")
 
 ```
 
@@ -367,7 +367,7 @@ title(main = "Count of Maize Observations by 150 km^2")
 Maize Observations 
 ====================================
 type: section
-```{r plotmaizeobs, echo=FALSE,eval=T,fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
+```{r echo=FALSE, fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="1000px",out.height="750px"}
 ### MAKE PLOT OF MAIZE OBS  ### 
 library(sp)
 load(paste0(dir_maices,"/clean_maices_obs.RData")) # load maices object 
@@ -442,7 +442,8 @@ type: section
 
 ***
 1970-2000 Bioclimatic Variables
-```{r echo=FALSE,eval=T,fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
+```{r echo=FALSE,eval=T,fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="750px",out.height="1000px"}
+library(raster)
 presbio<-stack(paste0(dir_stacks,"1970-2000_biostack.grd"))
 plot(presbio[[1:16]])
 plot(presbio[[17:32]])
@@ -529,11 +530,12 @@ plot(topostack)
 
 ```
 
-Land Cover and Soils
+FAO Harmonized Soil Database 1.2
 ======================================================
 type: section
-FAO Harmonized Soil Database 1.2 (Fischer et al., 2008)
-- Soil Quality Data  (Ordered Factor 1-4; 'No or slight limitations' to 'Very severe limitations')
+</br>
+30 arc-second resolution (Fischer et al., 2008)
+- Soil Quality Data  (Factor, 'No or slight limitations' to 'Very severe limitations')
     1. Nutrient availability
     2. Nutrient retention capacity
     3. Rooting conditions
@@ -541,6 +543,10 @@ FAO Harmonized Soil Database 1.2 (Fischer et al., 2008)
     5. Excess salts
     6. Toxicity
     7. Workability (constraining field management)
+    
+***
+</br>
+</br>
 - Land cover (Continuous)
     1. rain-fed cultivated land
     2. irrigated cultivated land, according to GMIA 4.0
@@ -551,15 +557,22 @@ FAO Harmonized Soil Database 1.2 (Fischer et al., 2008)
     7. barren/very sparsely vegetated land
     8. Mapped Water Bodies
 
-
-```{r}
-landcover<-stack(paste0(dir_stacks,"FAOlandstack.grd"))
+Soil Quality
+======================================================
+type: section
+```{r soilstack, echo=FALSE, fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="1000px",out.height="700px"}
 soil<-stack(paste0(dir_stacks,"FAOsoilstack.grd"))
-
-plot(landcover)
 plot(soil)
 ```
 
+Landcover
+======================================================
+type: section
+```{r lcstack, echo=FALSE, fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="1000px",out.height="700px"}
+landcover<-stack(paste0(dir_stacks,"FAOlandstack.grd"))
+
+plot(landcover)
+```
 
 Variables to Thin
 ======================================================

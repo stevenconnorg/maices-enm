@@ -149,7 +149,7 @@ type: section
 1st - 4th major indigenous languages by municipality (1990)
 =======================================================
 type: section
-<div style="border: 1px solid #ddd; padding: 5px; overflow-y: scroll; height:1000px; "><table class="table" style="margin-left: auto; margin-right: auto;">
+<div style="border: 1px solid #ddd; padding: 5px; overflow-y: scroll; height:700px; "><table class="table" style="margin-left: auto; margin-right: auto;">
 <thead><tr>
 <th style="text-align:left;">   </th>
    <th style="text-align:left;"> LENGUA1 </th>
@@ -4189,7 +4189,7 @@ type: section
 Maize Observations 
 ====================================
 type: section
-<img src="proposal-figure/plotmaizeobs-1.png" title="plot of chunk plotmaizeobs" alt="plot of chunk plotmaizeobs" width="1920px" height="1080px" style="display: block; margin: auto;" />
+<img src="proposal-figure/unnamed-chunk-4-1.png" title="plot of chunk unnamed-chunk-4" alt="plot of chunk unnamed-chunk-4" width="1000px" height="750px" style="display: block; margin: auto;" />
 
 
 Climatological Data - WorldClim
@@ -4241,7 +4241,7 @@ type: section
 
 ***
 1970-2000 Bioclimatic Variables
-<img src="proposal-figure/unnamed-chunk-4-1.png" title="plot of chunk unnamed-chunk-4" alt="plot of chunk unnamed-chunk-4" width="1920px" height="1080px" style="display: block; margin: auto;" /><img src="proposal-figure/unnamed-chunk-4-2.png" title="plot of chunk unnamed-chunk-4" alt="plot of chunk unnamed-chunk-4" width="1920px" height="1080px" style="display: block; margin: auto;" />
+<img src="proposal-figure/unnamed-chunk-5-1.png" title="plot of chunk unnamed-chunk-5" alt="plot of chunk unnamed-chunk-5" width="750px" height="1000px" style="display: block; margin: auto;" /><img src="proposal-figure/unnamed-chunk-5-2.png" title="plot of chunk unnamed-chunk-5" alt="plot of chunk unnamed-chunk-5" width="750px" height="1000px" style="display: block; margin: auto;" />
 
 'dismo' Biovars
 =======================================================
@@ -4319,11 +4319,12 @@ type: section
 
 <img src="proposal-figure/topostack-1.png" title="plot of chunk topostack" alt="plot of chunk topostack" width="1920px" height="1080px" style="display: block; margin: auto;" />
 
-Land Cover and Soils
+FAO Harmonized Soil Database 1.2
 ======================================================
 type: section
-FAO Harmonized Soil Database 1.2 (Fischer et al., 2008)
-- Soil Quality Data  (Ordered Factor 1-4; 'No or slight limitations' to 'Very severe limitations')
+</br>
+30 arc-second resolution (Fischer et al., 2008)
+- Soil Quality Data  (Factor, 'No or slight limitations' to 'Very severe limitations')
     1. Nutrient availability
     2. Nutrient retention capacity
     3. Rooting conditions
@@ -4331,6 +4332,10 @@ FAO Harmonized Soil Database 1.2 (Fischer et al., 2008)
     5. Excess salts
     6. Toxicity
     7. Workability (constraining field management)
+    
+***
+</br>
+</br>
 - Land cover (Continuous)
     1. rain-fed cultivated land
     2. irrigated cultivated land, according to GMIA 4.0
@@ -4341,23 +4346,15 @@ FAO Harmonized Soil Database 1.2 (Fischer et al., 2008)
     7. barren/very sparsely vegetated land
     8. Mapped Water Bodies
 
+Soil Quality
+======================================================
+type: section
+<img src="proposal-figure/soilstack-1.png" title="plot of chunk soilstack" alt="plot of chunk soilstack" width="1000px" height="700px" style="display: block; margin: auto;" />
 
-
-```r
-landcover<-stack(paste0(dir_stacks,"FAOlandstack.grd"))
-soil<-stack(paste0(dir_stacks,"FAOsoilstack.grd"))
-
-plot(landcover)
-```
-
-![plot of chunk unnamed-chunk-5](proposal-figure/unnamed-chunk-5-1.png)
-
-```r
-plot(soil)
-```
-
-![plot of chunk unnamed-chunk-5](proposal-figure/unnamed-chunk-5-2.png)
-
+Landcover
+======================================================
+type: section
+<img src="proposal-figure/lcstack-1.png" title="plot of chunk lcstack" alt="plot of chunk lcstack" width="1000px" height="700px" style="display: block; margin: auto;" />
 
 Variables to Thin
 ======================================================
