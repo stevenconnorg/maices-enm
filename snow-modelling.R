@@ -603,17 +603,12 @@ library(snow)
 # via https://rcc.uchicago.edu/docs/software/environments/R/index.html#multicore
 np <- mpi.universe.size() - 1
 cluster <- makeMPIcluster(np)
+ClusterExport(cl=cluster, list("sp.n", "BioModApply","presmodstack","f50modstack","f70modstack","metrics","models"),
+              envir=environment())
 
-# Print the hostname for each cluster member
-sayhello <- function() {
-  info <- Sys.info()[c("nodename", "machine")]
-  paste("Hello from", info[1], "with CPU type", info[2])
-}
-
-
-
-parLapply(cluster, sp.n,BioModApply)
-
+ClusterApply(cl, library(biomod2,snow,Rmpi))
+applyOut<-parLapply(cluster, sp.n,BioModApply)
+save(applyOut)
 stopCluster(cluster)
 mpi.exit()
 

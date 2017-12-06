@@ -72,15 +72,17 @@ options(encoding = 'UTF-8')
 Introduction
 =======================================================
 type: section
-
-
+</br>
+<font color="black">
 - Climate change is expected heavily impact natural and human systems worldwide  (Walther, G.-R. et al., 2002; IPCC 2007, 2013; Kang, Y, S. Khan 2009; Hoegh-Guldberg, O. 2010)
-
 - The IPCC reports numerous negative impacts of climate change on domesticated crops regardless of the emission scenario implemented(Brown and Funk 2008; Ureta et al. 2012; IPCC 2013) 
-
 - Ensuring global food security in an increasingly warming world with  exponentially increasing world population requires multidisciplinary research  (Brown and Funk 2008; Ureta et al. 2012; IPCC 2013, 2015) 
+</font>
 
 *** 
+</br>
+</br>
+</br>
 <img src="proposal-figure\future-of-food.jpg";><br/>
 <font size = "5px">  Five percent reduction in crop season, sensitivity to change, capacity to cope. Source: CGIAR. </font>
 
@@ -88,17 +90,15 @@ type: section
 Mexico: Maize's 'C.O.D.'
 =======================================================
 type: section
-
+</br>
+<font color="black">
 - Maize (<i>Zea mays</i> subsp. <i>mays</i> L.) supplies a staple food crop for more than 200 million people worldwide (Nuss and Tanumihardjo 2010; Ureta et al. 2013)
-
 - Climate change is expected to alter maize suitability, especially between the tropics (Ramirez-Cabral et al., 2017)
-
 - Mexico, maize's C.O.D., harbors traditional maize landraces that account for 60% of maize genetic diversity globally (Ureta et al. 2013)
-
 - Preservation of agrobiodiversity at centers of domestication critical for global food security (Thrupp 2000; Esquinas-Alcazar 2005; Ureta et al. 2013).  
+</font>
 
 ***
-
 
 <img src="proposal-figure\maize-diversity.jpg";></br>
 <font size = "5px">  Source: The International Maize and Wheat Improvement Center (CIMMYT) </font>
@@ -106,17 +106,18 @@ type: section
 Maize Diversity & Evolution
 =======================================================
 type: section
-<img src="proposal-figure\maiz-y-teosinte.jpg";></br>
-<font size = "5px">  Source: https://lacienciaysusdemonios.com </font>
 
-***
 </br>
-- > 9,000 years from Mexican annual teosinte (<i>Z. mays</i> ssp. <i>Parviglumus</i> and ssp. <i>mexicana</i> ) via artificial selection by indigenous cultures (Matsuoka et al. 2002; Kato et al. 2009)
+- > 9,000 years from Mexican annual teosinte (<i>Z. mays</i> ssp. <i>Parviglumus</i> and ssp. <i>mexicana</i> ) in highlands via artificial selection by indigenous cultures (Matsuoka et al. 2002; Kato et al. 2009)
 - Maize landraces have been grown (Ruiz Corral et al. 2008):
       - from sea-level to 2,900 (m asl)
       - avg. growing temp 12.0 &deg;C - 29.1 &deg;C
       - avg. seasonal precip. 400 mm to 3555 mm 
-- Regional clusters of phenotypically similar landraces exist (Cutler 1942; Anderson 1947; E.J. Wellhausen et al., 1952; Dyer & Lopez-Feldman 2013)
+- Offer valuable genetic resources
+
+*** 
+<img src="proposal-figure\maiz-y-teosinte.jpg";></br>
+<font size = "5px">  Source: https://lacienciaysusdemonios.com </font>
 
 
 Maize Mirrors Humanity
@@ -132,7 +133,6 @@ type: section
       - Agro-technological practices (Garcia-Martinez et al. 2016; Rivero-Romero et al. 2016; Toledo and Barrera-Bassols 2017)
       - variations across ethnic groups (Perales, Benz, and Brush 2005; Brush and Perales 2007)
     
-    
 ***
 
 
@@ -140,9 +140,8 @@ type: section
 </br>
 </br>
 </br>
-
+<font color="white">
 <div align="center">
-
 "Maize is a sensitive mirror of the people who grow it" (1942)
 </br>
 </br>
@@ -162,7 +161,7 @@ type: section
 American researcher of corn </br> 
 
 </div>
-
+</font>
 Ethno-linguistic Diversity of Mexico
 =======================================================
 type: section
@@ -179,10 +178,11 @@ leng<-readOGR(dsn=paste0(dir_ind,"/lengmun90gw/lengmun90gw.shp"),layer="lengmun9
 ```
 </br>
 - <i> La Comision Nacional para el Conocimiento y Uso de la Biodiversidad </i>(CONABIO)
-- 2000 indigenous population % by <i>municipio</i> (n= 2446 + 16)
+- 2000 indigenous population % by <i>municipio</i> (n = 2446 + 16)
 - 68 indigenous macro-languages in Mexico  <i>(Instituto Nacional de Lenguas Indigenas (INALI)) </i>
-    - In reality, many more distinct languages
+    - In reality, many more distinct languages and dialects
     - 10-14% identify as indigenous, but only 6% speak an indigenous language
+    - Stability is dubious
     - Loss of potentially irrecoverable deep climatic knowledge
 
 *** 
@@ -199,9 +199,9 @@ title(main="Indigenous Population Percentage (2000)")
 
 
 
-1st - 4th major indigenous languages at by municipality/io (1990)
+1st - 4th major indigenous languages by municipality (1990)
 =======================================================
-
+type: section
 ```{r lenguaindigenahtml, echo=F,results='asis',error=F,warning=F}
 library(knitr)
 library(kableExtra)
@@ -366,7 +366,7 @@ title(main = "Count of Maize Observations by 150 km^2")
 
 Maize Observations 
 ====================================
-
+type: section
 ```{r plotmaizeobs, echo=FALSE,eval=T,fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
 ### MAKE PLOT OF MAIZE OBS  ### 
 library(sp)
@@ -380,25 +380,21 @@ spplot(maices,"Raza_prima", auto.key=FALSE,scales=list(draw=T), add=TRUE,cex = .
 ```
 
 
-Climatological Data
+Climatological Data - WorldClim
 =======================================================
 type: section
-- WorldClim 
-  - 30 arc-second resolution
-  - ANUSPLIN up to 60,000 weather stations (with >10 years data)
-  - largest available archive of downscaled climate data for ecology  (Guisan et al., 2017)
-  - >2,700 citations for ecological studies including ENMs and SDMs (Booth et al., 2014)
-
-- Current Data from WorldClim 2.0 (Fick & Hijmans, 2017)
-  - 1970-2000
+</br>
+- ANUSPLIN up to 60,000 weather stations (with >10 years data)
+- largest available archive of downscaled climate data for ecology  (Guisan et al., 2017)
+- >2,700 citations for ecological studies including ENMs and SDMs (Booth et al., 2014)
+- 30 arc-second resolution (~1 km^2)
+- Current (1970-2000) (v2.0) (Fick & Hijmans, 2017)
   - Maximum and Minimum Monthly Temperatures (&deg;C * 10)
   - Monthly Precipitation (mm)
   - also includes solar radiation, windspeed, water vapor pressure
+- Future RCP 8.5 (2041-2060, 2061-2080) (v1.4) (Hijmans et al., 2005)
+  - dynamically-downscaled from 19 GCM used in CMIP5 (IPCC, 2013, Meehl et al., 2009)
 
-- Future Data from Worldclim 1.4 (Hijmans et al., 2005)
-  - 2041-2060, 2061-2080
-  - dynamically-downscaled from 19 GCM used in CMIP5 (Coupled Model Intercomparison Project 5; Meehl et al., 2009) and the Fifth Assessment Report (IPCC, 2013 )
-  - RCP 8.5 
 
 ***
 ```{r 2050precStack, echo=FALSE,eval=T,fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
@@ -408,7 +404,9 @@ f70<-stack(paste0(dir_stacks,"/f70cropstack.grd"))
 pres<-stack(paste0(dir_stacks,"/present_cropstack.grd"))
 pres50diff<-f50[[19:30]]-pres[[19:30]]
 pres70diff<-f70[[19:30]]-pres[[19:30]]
-
+months<-c("Jan","Feb","Mar","Apr","May","June","July","Aug","Sep","Oct","Nov","Dec")
+names(pres50diff)<-months
+names(pres70diff)<-months
 rasterVis::levelplot(pres50diff,par.settings="RdBuTheme",main="2070 (avg.) minus 1970-2000 (avg.) Monthly Mean Precip. Difference (mm)")
 rasterVis::levelplot(pres70diff,par.settings="RdBuTheme",main="2070 (avg.) minus 1970-2000 (avg.) Monthly Mean Precip. Difference (mm)")
 
@@ -521,9 +519,10 @@ type: section
   - Roughness (difference between the maximum and the minimum value of a cell and its 8 surrounding cells) 
 
 ***
+</br>
+</br>
 
 ```{r topostack, echo=FALSE, fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
-par(mfrow=c(2,2))
 topofiles<-list.files(paste0(dir_topo,"/crop"),full.names = T,pattern = ".grd")
 topostack<-stack(topofiles)
 plot(topostack)
@@ -615,9 +614,8 @@ type: section
     - 10 evaluation metrics
         - 'KAPPA', 'TSS', 'ROC', 'FAR', 'SR', 'ACCURACY', ,</br>
         'BIAS', 'POD', 'CSI' and 'ETS'
-    - <i> n </i> modelling repetitions (~10 proposed)
-    - <i> n </i> PA pseudo-absence repetitions (variable)
-- Data format tuning with 'BIOMOD_Tuning' function
+    - <i> n </i> modelling repetitions (~ 5 proposed)
+    - <i> n </i> PA pseudo-absence selection and repetition (undecided)
 - Modelling with 50% data split for evaluation
 - Ensemble landrace models by weighted-average and committee average by model
 - Average weighted-averages across models
@@ -668,24 +666,31 @@ Barbet-Massin et al. 2012
 
 Potential Subsequent Analyses
 =======================================================
+type: section
 - Binary distribution maps using probability thereshold 
 - Alpha-Diversity (sum binary predictions)
 - Range Change/Extinction Rate (biomod2)
 - Diversity Indices (and change) (Sorenson)
 - Evaluation across model type, maize landrace (boxplots)
+- Evaluation of Importance of Indigeneity (Variable importance in 'biomod2')
 - Cluster Analysis of Variable Importance 
-- Evaluation of Importance of Indigeneity 
 - Dendrogram of distribution similarities ('fuzzySim')
 - Geovisulation of Impacted Indigenous Communities 
 
 Novelty of Research
 =======================================================
-- Averaging good-performing updated GCMs for forcasting
-- CMIP5 Data
+type: section
+Methods
 - Ensemble modelling
 - Expanded datasets
+- Averaging good-performing updated GCMs for forcasting
+- CMIP5 Data
 - Careful pseudo-absence selection
 - WorldClim 2.0 > 1.4
+
+Contributions
+- Geographic representation of climate change impacts on maize biodiversity at COD
+- Visualize locations of impacted communities
 
 Bibliography
 ========================================================

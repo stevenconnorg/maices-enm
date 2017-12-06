@@ -13,4 +13,4 @@ export LD_LIBRARY_PATH="/share/apps/openmpi/2.1.1/lib:$LD_LIBRARY_PATH"
 export R_LIBS=/gpfs/home/scg67/R/x86_64-pc-linux-gnu-library/3.4/lib
 export R_LIBS=/share/apps/R/3.4.0/lib64/R/library
 
-mpirun -n 1 Rscript snow-modelling.R
+mpirun -x LD_LIBRARY_PATH -n 1 Rscript snow-modelling.R
