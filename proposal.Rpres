@@ -156,20 +156,21 @@ leng<-readOGR(dsn=paste0(dir_ind,"/lengmun90gw/lengmun90gw.shp"),layer="lengmun9
 - 68 indigenous macro-languages in Mexico  <i>(Instituto Nacional de Lenguas Indigenas (INALI)) </i>
     - In reality, many more distinct languages
     - 10-14% identify as indigenous, but only 6% speak an indigenous language
-    
+    - Loss of potentially useful indigenous climatic knowledge ()
+  
++ 
+
 *** 
 
 ```{r echo=FALSE,fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
 pobind<-raster(paste0(dir_ind,"/pob-ind.grd"))
-plot(pobind)
-title(main="Indigenous Population Percentage (2010)")
+plot(pobind,col=rainbow(25, alpha=0.35), oldstyle=T)
+plot(leng,border="grey", add=TRUE,lwd = 0.5)
+title(main="Indigenous Population Percentage (2000)")
 
 ```
 
-
-68 macro-languages of Mexico
-========================================================
-+ 1990 1^st - 4^th major indigenous languages at <i>municipio</i> level 
+1^st - 4^th major indigenous languages at <i>municipio</i> level (1990)
 
 ```{r echo=F,results='asis',error=F,warning=F}
 library(knitr)
@@ -182,7 +183,6 @@ kable(lang,"html") %>%
   scroll_box(height = "400px")
 
 ```
-
 
 
 
@@ -275,8 +275,10 @@ type: section
       3. Threatened species management
       4. Crop modelling
 - Numerous ecological niche modeling algorithms have been developed to project ecological niche spaces into geographic spaces (e.g.: Bioclimatic Envelopes, Genetic Algorithm Rule-set Production, Maximum Entropy, Artificial Neural Networks, Support Vector Machines, Boosted Regression Trees)
-- Ensemble Ecological Niche Modelling weights individual models based on performance; increases performance (Filho et. al, 2010, Araujo & New 2007)
+- Reduce uncertainty across model type, model repetition, Pseudo-absence selection, etc.
+- Ensemble Ecological Niche Modelling weights individual models based on performance(Filho et. al, 2010, Araujo & New 2007)
 - WA and Mean consensus methods provided significantly more robust predictions than single-models and the other consensus methods (Marimon et al., 2009)
+- 
 
 
 Data
@@ -535,10 +537,10 @@ Proposed Methods
     - <i> n </i> PA pseudo-absence repetitions (variable)
 - Data format tuning with 'BIOMOD_Tuning' function
 - Modelling with 50% data split for evaluation
-- Ensemble landrace models by weighted-average by model
+- Ensemble landrace models by weighted-average and committee average by model
 - Average weighted-averages across models
-- Parallel process on TxState LEAP HPC Cluster with OpenMpi/Rmpi and SLURM
-    - 64 nodes with 28 CPUs, up to 128 Gb RAM
+- Parallel process on TxState LEAP HPC Cluster with OpenMpi, Rmpi, 'snow', SLURM
+    - 64 nodes with 28 CPUs (3584 workers + 1 master CPU) each up to 128 Gb RAM!
 
 
 ```{r echo=F,eval=F}
