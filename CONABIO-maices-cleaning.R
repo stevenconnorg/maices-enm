@@ -72,6 +72,38 @@ downloadShapefile(zipurl,dir_maices,replacement)
 library(rgdal)
 todos<-readOGR(paste0(dir_maices,"/",replacement,".shp"),layer=replacement,use_iconv=TRUE) 
 
+
+
+##############################################
+# make sampling bias raster layer 
+
+library(raster) # spatial data manipulation
+library(MASS) # for 2D kernel density function
+library(magrittr) # for piping functionality, i.e., %>%
+library(maptools)
+library(rgdal)
+
+r<-raster(nrow=2304,ncol=3770)
+extent(r)<-c(-117.625,-86.20833,14.025,33.225)
+r
+
+setwd(dir_maices)
+
+
+maiz<-readOGR(dsn="todos-maices.shp",layer = "todos-maices")
+maiz.ras<-rasterize(maiz,r,1)
+plot(maiz.ras)
+maiz.ras<-rasterize(maiz,r,fun="count")
+library(MASS)
+?kde2d()
+
+pres.locs<-coordinates(maiz.ras)
+maiz.agg<-aggregate(maiz.ras,fact=5,fun=mean)
+dens <- kde2d(pres.locs[,1], pres.locs[,2], n = c(nrow(maiz.agg), ncol(maiz.agg)))
+dens.ras <- raster(dens)
+writeRaster(dens.ras, "bias.grd")
+raster("bias.grd")
+
 #for(i in todos@data$i){
 #  i<-iconv(todos@data$i, to="LATIN1")
 #}

@@ -61,6 +61,9 @@ r
 
 
 ##############################################
+
+
+##############################################
 # get soil data from FAO harmonilzed world soil db v1.2
 ##############################################
 
@@ -705,16 +708,8 @@ library(usdm)
 #presvif<-usdm::vif(fullpresstack)
 #save(presvif,file=paste0(dir_out,"/vif.RData"))
 load(paste0(dir_out,"/vif.RData"))
-presvif
-layers<-c() # remove layers with high vif, selecting variables appropriate to species (e.g.: maize)
-presviflay<-mat[1:50]
+paste0(presvifstep@results$Variables)
 
-
-presvifstep<-vifstep(fullpresstack,th=10)
-save(presvifstep,file=paste0(dir_out,"/vifstep.RData"))
-presvifcor<-vifcor(fullpresstack,th=0.75)
-save(presvifcor,file=paste0(dir_out,"/vifcor.RData"))
-?save
 
 
 # remove multicollinearity of full stack3
@@ -726,45 +721,37 @@ save(presvifcor,file=paste0(dir_out,"/vifcor.RData"))
 #coll_vars_pres
 
 
+names(fullpresstack)
+
 # manually select raster layers to retain from climate pca, including other variables of interest
-presmodstack<-raster::stack(paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_01.tif"),
-                            paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_02.tif"),
-                            paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_03.tif"),
-                            paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_05.tif"),
-                            paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_06.tif"),
-                            paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_15.tif"),
-                            paste0(dir_p.mosaics,"crop/crop_wc2.0_bio_30s_18.tif"),
-                            paste0(dir_topo,"/alt_cropped.grd"),
-                            paste0(dir_ind,"/pob-ind.grd"),
-                            paste0(dir_land,"/crop-land-cover.tif")
+presmodstack<-fullpresstack[[paste0(presvifstep@results$Variables)]]
                             
-)
+presmodstack<- stack(presmodstack,paste0(dir_ind,"/pob-ind.grd"))
+         
+### 2014 -2060 ######
+f50biostack<-stack(paste0(dir_stacks,"/2041-2060_biostack.grd"))
+f50landstack<-stack(paste0(dir_stacks,"/FAOlandstack.grd"))
+f50topostack<-stack(paste0(dir_stacks,"/topostack.grd"))
 
-f50modstack<-raster::stack(paste0(dir_f.mosaics,"crop/ensemble/50/85bi501_ensemble.grd"),
-                           paste0(dir_f.mosaics,"crop/ensemble/50/85bi502_ensemble.grd"),
-                           paste0(dir_f.mosaics,"crop/ensemble/50/85bi503_ensemble.grd"),
-                           paste0(dir_f.mosaics,"crop/ensemble/50/85bi505_ensemble.grd"),
-                           paste0(dir_f.mosaics,"crop/ensemble/50/85bi506_ensemble.grd"),
-                           paste0(dir_f.mosaics,"crop/ensemble/50/85bi5015_ensemble.grd"),
-                           paste0(dir_f.mosaics,"crop/ensemble/50/85bi5018_ensemble.grd"),
-                           paste0(dir_topo,"/alt_cropped.grd"),
-                           paste0(dir_ind,"/pob-ind.grd")
-                           
-                           
-)
+fullf50stack<-stack(f50biostack,f50landstack,f50topostack)
+f50modstack<-fullf50stack[[paste0(presvifstep@results$Variables)]]
 
-f70modstack<-raster::stack(paste0(dir_f.mosaics,"crop/ensemble/70/85bi701_ensemble.grd"),
-                           paste0(dir_f.mosaics,"crop/ensemble/70/85bi702_ensemble.grd"),
-                           paste0(dir_f.mosaics,"crop/ensemble/70/85bi703_ensemble.grd"),
-                           paste0(dir_f.mosaics,"crop/ensemble/70/85bi705_ensemble.grd"),
-                           paste0(dir_f.mosaics,"crop/ensemble/70/85bi706_ensemble.grd"),
-                           paste0(dir_f.mosaics,"crop/ensemble/70/85bi7015_ensemble.grd"),
-                           paste0(dir_f.mosaics,"crop/ensemble/70/85bi7018_ensemble.grd"),
-                           paste0(dir_topo,"/alt_cropped.grd"),
-                           paste0(dir_ind,"/pob-ind.grd")       
-)
+f50modstack<-raster::stack(f50modstack,paste0(dir_ind,"/pob-ind.grd"))
 
-       
+
+### 2061 -2080 ######
+f70biostack<-stack(paste0(dir_stacks,"/2061-2080_biostack.grd"))
+f70landstack<-stack(paste0(dir_stacks,"/FAOlandstack.grd"))
+f70topostack<-stack(paste0(dir_stacks,"/topostack.grd"))
+
+fullf70stack<-stack(f70biostack,f70landstack,f70topostack)
+f70modstack<-fullf70stack[[paste0(presvifstep@results$Variables)]]
+
+f70modstack<-raster::stack(f70modstack,paste0(dir_ind,"/pob-ind.grd"))
+
+
+do.full.models = TRUE,
+modeling.id = paste0(myRespName,"_current")),
        
 
 
@@ -781,24 +768,3 @@ writeRaster(f70modstack, paste0(dir_stacks,"/f70_modstack.grd"), bylayer=FALSE, 
 
 save.image(file=paste0(dir_clim,"/raster_processing.RData"))
        
-
-# make sure raster stack names are the same, formatting first
-library(quickPlot)
-names(presmodstack)<-gsub("crop_wc2.0_","",layerNames(presmodstack)) # remove prefix
-names(presmodstack)<-gsub("_30s","",layerNames(presmodstack))        # remove suffix
-names(f50modstack)<-layerNames(presmodstack)  # apply presmodstack layer names to future stacks
-names(f70modstack)<-layerNames(presmodstack)
-
-title(main = "Average (1970 - 2000) Conditions")
-raster::spplot(presmodstack)
-
-modstacks<-c(presmodstack,f50modstack,f70modstack)
-for (stack in modstacks){
-  for (lay in stack) {
-    png(file=paste0(dir_figs,"/",names(lay),"_",paste0(stack)))
-    level.plot(layer,main=names(lay))
-  }
-}
-plot(f50modstack)
-plot(f70modstack)
-
