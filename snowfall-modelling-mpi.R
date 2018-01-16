@@ -96,6 +96,7 @@ names
 
 sp.n= dput(names [c(4:length(names))] # keep only species name, remove lat/long/etc. 
            ) #vector of species name(s), excluding lat and long cols
+Encoding(sp.n)<-"latin1"
 
 #sp.n= dput(names [c(4:11)] # keep only species name, remove lat/long/etc. 
 #) #vector of species name(s), excluding lat and long cols
@@ -118,13 +119,13 @@ f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
 #################################################################
 
 allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips","MAXENT.Tsuruoka")
-models = c("GAM")
+models = c("MAXENT.Phillips")
 metrics = c(  'KAPPA', 'TSS', 'ROC', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
 
 
   # following https://rpubs.com/dgeorges/190889
   
-  maxent.background.dat.dir <- "maxent_bg"
+  maxent.background.dat.dir <- paste0(getwd(),"/maxent_bg")
   dir.create(maxent.background.dat.dir, showWarnings = FALSE, recursive = TRUE)
   
  ## resave explanatory data
@@ -144,7 +145,7 @@ for(var_ in names(presmodstack)){
   
 
 options(max.print=1000000)  # set max.print option high to capture outputs
-maxentjar<-paste0(dir_R,"/maxent/maxent.jar") # define maxent jar location
+  maxentjar<-file.path(getwd(),"maxent.jar") # define maxent jar location
   
 BioModApply <-function(sp.n) {
 tryCatch({
@@ -186,10 +187,7 @@ tryCatch({
                                        resp.xy = myRespXY,
                                        expl.var = myExpl,
                                        resp.name = myRespName,
-                                       PA.nb.rep =5 ,
-                                      PA.nb.absences = 10000,
-                                       PA.strategy = "random",
-#              PA.sre.quant=0.025,
+                                       PA.nb.rep =0,
                                        na.rm=TRUE
   )
   
@@ -269,15 +267,15 @@ tryCatch({
                                                            maxnodes = NULL),
                                                 
                                                 MAXENT.Phillips = list( path_to_maxent.jar = maxentjar,
-                                                                        memory_allocated = 1020,
+                                                                        memory_allocated = 2048,
                                                                         background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
-                                                                        maximumbackground = 'default',
+                                                                        maximumbackground = 10000,
                                                                         maximumiterations = 200,
                                                                         visible = FALSE,
-                                                                        linear = TRUE,
-                                                                        quadratic = TRUE,
-                                                                        product = TRUE,
-                                                                        threshold = TRUE,
+                                                                        linear = FALSE,
+                                                                        quadratic = FALSE,
+                                                                        product = FALSE,
+                                                                        threshold = FALSE,
                                                                         hinge = TRUE,
                                                                         lq2lqptthreshold = 80,
                                                                         l2lqthreshold = 10,
@@ -335,7 +333,7 @@ tryCatch({
 myBiomodModelOut <-
  BIOMOD_Modeling(
     myBiomodData, 
-    models = c("GAM","GLM"), 
+    models = c("MAXENT.Phillips"), 
     models.options = BIOMOD_ModelOptions, 
     NbRunEval=5,
     DataSplit=70,
@@ -345,6 +343,7 @@ myBiomodModelOut <-
     rescal.all.models = FALSE,
     do.full.models = FALSE,
     modeling.id = paste0(myRespName,"_current"))
+  
   #do.call(file.remove,list(list.files(pattern="temp*"))) 
   
   #print(paste0("Done Running Models for ",sp.n))
@@ -403,6 +402,7 @@ myBiomodModelOut <-
   #unlink(rtmpdir,recursive=TRUE)
   #print(paste0("Projecting onto Current Dataset for ",myRespName))
   
+  
   # model projections
   myBiomodProj <- BIOMOD_Projection(
     modeling.output = myBiomodModelOut,
@@ -410,7 +410,7 @@ myBiomodModelOut <-
     proj.name = 'current',
     selected.models ='all',
     binary.meth = metrics,
-	filtered.meth = metrics,
+    filtered.meth = metrics,
     compress = TRUE,
     clamping.mask = T,
     output.format = '.grd')
@@ -442,6 +442,85 @@ myBiomodModelOut <-
     output.format = '.grd')
   
   #do.call(file.remove,list(list.files(pattern="temp*"))) 
+  
+  ## GET OPTIMUM EVAL STAT THRESHOLDS ##
+  # https://r-forge.r-project.org/forum/forum.php?thread_id=28518&forum_id=995&group_id=302
+  ## we have to do the projections for this evaluation dataset for all our models
+  eval_proj <- BIOMOD_Projection(myBiomodModelOut, get_formal_data(myBiomodModelOut,'expl.var'), proj.name = "for_eval")
+  
+  eval_proj_df <- get_predictions(eval_proj, as.data.frame=T)
+  
+  
+  ## apply Find.Optim.Stat function to each column of projection table
+  
+  KAPPA_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'KAPPA',
+                                                                      Fit = x,
+                                                                      Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
+  TSS_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'TSS',
+                                                                    Fit = x,
+                                                                    Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
+  ROC_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'ROC',
+                                                                    Fit = x,
+                                                                    Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
+  SR_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'SR',
+                                                                   Fit = x,
+                                                                   Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
+  ACCURACY_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'ACCURACY',
+                                                                         Fit = x,
+                                                                         Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
+  BIAS_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'BIAS',
+                                                                     Fit = x,
+                                                                     Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
+  POD_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'POD',
+                                                                    Fit = x,
+                                                                    Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
+  CSI_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'CSI',
+                                                                    Fit = x,
+                                                                    Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
+  ETS_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'ETS',
+                                                                    Fit = x,
+                                                                    Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
+  
+  
+  rownames(KAPPA_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+  rownames(TSS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+  rownames(ROC_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+  rownames(SR_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+  rownames(ACCURACY_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+  rownames(BIAS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+  rownames(POD_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+  rownames(CSI_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+  rownames(ETS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+  
+  KAPPA_df<-as.data.frame(t(KAPPA_thresh))
+  KAPPA_cutoff<-mean(KAPPA_df$cutoff)/1000
+  
+  TSS_df<-as.data.frame(t(TSS_thresh))
+  TSS_cutoff<-mean(TSS_df$cutoff)/1000
+  
+  ROC_df<-as.data.frame(t(ROC_thresh))
+  ROC_cutoff<-mean(ROC_df$cutoff)/1000
+  
+  SR_df<-as.data.frame(t(SR_thresh))
+  SR_cutoff<-mean(SR_df$cutoff)/1000
+  
+  ACCURACY_df<-as.data.frame(t(ACCURACY_thresh))
+  ACCURACY_cutoff<-mean(ACCURACY_df$cutoff)/1000
+  
+  BIAS_df<-as.data.frame(t(BIAS_thresh))
+  BIAS_cutoff<-mean(BIAS_df$cutoff)/1000
+  
+  CSI_df<-as.data.frame(t(CSI_thresh))
+  CSI_cutoff<-mean(CSI_df$cutoff)/1000
+  
+  ETS_df<-as.data.frame(t(ETS_thresh))
+  ETS_cutoff<-mean(ETS_df$cutoff)/1000
+  
+  optim_thresholds<-c(KAPPA_cutoff,TSS_cutoff,ROC_cutoff,SR_cutoff,ACCURACY_cutoff,BIAS_mean,CSI_cutoff,ETS_cutoff)
+  metrics = c(  'KAPPA', 'TSS', 'ROC', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
+  optim_thresholds<-c(TSS_cutoff)
+  metrics=c ( 'TSS')
+  
   #################################################################
   # BUILD ENSEMBLE MODELS
   #################################################################
@@ -454,7 +533,7 @@ myBiomodModelOut <-
     chosen.models = 'all',
     em.by="all",
     eval.metric = metrics,
-    eval.metric.quality.threshold = NULL,
+    eval.metric.quality.threshold = 0.8,
     prob.mean = F,
     prob.cv = T,
     prob.ci = F,
@@ -476,7 +555,7 @@ myBiomodModelOut <-
   
   # capture em model evals 
   #print(paste0("Capturing Ensemble Models Evaluations ",myRespName))
-  #capture.output(getEMeval(myBiomodEM),
+  #capture.output(get_evaluations(myBiomodEM),
    #              file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_mods_eval.txt"))
   
   #do.call(file.remove,list(list.files(pattern="temp*"))) 
