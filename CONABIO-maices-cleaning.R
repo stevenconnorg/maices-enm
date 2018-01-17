@@ -91,18 +91,6 @@ setwd(dir_maices)
 
 
 maiz<-readOGR(dsn="todos-maices.shp",layer = "todos-maices")
-maiz.ras<-rasterize(maiz,r,1)
-plot(maiz.ras)
-maiz.ras<-rasterize(maiz,r,fun="count")
-library(MASS)
-?kde2d()
-
-pres.locs<-coordinates(maiz.ras)
-maiz.agg<-aggregate(maiz.ras,fact=5,fun=mean)
-dens <- kde2d(pres.locs[,1], pres.locs[,2], n = c(nrow(maiz.agg), ncol(maiz.agg)))
-dens.ras <- raster(dens)
-writeRaster(dens.ras, "bias.grd")
-raster("bias.grd")
 
 #for(i in todos@data$i){
 #  i<-iconv(todos@data$i, to="LATIN1")
@@ -155,6 +143,28 @@ maices=todos.6
 
 
 writeOGR(maices,dsn=paste0(dir_maices),layer="todos-maices-cleaned",driver="ESRI Shapefile",overwrite=TRUE)
+
+# develop KDE sampling bias surface
+# following http://harvardforest.fas.harvard.edu/sites/harvardforest.fas.harvard.edu/files/data/p14/hf147/hf147-18-neAnts-4HF.R
+bias <- cellFromXY(r, maices)
+cells <- unique(sort(bias))
+kernelXY <- xyFromCell(r, cells)
+samps <- as.numeric(table(bias))
+
+# code to make KDE raster
+KDEsur <- sm.density(kernelXY, weights=samps, display="none", ngrid=812, 
+                     ylim=c(14.025,33.225), xlim=c(-117.625,-86.20833), nbins=0)
+KDErast=SpatialPoints(expand.grid(x=KDEsur$eval.points[,1], y=KDEsur$eval.points[,2]))
+KDErast = SpatialPixelsDataFrame(KDErast, data.frame(kde = array(KDEsur$estimate, 
+                                                                 length(KDEsur$estimate))))
+KDErast <- raster(KDErast)
+KDErast <- resample(KDErast, r)
+KDErast <- KDErast*r
+KDEpts <- rasterToPoints(KDErast)
+
+writeRaster(KDErast,filename=paste0(dir_stacks,"/bias.grd"),overwrite=TRUE)
+
+
 
 # maize statistics
 library(dplyr)

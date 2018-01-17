@@ -85,6 +85,7 @@ library(mgcv)
 
 # get observation data formatted
 pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
+colnames(pa)
 pa<-data.frame(pa)
 i <- (colSums(pa[4:ncol(pa)],na.rm=T)) > 10 # filter species by obs count
 pa<-pa[,i]
@@ -120,36 +121,36 @@ f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
 
 allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips","MAXENT.Tsuruoka")
 models = c("MAXENT.Phillips")
-metrics = c(  'KAPPA', 'TSS', 'ROC', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
+metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
 
 
   # following https://rpubs.com/dgeorges/190889
   
   maxent.background.dat.dir <- paste0(getwd(),"/maxent_bg")
-  dir.create(maxent.background.dat.dir, showWarnings = FALSE, recursive = TRUE)
+  #dir.create(maxent.background.dat.dir, showWarnings = FALSE, recursive = TRUE)
   
  ## resave explanatory data
  
-for(var_ in names(presmodstack)){
+#for(var_ in names(presmodstack)){
     	
-	cat("\n> saving", paste0(var_, ".asc"))
+#	cat("\n> saving", paste0(var_, ".asc"))
 
-	f<-file.path(maxent.background.dat.dir, paste0(var_, ".asc"))
-	if (!file.exists(f))
+#	f<-file.path(maxent.background.dat.dir, paste0(var_, ".asc"))
+#	if (!file.exists(f))
     
-		writeRaster(subset(presmodstack, var_), 
-                	filename = f,
-                	overwrite = TRUE)
-  }
+#		writeRaster(subset(presmodstack, var_), 
+ #               	filename = f,
+  #              	overwrite = TRUE)
+  #}
 
   
-
+  
+  setwd(dir_bm) 
 options(max.print=1000000)  # set max.print option high to capture outputs
   maxentjar<-file.path(getwd(),"maxent.jar") # define maxent jar location
   
 BioModApply <-function(sp.n) {
 tryCatch({
-  setwd(dir_bm) 
 
   myRespName = sp.n
   myResp <- as.numeric(pa[,myRespName])
@@ -187,7 +188,9 @@ tryCatch({
                                        resp.xy = myRespXY,
                                        expl.var = myExpl,
                                        resp.name = myRespName,
-                                       PA.nb.rep =5,
+                                       PA.nb.rep =3,
+                                       PA.nb.absences = 10000,
+                                       PA.strategy = 'random',
                                        na.rm=TRUE
   )
   
@@ -270,7 +273,7 @@ tryCatch({
                                                                         memory_allocated = 2048,
                                                                         #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
                                                                         maximumbackground = 10000,
-                                                                        maximumiterations = 10000,
+                                                                        maximumiterations = 5000,
                                                                         visible = FALSE,
                                                                         linear = FALSE,
                                                                         quadratic = TRUE,
@@ -299,36 +302,51 @@ tryCatch({
   #################################################################
   
   # install.packages("ENMeval")
+  #source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
+  #library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
+  # devtools::install_github('topepo/caret/pkg/caret')
   #library(caret)
   #library(ENMeval)
   
   # download new version of code from Frank Breiner (writer of BIOMOD_tuning), attached here: http://r-forge.wu.ac.at/forum/forum.php?max_rows=75&style=nested&offset=152&forum_id=995&group_id=302
   
-  #source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
-  #library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
-  # devtools::install_github('topepo/caret/pkg/caret')
-  #library(caret)
+ 
   #BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
-   #                               env.ME = myExpl,
-   #                               n.bg.ME = ncell(myExpl)
-   #                               )
-  # stopCluster(cl)
+  #                                     models="MAXENT.Phillips",
+  #                                env.ME = myExpl,
+  #                                n.bg.ME = ncell(myExpl),
+  #                                metric.ME = "delta.AICc"
+  #                                )
   #if( exists(BIOMOD_TunedOptions) )
   #{
-   # BIOMOD_ModelOptions<-BIOMOD_TunedOptions$models.options
-    
+  #  BIOMOD_ModelOptions<-BIOMOD_TunedOptions$models.options
+  # 
   #}
    
 
-  # capture.output(BIOMOD_TunedOptions$models.options,file=paste0(dir_out,"/model-opts/",myRespName,"_tuned_opts.txt"))
+   #capture.output(BIOMOD_TunedOptions$models.options,file=paste0(dir_out,"/model-opts/",myRespName,"_tuned_opts.txt"))
   
   
   #################################################################
   # BUILD MODELS
   #################################################################
   
-  # modeling
-
+  ##import raster(bias_layer)]
+  #myBiasfile
+  myBiasfile<-raster(paste0(dir_stacks,"/bias.grd"))
+  
+  # following: https://www.researchgate.net/post/Can_I_run_a_raster_bias_layer_in_biomod22
+  myPresPAdf <- data.frame(myBiomodData@coord,obs = myBiomodData@data.species, myBiomodData@PA)
+  head(myPresPAdf,100)
+  summary(myBiomodData)
+  ## add a random weight vector
+  myPresPAdf$yweights <- extract(bias,myBiomodData@coord)
+  range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+  
+  myPresPAdf$yweights_stnd<-range01(myPresPAdf$yweights)
+  head(myPresPAdf)
+  sp_weights<-myPresPAdf$yweights_stnd
+  
 
 myBiomodModelOut <-
  BIOMOD_Modeling(
@@ -336,7 +354,8 @@ myBiomodModelOut <-
     models = c("MAXENT.Phillips"), 
     models.options = BIOMOD_ModelOptions, 
     NbRunEval=10,
-    DataSplit=70,
+    DataSplit=70, 
+    Yweights=sp_weights,
     VarImport=3,
     models.eval.meth = metrics,
     SaveObj = TRUE,
