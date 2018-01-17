@@ -19,8 +19,10 @@ echo "working directory = " = pwd
 
 
 module purge
+module load java/1.8.0_162
 module load R
 module load rocks-openmpi
+
 
 export LD_LIBRARY_PATH=/opt/openmpi/lib:$LD_LIBRARY_PATH
 export R_LIBS=/gpfs/home/scg67/R/x86_64-pc-linux-gnu-library/3.4/lib
