@@ -23,8 +23,9 @@ module load java/1.8.0_162
 module load R
 module load rocks-openmpi
 
-export $JAVA_HOME
-export CLASSPATH=/gpfs/home/scg67/thesis/02_R/00_biomod/maxent.jar
+# export JAVA_HOME="path that you found"
+export PATH=$PATH:$JAVA_HOME
+export CLASSPATH=.:/gpfs/home/scg67/thesis/02_R/00_biomod/maxent.jar
 export LD_LIBRARY_PATH=/opt/openmpi/lib:$LD_LIBRARY_PATH
 export R_LIBS=/gpfs/home/scg67/R/x86_64-pc-linux-gnu-library/3.4/lib
 export R_LIBS=/share/apps/R/3.4.0/lib64/R/library
