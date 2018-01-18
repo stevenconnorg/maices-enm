@@ -140,10 +140,25 @@ writeRaster(alt.crop,filename=paste0(dir_topo,"/alt_cropped.grd"),format="raster
 alt.crop<-raster(paste0(dir_topo,"/alt_cropped.grd"))
 names(alt.crop)<- "elev"
 terrain<-terrain(alt.crop, opt=c('aspect','slope','Roughness'), unit='degrees', neighbors=8)
-names(terrain)
-writeRaster(terrain, paste0(dir_topo,"/crop/",c('aspect','slope','Roughness'),".grd"), bylayer=TRUE, format='raster', overwrite=T)
-topostack<-stack(terrain,alt.crop)
+
+## transform aspect to linear feature with cosine (Northness)
+asp.radians<-terrain[['aspect']]*pi/180
+plot(asp.radians)
+cos.asp.rad <- cos(asp.radians)
+plot(cos.asp.rad)
+names(cos.asp.rad)<-"cos.asp.rad"
+writeRaster(cos.asp.rad, paste0(dir_stacks,"cos.asp.rad.grd"), format='raster', overwrite=T)
+
+#Sappington et al., (2007) vector ruggedness measure library(spatialEco)
+vrm<-spatialEco::vrm(alt.crop) 
+writeRaster(vrm, paste0(dir_stacks,"vrm.grd"), bylayer=FALSE, format='raster', overwrite=T)
+
+names(vrm)<-"vrm"
+
+topostack<-stack(terrain[['roughness']],terrain[['slope']],cos.asp.rad,vrm)
+
 writeRaster(topostack, paste0(dir_stacks,"topostack.grd"), bylayer=FALSE, format='raster', overwrite=T)
+
 
 
 ##############################################
@@ -503,7 +518,6 @@ prestmax_cropstack<-stack(grep(grds,pattern = "tmax",value = T))
 # WorldClim 2.0 has degrees C as temp units
 # Worldclim 1.4 has degrees C * 10 as temp units
 # make them all have same unit across stacks
-<<<<<<< HEAD
 
 prestmin_cropstack<-prestmin_cropstack*10
 prestmax_cropstack<-prestmax_cropstack*10
@@ -513,7 +527,7 @@ pres_cropstack<-stack(presbio_cropstack,presprec_cropstack,prestmin_cropstack,pr
 #plot(f50cropstack[[20:31]])
 #plot(f70cropstack[[20:31]])
 
-=======
+
 
 prestmin_cropstack<-prestmin_cropstack*10
 prestmax_cropstack<-prestmax_cropstack*10
@@ -523,7 +537,7 @@ pres_cropstack<-stack(presbio_cropstack,presprec_cropstack,prestmin_cropstack,pr
 #plot(f50cropstack[[20:31]])
 #plot(f70cropstack[[20:31]])
 
->>>>>>> 7e624be3be034466e77ee95b6955d434d2cde684
+
 plot(pres_cropstack[[20:31]])
 plot(f50cropstack[[20:31]])
 plot(f70cropstack[[20:31]])
@@ -721,11 +735,31 @@ paste0(presvifstep@results$Variables)
 #coll_vars_pres
 
 
-names(fullpresstack)
+
+vars<- c('BIO8MeanTWettestQ',
+  'BIO13PrecWettestMonth',
+  'BIO15PrecSeas.COV',
+  'BIO18PrecWarmestQ',
+  'BIO19PrecColdestQ',    
+  'EVMminTempWarmest',   
+  'EVMmonthCountByT10',    
+  'EVMPETColdestQ',        
+  'EVMPETDriestQ' ,        
+  'EVMPETWarmestQ',       
+   'IrrCult' ,              
+  'Rain.fedCult'     ,     
+  'Grass.Woodland',        
+  'Barren',          
+  'Urban',              
+   'Water',              
+  'cos.asp.rad',          
+  'slope',          
+  'vrm'  )
 
 # manually select raster layers to retain from climate pca, including other variables of interest
-presmodstack<-fullpresstack[[paste0(presvifstep@results$Variables)]]
-                            
+#presmodstack<-fullpresstack[[paste0(presvifstep@results$Variables)]]
+presmodstack<-fullpresstack[[vars]]
+names(presmodstack)
 presmodstack<- stack(presmodstack,paste0(dir_ind,"/pob-ind.grd"))
          
 ### 2014 -2060 ######
@@ -734,7 +768,7 @@ f50landstack<-stack(paste0(dir_stacks,"/FAOlandstack.grd"))
 f50topostack<-stack(paste0(dir_stacks,"/topostack.grd"))
 
 fullf50stack<-stack(f50biostack,f50landstack,f50topostack)
-f50modstack<-fullf50stack[[paste0(presvifstep@results$Variables)]]
+f50modstack<-fullf50stack[[vars]]
 
 f50modstack<-raster::stack(f50modstack,paste0(dir_ind,"/pob-ind.grd"))
 
@@ -745,14 +779,10 @@ f70landstack<-stack(paste0(dir_stacks,"/FAOlandstack.grd"))
 f70topostack<-stack(paste0(dir_stacks,"/topostack.grd"))
 
 fullf70stack<-stack(f70biostack,f70landstack,f70topostack)
-f70modstack<-fullf70stack[[paste0(presvifstep@results$Variables)]]
+f70modstack<-fullf70stack[[vars]]
 
 f70modstack<-raster::stack(f70modstack,paste0(dir_ind,"/pob-ind.grd"))
 
-
-do.full.models = TRUE,
-modeling.id = paste0(myRespName,"_current")),
-       
 
 
 library(raster)
@@ -766,5 +796,5 @@ save(f70modstack,file=paste0(dir_stacks,"/f70_modstack.RData"))
 writeRaster(f70modstack, paste0(dir_stacks,"/f70_modstack.grd"), bylayer=FALSE, format='raster',overwrite=TRUE)
 
 
-save.image(file=paste0(dir_clim,"/raster_processing.RData"))
+#save.image(file=paste0(dir_clim,"/raster_processing.RData"))
        
