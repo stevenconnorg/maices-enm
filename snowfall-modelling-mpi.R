@@ -268,7 +268,8 @@ tryCatch({
                                                            nodesize = 5,
                                                            maxnodes = NULL),
                                                 
-                                                MAXENT.Phillips = list( path_to_maxent.jar = getwd(),
+                                                MAXENT.Phillips = list( path_to_maxent.jar = print(getwd()),
+								       memory_allocated = NULL,
 								       #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
                                                                         maximumbackground = 10000,
                                                                         maximumiterations = 5000,
