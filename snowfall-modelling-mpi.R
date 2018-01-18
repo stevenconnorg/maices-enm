@@ -87,7 +87,7 @@ library(mgcv)
 pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
 colnames(pa)
 pa<-data.frame(pa)
-i <- (colSums(pa[4:ncol(pa)],na.rm=T)) > 10 # filter species by obs count
+i <- (colSums(pa[4:ncol(pa)],na.rm=T)) > 14 # filter species by obs count
 pa<-pa[,i]
 nspec<-ncol(pa[,4:ncol(pa)]) # number of species modelled
 print(paste0(nspec," species/varieties selected in PA matrix"))
@@ -269,9 +269,7 @@ tryCatch({
                                                            nodesize = 5,
                                                            maxnodes = NULL),
                                                 
-                                                MAXENT.Phillips = list( path_to_maxent.jar = maxentjar,
-                                                                        memory_allocated = 2048,
-                                                                        #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
+                                                MAXENT.Phillips = list(#background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
                                                                         maximumbackground = 10000,
                                                                         maximumiterations = 5000,
                                                                         visible = FALSE,
@@ -326,26 +324,47 @@ tryCatch({
 
    #capture.output(BIOMOD_TunedOptions$models.options,file=paste0(dir_out,"/model-opts/",myRespName,"_tuned_opts.txt"))
   
-  
   #################################################################
   # BUILD MODELS
   #################################################################
   
+  ### 
+  # https://r-forge.r-project.org/forum/message.php?msg_id=41945&group_id=302
+  # 
+  # "The way you are using the Yweight arg is the right one, but not all biomod2 models suppor currently weights arguments and MAXENT only use weights via prevalence argument (not directly weights given via Yweights).
+  # Here a summary of models that use or not Yweight arg :
+    
+    #===========================
+  # model weigths supported ?
+  # GLM => YES
+  # GBM => YES
+  # GAM => YES
+  # CTA => YES
+  # ANN => YES
+  # SRE => NO
+  # FDA => YES
+  # MARS => YES
+  # RF => NO
+  # MAXENT => NO (weights only via prevalence arg) "
+
+  ####
+  # this would have been nice though,
+  # following: https://www.researchgate.net/post/Can_I_run_a_raster_bias_layer_in_biomod22
+  
   ##import raster(bias_layer)]
   #myBiasfile
-  myBiasfile<-raster(paste0(dir_stacks,"/bias.grd"))
+  #myBiasfile<-raster(paste0(dir_stacks,"/bias.grd"))
   
-  # following: https://www.researchgate.net/post/Can_I_run_a_raster_bias_layer_in_biomod22
-  myPresPAdf <- data.frame(myBiomodData@coord,obs = myBiomodData@data.species, myBiomodData@PA)
-  head(myPresPAdf,100)
-  summary(myBiomodData)
+  #myPresPAdf <- data.frame(myBiomodData@coord,obs = myBiomodData@data.species, myBiomodData@PA)
+  #head(myPresPAdf,100)
+  #summary(myBiomodData)
   ## add a random weight vector
-  myPresPAdf$yweights <- extract(bias,myBiomodData@coord)
-  range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+  #myPresPAdf$yweights <- extract(bias,myBiomodData@coord)
+  #range01 <- function(x){(x-min(x))/(max(x)-min(x))}
   
-  myPresPAdf$yweights_stnd<-range01(myPresPAdf$yweights)
-  head(myPresPAdf)
-  sp_weights<-myPresPAdf$yweights_stnd
+  #myPresPAdf$yweights_stnd<-range01(myPresPAdf$yweights)
+  #head(myPresPAdf)
+  #sp_weights<-myPresPAdf$yweights_stnd
   
 
 myBiomodModelOut <-
@@ -355,7 +374,7 @@ myBiomodModelOut <-
     models.options = BIOMOD_ModelOptions, 
     NbRunEval=10,
     DataSplit=70, 
-    Yweights=sp_weights,
+    # Yweights=sp_weights,
     VarImport=3,
     models.eval.meth = metrics,
     SaveObj = TRUE,
@@ -367,7 +386,7 @@ myBiomodModelOut <-
   
   #print(paste0("Done Running Models for ",sp.n))
   
-  #dir.create(paste0(dir_out,"/",myRespName))
+  dir.create(paste0(dir_out,"/",myRespName))
   
   
 
@@ -376,18 +395,18 @@ myBiomodModelOut <-
   #################################################################
   
   # write data used for modelling
-  #capture.output(get_formal_data(myBiomodModelOut),
-   #              file=paste0(dir_out,"/",myRespName,"/",myRespName,"_model_data.txt"))
+  capture.output(get_formal_data(myBiomodModelOut),
+                 file=paste0(dir_out,"/",myRespName,"/",myRespName,"_model_data.txt"))
   
   
 #print(paste0("Capturing Model Evaluations for ",myRespName))
  
 
- #evalmods<-get_evaluations(myBiomodModelOut,as.data.frame=TRUE)
-  #write.csv(evalmods,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_models_eval.csv"))
+ evalmods<-get_evaluations(myBiomodModelOut,as.data.frame=TRUE)
+  write.csv(evalmods,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_models_eval.csv"))
   ### get variable importance
-  #modevalimport<-get_variables_importance(myBiomodModelOut,as.data.frame=TRUE)
-  #write.csv(modevalimport,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_var_imp.csv"))
+  modevalimport<-get_variables_importance(myBiomodModelOut,as.data.frame=TRUE)
+  write.csv(modevalimport,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_var_imp.csv"))
   
   ### get model summaries
   #capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_ANN",sep="")))))
@@ -418,7 +437,7 @@ myBiomodModelOut <-
   #################################################################
   # PROJECT MODELS ONTO CURRENT AND FUTURE CONDITIONS
   #################################################################
-  #unlink(rtmpdir,recursive=TRUE)
+  unlink(rtmpdir,recursive=TRUE)
   #print(paste0("Projecting onto Current Dataset for ",myRespName))
   
   
@@ -567,21 +586,21 @@ metrics = c(  'KAPPA', 'TSS', 'ROC', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ET
   #print(paste0("Capturing Ensemble Model Outputs for  ",myRespName))
   
   # write em models built
-  #capture.output(get_built_models (myBiomodEM),
-   #              file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_models.txt"))
+  capture.output(get_built_models (myBiomodEM),
+                 file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_models.txt"))
   
   # capture em model evals 
   #print(paste0("Capturing Ensemble Models Evaluations ",myRespName))
-  #capture.output(get_evaluations(myBiomodEM),
-   #              file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_mods_eval.txt"))
+  capture.output(get_evaluations(myBiomodEM),
+                 file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_mods_eval.txt"))
   
   #do.call(file.remove,list(list.files(pattern="temp*"))) 
   
   ### eval current model
   
   #print(paste0("Capturing Model Ensemble Evaluations for ",sp.n))
-  #enevalmods<-get_evaluations(myBiomodEM,as.data.frame=TRUE)
-  #write.csv(enevalmods,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_evals-df.csv"))
+  enevalmods<-get_evaluations(myBiomodEM,as.data.frame=TRUE)
+  write.csv(enevalmods,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_evals-df.csv"))
   
   #unlink(rtmpdir,recursive=TRUE)
   #################################################################
@@ -624,10 +643,7 @@ metrics = c(  'KAPPA', 'TSS', 'ROC', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ET
 	compress=TRUE)
   
 
-  #unlink(rtmpdir,recursive=TRUE)
- # do.call(file.remove,list(list.files(pattern="temp*"))) 
-#dir.create(paste0(root,"/",sp.n))
-#file.copy(paste0(getwd(),"/",sp.n), paste0(root,"/",sp.n), recursive=TRUE)
+  
 }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
 
 }
@@ -779,6 +795,7 @@ print(class(ncputask))
 print(paste0(ncputask," N CPUs per task"))
 
 ncpus<-ncputask*ntasks
+#ncpus<-detectCores()
 print(paste0(ncpus," CPUs"))
 
 #ncpus<-future::availableCores()
