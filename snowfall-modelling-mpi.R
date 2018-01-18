@@ -206,7 +206,6 @@ tryCatch({
   #default_ModelOptions <-BIOMOD_ModelingOptions()
   #print(default_ModelOptions)
   
-  library(gam)
   
   
   # edit default options accordingly
@@ -269,7 +268,8 @@ tryCatch({
                                                            nodesize = 5,
                                                            maxnodes = NULL),
                                                 
-                                                MAXENT.Phillips = list(#background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
+                                                MAXENT.Phillips = list( path_to_maxent.jar = getwd(),
+								       #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
                                                                         maximumbackground = 10000,
                                                                         maximumiterations = 5000,
                                                                         visible = FALSE,
