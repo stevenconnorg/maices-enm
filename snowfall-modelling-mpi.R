@@ -85,6 +85,11 @@ library(mgcv)
 
 # get observation data formatted
 pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
+#xy <- pa[,c(2,3)]
+#spdf <- SpatialPointsDataFrame(coords = xy, data = pa,
+#                               proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+#plot(spdf)
+#extent(plot(spdf))
 colnames(pa)
 pa<-data.frame(pa)
 i <- (colSums(pa[4:ncol(pa)],na.rm=T)) > 14 # filter species by obs count
