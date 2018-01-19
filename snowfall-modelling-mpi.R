@@ -615,7 +615,7 @@ BioModApply <-function(sp.n) {
     myBiomodEM <- BIOMOD_EnsembleModeling(
       modeling.output = myBiomodModelOut,
       chosen.models = 'all',
-      em.by="all",
+      em.by="algo",
       eval.metric = metrics,
       eval.metric.quality.threshold = optim_thresholds,
       prob.mean = F,
