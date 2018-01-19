@@ -126,7 +126,7 @@ metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI
 
   # following https://rpubs.com/dgeorges/190889
   
-  maxent.background.dat.dir <- paste0(getwd(),"/maxent_bg")
+  maxent.background.dat.dir <- file.path(getwd(),"maxent_bg")
   #dir.create(maxent.background.dat.dir, showWarnings = FALSE, recursive = TRUE)
   
  ## resave explanatory data
@@ -147,7 +147,7 @@ metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI
   
   setwd(dir_bm) 
 options(max.print=1000000)  # set max.print option high to capture outputs
-  maxentjar<-file.path(getwd(),"maxent.jar") # define maxent jar location
+  #maxentjar<-file.path(getwd(),"maxent.jar") # define maxent jar location
   
 BioModApply <-function(sp.n) {
 tryCatch({
@@ -188,9 +188,6 @@ tryCatch({
                                        resp.xy = myRespXY,
                                        expl.var = myExpl,
                                        resp.name = myRespName,
-                                       PA.nb.rep =3,
-                                       PA.nb.absences = 10000,
-                                       PA.strategy = 'random',
                                        na.rm=TRUE
   )
   
@@ -268,9 +265,8 @@ tryCatch({
                                                            nodesize = 5,
                                                            maxnodes = NULL),
                                                 
-                                                MAXENT.Phillips = list( path_to_maxent.jar = print(getwd()),
-								       memory_allocated = NULL,
-								       #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
+                                                MAXENT.Phillips = list(memory_allocated = 4096,
+                                                  								       #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
                                                                         maximumbackground = 10000,
                                                                         maximumiterations = 5000,
                                                                         visible = FALSE,
@@ -310,17 +306,18 @@ tryCatch({
   # download new version of code from Frank Breiner (writer of BIOMOD_tuning), attached here: http://r-forge.wu.ac.at/forum/forum.php?max_rows=75&style=nested&offset=152&forum_id=995&group_id=302
   
  
-  #BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
-  #                                     models="MAXENT.Phillips",
-  #                                env.ME = myExpl,
-  #                                n.bg.ME = ncell(myExpl),
-  #                                metric.ME = "delta.AICc"
-  #                                )
-  #if( exists(BIOMOD_TunedOptions) )
-  #{
-  #  BIOMOD_ModelOptions<-BIOMOD_TunedOptions$models.options
-  # 
-  #}
+  BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
+                                       models="MAXENT.Phillips",
+                                  env.ME = myExpl,
+                                  n.bg.ME = ncell(myExpl),
+                                  metric.ME = "delta.AICc"
+                                  )
+  if( exists("BIOMOD_TunedOptions") )
+  {
+    tuned.opts<-get("BIOMOD_TunedOptions")
+    BIOMOD_ModelOptions<-tuned.opts$models.options
+   
+  }
    
 
    #capture.output(BIOMOD_TunedOptions$models.options,file=paste0(dir_out,"/model-opts/",myRespName,"_tuned_opts.txt"))
@@ -438,7 +435,7 @@ myBiomodModelOut <-
   #################################################################
   # PROJECT MODELS ONTO CURRENT AND FUTURE CONDITIONS
   #################################################################
-  unlink(rtmpdir,recursive=TRUE)
+  #unlink(rtmpdir,recursive=TRUE)
   #print(paste0("Projecting onto Current Dataset for ",myRespName))
   
   
