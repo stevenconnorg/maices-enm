@@ -188,9 +188,6 @@ BioModApply <-function(sp.n) {
                                          resp.xy = myRespXY,
                                          expl.var = myExpl,
                                          resp.name = myRespName,
-                                         PA.nb.rep =3,
-                                         PA.nb.absences = 10000,
-                                         PA.strategy = 'random',
                                          na.rm=TRUE
     )
     
@@ -206,6 +203,7 @@ BioModApply <-function(sp.n) {
     #default_ModelOptions <-BIOMOD_ModelingOptions()
     #print(default_ModelOptions)
     
+    library(gam)
     
     
     # edit default options accordingly
@@ -268,25 +266,24 @@ BioModApply <-function(sp.n) {
                                                              nodesize = 5,
                                                              maxnodes = NULL),
                                                   
-                                                  MAXENT.Phillips = list( path_to_maxent.jar = getwd(),
-                                                                          #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
-                                                                          maximumbackground = 10000,
-                                                                          maximumiterations = 5000,
-                                                                          visible = FALSE,
-                                                                          linear = FALSE,
-                                                                          quadratic = TRUE,
-                                                                          product = FALSE,
-                                                                          threshold = FALSE,
-                                                                          hinge = TRUE,
-                                                                          #lq2lqptthreshold = 80,
-                                                                          #l2lqthreshold = 10,
-                                                                          #hingethreshold = 10,
-                                                                          #beta_threshold = -1,
-                                                                          #beta_categorical = -1,
-                                                                          #beta_lqp = -1,
-                                                                          beta_hinge = 0.5,
-                                                                          betamultiplier = 1,
-                                                                          defaultprevalence = 0.5),
+                                                  MAXENT.Phillips = list(#background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
+                                                    maximumbackground = 10000,
+                                                    maximumiterations = 5000,
+                                                    visible = FALSE,
+                                                    linear = FALSE,
+                                                    quadratic = TRUE,
+                                                    product = FALSE,
+                                                    threshold = FALSE,
+                                                    hinge = TRUE,
+                                                    #lq2lqptthreshold = 80,
+                                                    #l2lqthreshold = 10,
+                                                    #hingethreshold = 10,
+                                                    #beta_threshold = -1,
+                                                    #beta_categorical = -1,
+                                                    #beta_lqp = -1,
+                                                    beta_hinge = 0.5,
+                                                    betamultiplier = 1,
+                                                    defaultprevalence = 0.5),
                                                   
                                                   MAXENT.Tsuruoka = list( l1_regularizer = 0,
                                                                           l2_regularizer = 0,
@@ -372,7 +369,7 @@ BioModApply <-function(sp.n) {
         myBiomodData, 
         models = c("MAXENT.Phillips"), 
         models.options = BIOMOD_ModelOptions, 
-        NbRunEval=10,
+        NbRunEval=15,
         DataSplit=70, 
         # Yweights=sp_weights,
         VarImport=3,
@@ -437,7 +434,7 @@ BioModApply <-function(sp.n) {
     #################################################################
     # PROJECT MODELS ONTO CURRENT AND FUTURE CONDITIONS
     #################################################################
-    #unlink(rtmpdir,recursive=TRUE)
+    unlink(rtmpdir,recursive=TRUE)
     #print(paste0("Projecting onto Current Dataset for ",myRespName))
     
     
@@ -500,6 +497,9 @@ BioModApply <-function(sp.n) {
     ROC_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'ROC',
                                                                       Fit = x,
                                                                       Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
+    FAR_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'FAR',
+                                                                      Fit = x,
+                                                                      Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
     SR_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'SR',
                                                                      Fit = x,
                                                                      Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
@@ -523,6 +523,7 @@ BioModApply <-function(sp.n) {
     rownames(KAPPA_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
     rownames(TSS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
     rownames(ROC_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+    rownames(FAR_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
     rownames(SR_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
     rownames(ACCURACY_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
     rownames(BIAS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
@@ -539,6 +540,9 @@ BioModApply <-function(sp.n) {
     ROC_df<-as.data.frame(t(ROC_thresh))
     ROC_cutoff<-mean(ROC_df$cutoff)/1000
     # 
+    FAR_df<-as.data.frame(t(FAR_thresh))
+    FAR_cutoff<-mean(FAR_df$cutoff)/1000
+    # 
     SR_df<-as.data.frame(t(SR_thresh))
     SR_cutoff<-mean(SR_df$cutoff)/1000
     # 
@@ -554,8 +558,8 @@ BioModApply <-function(sp.n) {
     ETS_df<-as.data.frame(t(ETS_thresh))
     ETS_cutoff<-mean(ETS_df$cutoff)/1000
     # 
-    optim_thresholds<-c(KAPPA_cutoff,TSS_cutoff,ROC_cutoff,SR_cutoff,ACCURACY_cutoff,BIAS_mean,CSI_cutoff,ETS_cutoff)
-    metrics = c(  'KAPPA', 'TSS', 'ROC', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
+    optim_thresholds<-c(KAPPA_cutoff,TSS_cutoff,ROC_cutoff,FAR_cutoff,SR_cutoff,ACCURACY_cutoff,BIAS_mean,CSI_cutoff,ETS_cutoff)
+    metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
     
     # #################################################################
     # BUILD ENSEMBLE MODELS
@@ -566,13 +570,13 @@ BioModApply <-function(sp.n) {
     # ensemble modeling
     myBiomodEM <- BIOMOD_EnsembleModeling(
       modeling.output = myBiomodModelOut,
-      chosen.models = 'algo',
-      em.by="algo",
+      chosen.models = 'all',
+      em.by="all",
       eval.metric = metrics,
       eval.metric.quality.threshold = optim_thresholds,
       prob.mean = F,
-      prob.cv = F,
-      prob.ci = T,
+      prob.cv = T,
+      prob.ci = F,
       prob.median = F,
       committee.averaging = T,
       prob.mean.weight = T,
