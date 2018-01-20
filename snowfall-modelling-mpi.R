@@ -85,11 +85,6 @@ library(mgcv)
 
 # get observation data formatted
 pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
-#xy <- pa[,c(2,3)]
-#spdf <- SpatialPointsDataFrame(coords = xy, data = pa,
-#                               proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
-#plot(spdf)
-#extent(plot(spdf))
 colnames(pa)
 pa<-data.frame(pa)
 i <- (colSums(pa[4:ncol(pa)],na.rm=T)) > 14 # filter species by obs count
@@ -211,7 +206,6 @@ BioModApply <-function(sp.n) {
     #default_ModelOptions <-BIOMOD_ModelingOptions()
     #print(default_ModelOptions)
     
-    library(gam)
     
     
     # edit default options accordingly
@@ -274,24 +268,25 @@ BioModApply <-function(sp.n) {
                                                              nodesize = 5,
                                                              maxnodes = NULL),
                                                   
-                                                  MAXENT.Phillips = list(#background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
-                                                    maximumbackground = 10000,
-                                                    maximumiterations = 5000,
-                                                    visible = FALSE,
-                                                    linear = FALSE,
-                                                    quadratic = TRUE,
-                                                    product = FALSE,
-                                                    threshold = FALSE,
-                                                    hinge = TRUE,
-                                                    #lq2lqptthreshold = 80,
-                                                    #l2lqthreshold = 10,
-                                                    #hingethreshold = 10,
-                                                    #beta_threshold = -1,
-                                                    #beta_categorical = -1,
-                                                    #beta_lqp = -1,
-                                                    beta_hinge = 0.5,
-                                                    betamultiplier = 1,
-                                                    defaultprevalence = 0.5),
+                                                  MAXENT.Phillips = list( path_to_maxent.jar = getwd(),
+                                                                          #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
+                                                                          maximumbackground = 10000,
+                                                                          maximumiterations = 5000,
+                                                                          visible = FALSE,
+                                                                          linear = FALSE,
+                                                                          quadratic = TRUE,
+                                                                          product = FALSE,
+                                                                          threshold = FALSE,
+                                                                          hinge = TRUE,
+                                                                          #lq2lqptthreshold = 80,
+                                                                          #l2lqthreshold = 10,
+                                                                          #hingethreshold = 10,
+                                                                          #beta_threshold = -1,
+                                                                          #beta_categorical = -1,
+                                                                          #beta_lqp = -1,
+                                                                          beta_hinge = 0.5,
+                                                                          betamultiplier = 1,
+                                                                          defaultprevalence = 0.5),
                                                   
                                                   MAXENT.Tsuruoka = list( l1_regularizer = 0,
                                                                           l2_regularizer = 0,
@@ -413,48 +408,6 @@ BioModApply <-function(sp.n) {
     modevalimport<-get_variables_importance(myBiomodModelOut,as.data.frame=TRUE)
     write.csv(modevalimport,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_var_imp.csv"))
     
-    dir_curves<-paste0(dir_figs,"/",sp.n,"/response-curves")
-    dir.create(dir_curves,recursive=T)
-    
-    loadedmodel<-biomod2::BIOMOD_LoadModels(myBiomodModelOut,models="MAXENT.Phillips")
-    response.plot2(models= loadedmodel,
-               Data = get_formal_data(myBiomodModelOut,'expl.var'), 
-               show.variables = get_formal_data(myBiomodModelOut,'expl.var.names'),
-               save.file = "tiff",
-               name=paste0(dir_curves,"/",sp.n,"_MaxEnt_curves"),
-               col = c("blue", "red"),
-               legend = TRUE,
-               data_species = get_formal_data(myBiomodModelOut,'resp.var'),
-               ImageSize=1000)
-    
-    #################################################################
-    # GET MODEL SCORES GRAPH
-    #################################################################
-    print(paste0("Capturing Model Scores Graph for ",sp.n))
-    
-    # c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
-    dir.create(file.path(dir_figs,sp.n))
-    
-    png(filename=paste0(dir_figs,"/",sp.n,"/",sp.n,"_model_scores-kappa-tss.png"))
-    models_scores_graph(myBiomodModelOut,metrics = c( 'KAPPA', 'TSS'),by = 'models',plot = TRUE)
-    dev.off()
-    
-    png(filename=paste0(dir_figs,"/",sp.n,"/",sp.n,"_model_scores-roc-far.png"))
-    models_scores_graph(myBiomodModelOut,metrics = c(  'ROC', 'FAR'),by = 'models',plot = TRUE)
-    dev.off()
-    
-    png(filename=paste0(dir_figs,"/",sp.n,"/",sp.n,"_model_scores-sr-accuracy.png"))
-    models_scores_graph(myBiomodModelOut,metrics = c('SR', 'ACCURACY'),by = 'models',plot = TRUE)
-    dev.off()
-    
-    png(filename=paste0(dir_figs,"/",sp.n,"/",sp.n,"_model_scores-bias-pod.png"))
-    models_scores_graph(myBiomodModelOut,metrics = c('BIAS', 'POD'),by = 'models',plot = TRUE)
-    dev.off()
-    
-    png(filename=paste0(dir_figs,"/",sp.n,"/",sp.n,"_model_scores-csi-ets.png"))
-    models_scores_graph(myBiomodModelOut,metrics = c( 'CSI', 'ETS'),by = 'models',plot = TRUE)
-    dev.off()
-    
     ### get model summaries
     #capture.output(summary(get_formal_model(get(load(paste(myRespName,"/models/",myRespName,"_current/",myRespName,"_PA1_Full_ANN",sep="")))))
     # ,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_ANN_summary.txt"))
@@ -486,6 +439,7 @@ BioModApply <-function(sp.n) {
     #################################################################
     #unlink(rtmpdir,recursive=TRUE)
     #print(paste0("Projecting onto Current Dataset for ",myRespName))
+    
     
     # model projections
     myBiomodProj <- BIOMOD_Projection(
@@ -529,10 +483,11 @@ BioModApply <-function(sp.n) {
     
     ## GET OPTIMUM EVAL STAT THRESHOLDS ##
     # https://r-forge.r-project.org/forum/forum.php?thread_id=28518&forum_id=995&group_id=302
-
+    ## we have to do the projections for this evaluation dataset for all our models
     eval_proj <- BIOMOD_Projection(myBiomodModelOut, get_formal_data(myBiomodModelOut,'expl.var'), proj.name = paste0(sp.n,"eval"))
     
     eval_proj_df <- get_predictions(eval_proj, as.data.frame=T)
+    
     
     ## apply Find.Optim.Stat function to each column of projection table
     
@@ -545,10 +500,6 @@ BioModApply <-function(sp.n) {
     ROC_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'ROC',
                                                                       Fit = x,
                                                                       Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
-    FAR_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'FAR',
-                                                                      Fit = x,
-                                                                      Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
-    
     SR_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'SR',
                                                                      Fit = x,
                                                                      Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
@@ -570,15 +521,14 @@ BioModApply <-function(sp.n) {
     
     
     rownames(KAPPA_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
-    rownames(TSS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity")
-    rownames(ROC_thresh) = c("best.stat", "cutoff", "sensibility", "specificity")
-    rownames(FAR_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") 
-    rownames(SR_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") 
-    rownames(ACCURACY_thresh) = c("best.stat", "cutoff", "sensibility", "specificity")
-    rownames(BIAS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") 
-    rownames(POD_thresh) = c("best.stat", "cutoff", "sensibility", "specificity")
-    rownames(CSI_thresh) = c("best.stat", "cutoff", "sensibility", "specificity")
-    rownames(ETS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity")
+    rownames(TSS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+    rownames(ROC_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+    rownames(SR_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+    rownames(ACCURACY_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+    rownames(BIAS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+    rownames(POD_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+    rownames(CSI_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
+    rownames(ETS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
     # 
     KAPPA_df<-as.data.frame(t(KAPPA_thresh))
     KAPPA_cutoff<-mean(KAPPA_df$cutoff)/1000
@@ -588,9 +538,6 @@ BioModApply <-function(sp.n) {
     # 
     ROC_df<-as.data.frame(t(ROC_thresh))
     ROC_cutoff<-mean(ROC_df$cutoff)/1000
-    # 
-    FAR_df<-as.data.frame(t(FAR_thresh))
-    FAR_cutoff<-mean(FAR_df$cutoff)/1000
     # 
     SR_df<-as.data.frame(t(SR_thresh))
     SR_cutoff<-mean(SR_df$cutoff)/1000
@@ -607,8 +554,8 @@ BioModApply <-function(sp.n) {
     ETS_df<-as.data.frame(t(ETS_thresh))
     ETS_cutoff<-mean(ETS_df$cutoff)/1000
     # 
-    optim_thresholds<-c(KAPPA_cutoff,TSS_cutoff,ROC_cutoff,FAR_cutoff,SR_cutoff,ACCURACY_cutoff,BIAS_mean,CSI_cutoff,ETS_cutoff)
-    metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
+    optim_thresholds<-c(KAPPA_cutoff,TSS_cutoff,ROC_cutoff,SR_cutoff,ACCURACY_cutoff,BIAS_mean,CSI_cutoff,ETS_cutoff)
+    metrics = c(  'KAPPA', 'TSS', 'ROC', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
     
     # #################################################################
     # BUILD ENSEMBLE MODELS
@@ -619,7 +566,7 @@ BioModApply <-function(sp.n) {
     # ensemble modeling
     myBiomodEM <- BIOMOD_EnsembleModeling(
       modeling.output = myBiomodModelOut,
-      chosen.models = 'all',
+      chosen.models = 'algo',
       em.by="algo",
       eval.metric = metrics,
       eval.metric.quality.threshold = optim_thresholds,
@@ -654,8 +601,8 @@ BioModApply <-function(sp.n) {
     #print(paste0("Capturing Model Ensemble Evaluations for ",sp.n))
     enevalmods<-get_evaluations(myBiomodEM,as.data.frame=TRUE)
     write.csv(enevalmods,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_evals-df.csv"))
-   
     
+    #unlink(rtmpdir,recursive=TRUE)
     #################################################################
     # FORECAST EMSEMBLE MODELS BY CHOSEN METRICS
     #################################################################
@@ -696,47 +643,6 @@ BioModApply <-function(sp.n) {
       compress=TRUE)
     
     
-    #################################################################
-    # GET GRAPH OF ENSEMBLE MODEL SCORES 
-    #################################################################
-    print(paste0("Capturing Model Scores Graph for ",sp.n))
-    
-    # c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
-    dir.create(paste0(dir_figs,"/",sp.n))
-    png(filename=paste0(dir_figs,"/",sp.n,"/",sp.n,"_EMmodel_scores-kappa-tss.png"))
-    models_scores_graph(myBiomodEM,metrics = c( 'KAPPA', 'TSS'),by = 'algos',plot = TRUE)
-    dev.off()
-    
-    png(filename=paste0(dir_figs,"/",sp.n,"/",sp.n,"_EMmodel_scores-roc-far.png"))
-    models_scores_graph(myBiomodEM,metrics = c(  'ROC', 'FAR'),by = 'algos',plot = TRUE)
-    dev.off()
-    
-    png(filename=paste0(dir_figs,"/",sp.n,"/",sp.n,"_EMmodel_scores-sr-accuracy.png"))
-    models_scores_graph(myBiomodEM,metrics = c('SR', 'ACCURACY'),by = 'algos',plot = TRUE)
-    dev.off()
-    
-    png(filename=paste0(dir_figs,"/",sp.n,"/",sp.n,"_EMmodel_scores-bias-pod.png"))
-    models_scores_graph(myBiomodEM,metrics = c('BIAS', 'POD'),by = 'algos',plot = TRUE)
-    dev.off()
-    
-    png(filename=paste0(dir_figs,"/",sp.n,"/",sp.n,"_EMmodel_scores-csi-ets.png"))
-    models_scores_graph(myBiomodEM,metrics = c( 'CSI', 'ETS'),by = 'algos',plot = TRUE)
-    dev.off()
-    
-    #################################################################
-    # GET RESPONSE CURVES OF ENSEMBLE MODELS 
-    #################################################################
-    #loadedmodel<-biomod2::BIOMOD_LoadModels(myBiomodEM,models="MAXENT.Phillips")
-    #response.plot2(models= loadedmodel,
-     #          Data = get_formal_data(myBiomodEM,'expl.var'), 
-     #          show.variables = get_formal_data(myBiomodEM,'expl.var.names'),
-     #          save.file = "tiff",
-     #          name=paste0(dir_curves,"/",sp.n,"_MaxEnt_curves"),
-     #          col = c("blue", "red"),
-     #          legend = TRUE,
-     #          data_species = get_formal_data(myBiomodEM,'resp.var'),
-     #          ImageSize=1000)
-    #unlink(rtmpdir,recursive=TRUE)
     
   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   
