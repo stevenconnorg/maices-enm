@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --time=7-0:00:00
-#SBATCH --nodes=4
-#SBATCH --ntasks=4
+#SBATCH --nodes=5
+#SBATCH --ntasks=5
 #SBATCH --cpus-per-task=28
 #SBATCH --mail-user=scg67@txstate.edu
 #SBATCH --mail-type=END
@@ -23,6 +23,7 @@ module load java/1.8.0_162
 module load R
 module load rocks-openmpi
 
+# export JAVA_HOME="path that you found"
 export $JAVA_HOME
 export CLASSPATH=/gpfs/home/scg67/thesis/02_R/00_biomod/maxent.jar
 export LD_LIBRARY_PATH=/opt/openmpi/lib:$LD_LIBRARY_PATH

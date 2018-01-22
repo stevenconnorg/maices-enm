@@ -100,6 +100,7 @@ names
 sp.n= dput(names [c(4:length(names))] # keep only species name, remove lat/long/etc. 
 ) #vector of species name(s), excluding lat and long cols
 #Encoding(sp.n)<-"latin1"
+#sp.n= sp.n[1]
 
 #sp.n= dput(names [c(4:11)] # keep only species name, remove lat/long/etc. 
 #) #vector of species name(s), excluding lat and long cols
@@ -315,7 +316,7 @@ BioModApply <-function(sp.n) {
     # download new version of code from Frank Breiner (writer of BIOMOD_tuning), attached here: http://r-forge.wu.ac.at/forum/forum.php?max_rows=75&style=nested&offset=152&forum_id=995&group_id=302
     
     source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
-    
+    edit(BIOMOD_tuning)
     BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
                                          models="MAXENT.Phillips",
                                     env.ME = myExpl,
@@ -380,7 +381,7 @@ BioModApply <-function(sp.n) {
         myBiomodData, 
         models = c("MAXENT.Phillips"), 
         models.options = BIOMOD_ModelOptions, 
-        NbRunEval=15,
+        NbRunEval=25,
         DataSplit=70, 
         # Yweights=sp_weights,
         VarImport=3,
@@ -413,92 +414,7 @@ BioModApply <-function(sp.n) {
     ### get variable importance
     modevalimport<-get_variables_importance(myBiomodModelOut,as.data.frame=TRUE)
     write.csv(modevalimport,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_var_imp.csv"))
-    
-
-    ## GET OPTIMUM EVAL STAT THRESHOLDS ##
-    # https://r-forge.r-project.org/forum/forum.php?thread_id=28518&forum_id=995&group_id=302
-    ## we have to do the projections for this evaluation dataset for all our models
-    eval_proj <- BIOMOD_Projection(myBiomodModelOut, get_formal_data(myBiomodModelOut,'expl.var'), proj.name = paste0(myRespName,"eval"))
-    
-    eval_proj_df <- get_predictions(myBiomodProj, as.data.frame=T)
-    
-    
-    ## apply Find.Optim.Stat function to each column of projection table
-    
-    KAPPA_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'KAPPA',
-                                                                        Fit = x,
-                                                                        Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
-    TSS_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'TSS',
-                                                                      Fit = x,
-                                                                      Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
-    ROC_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'ROC',
-                                                                      Fit = x,
-                                                                      Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
-    FAR_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'FAR',
-                                                                      Fit = x,
-                                                                      Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
-    
-    SR_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'SR',
-                                                                     Fit = x,
-                                                                     Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
-    ACCURACY_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'ACCURACY',
-                                                                           Fit = x,
-                                                                           Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
-    BIAS_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'BIAS',
-                                                                       Fit = x,
-                                                                       Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
-    POD_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'POD',
-                                                                      Fit = x,
-                                                                      Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
-    CSI_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'CSI',
-                                                                      Fit = x,
-                                                                      Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
-    ETS_thresh <- apply(eval_proj_df, 2, function(x){ Find.Optim.Stat(Stat = 'ETS',
-                                                                      Fit = x,
-                                                                      Obs = get_formal_data(myBiomodModelOut, "resp.var")) })
-    
-    
-    rownames(KAPPA_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
-    rownames(TSS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
-    rownames(ROC_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
-    rownames(FAR_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
-    
-    rownames(SR_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
-    rownames(ACCURACY_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
-    rownames(BIAS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
-    rownames(POD_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
-    rownames(CSI_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
-    rownames(ETS_thresh) = c("best.stat", "cutoff", "sensibility", "specificity") # because apply looses rownames
-    # 
-    KAPPA_df<-as.data.frame(t(KAPPA_thresh))
-    KAPPA_cutoff<-mean(KAPPA_df$cutoff)/1000
-    # 
-    TSS_df<-as.data.frame(t(TSS_thresh))
-    TSS_cutoff<-mean(TSS_df$cutoff)/1000
-    # 
-    ROC_df<-as.data.frame(t(ROC_thresh))
-    ROC_cutoff<-mean(ROC_df$cutoff)/1000
-    # 
-    FAR_df<-as.data.frame(t(FAR_thresh))
-    FAR_cutoff<-mean(FAR_df$cutoff)/1000
-    # 
-    SR_df<-as.data.frame(t(SR_thresh))
-    SR_cutoff<-mean(SR_df$cutoff)/1000
-    # 
-    ACCURACY_df<-as.data.frame(t(ACCURACY_thresh))
-    ACCURACY_cutoff<-mean(ACCURACY_df$cutoff)/1000
-    # 
-    BIAS_df<-as.data.frame(t(BIAS_thresh))
-    BIAS_cutoff<-mean(BIAS_df$cutoff)/1000
-    # 
-    CSI_df<-as.data.frame(t(CSI_thresh))
-    CSI_cutoff<-mean(CSI_df$cutoff)/1000
-    # 
-    ETS_df<-as.data.frame(t(ETS_thresh))
-    ETS_cutoff<-mean(ETS_df$cutoff)/1000
-    # 
-    optim_thresholds<-c(KAPPA_cutoff,TSS_cutoff,ROC_cutoff,FAR_cutoff,SR_cutoff,ACCURACY_cutoff,BIAS_mean,CSI_cutoff,ETS_cutoff)
-    metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
+     metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
     
     # #################################################################
     # BUILD ENSEMBLE MODELS
@@ -510,13 +426,13 @@ BioModApply <-function(sp.n) {
     myBiomodEM <- BIOMOD_EnsembleModeling(
       modeling.output = myBiomodModelOut,
       chosen.models = 'all',
-      em.by="all",
+      em.by='all',
       eval.metric = metrics,
-      eval.metric.quality.threshold = optim_thresholds,
-      prob.mean = F,
+      eval.metric.quality.threshold = c(0.7,0.7,0.7,0.3,0.7,0.7,0.7,0.7,0.7,0.7),
+      prob.mean = T,
       prob.cv = T,
-      prob.ci = F,
-      prob.median = F,
+      prob.ci = T,
+      prob.median = T,
       committee.averaging = T,
       prob.mean.weight = T,
       prob.mean.weight.decay = "proportional",

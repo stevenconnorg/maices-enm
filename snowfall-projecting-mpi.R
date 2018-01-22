@@ -1,0 +1,291 @@
+#SLURMdat<-load("hpc.RData")
+# establish directories
+root<-"/gpfs/home/scg67/thesis"
+#root<-"E:/thesis"
+setwd(root)
+getwd()
+# new directories for biomod
+
+
+# dir_bmz<-paste0(dir_R,"/02_biomodez")
+
+
+dir_dat<-paste0(root,"/01_data")
+dir_R<-paste0(root,"/02_R")
+dir_out<-paste0(root,"/03_output")
+dir_figs<-paste0(root,"/04_figs")
+dir_lit<-paste0(root,"/05_lit")
+dir_comp<-paste0(root,"/06_comp")
+dir_presentations<-paste0(root,"/07_pres")
+
+dir_maices<-paste0(dir_dat,"/maices")
+dir_ind<-paste0(dir_dat,"/ind")
+
+
+dir_bm<-paste0(dir_R,"/00_biomod")
+dir_topo<-paste0(dir_dat,"/topo")
+
+# 
+dir_clim<-paste0(dir_dat,"/clim")
+dir_pres<-paste0(dir_clim,"/present")
+dir_fut<-paste0(dir_clim,"/future")
+
+dir_p.mosaics<-paste0(dir_pres,"/2.0/")
+dir_f.mosaics<-paste0(dir_fut,"/1.4/")
+
+dir_stacks<-paste0(dir_dat,"/stacks/")
+
+## recursively create directories if not already there 
+
+
+## read in functions
+# Function to Install and Load R Packages
+# borrowed from Pratik Patil, https://stackoverflow.com/questions/9341635/check-for-installed-packages-before-running-install-packages
+Install_And_Load <- function(Required_Packages)
+{
+  Remaining_Packages <- Required_Packages[!(Required_Packages %in% installed.packages()[,"Package"])];
+  
+  if(length(Remaining_Packages)) 
+  {
+    install.packages(Remaining_Packages,lib="home/scg67/R/x86_64_pc-linux-gnu-library/");
+  }
+  for(package_name in Required_Packages)
+  {
+    library(package_name,lib.loc="/home/scg67/R/x86_64_pc-linux-gnu-library/",character.only=TRUE,quietly=TRUE);
+  }
+}
+# install and load required packages
+requiredPackages<-(c("foreign",
+                     "maptools",
+                     "dplyr",
+                     "rgdal",
+                     "biomod2",
+                     "reader",
+                     "caret",
+                     "tidyr",
+                     "raster",
+                     "quickPlot",
+                     "biomod2",
+                     "mgcv",
+                     "gbm",
+                     "dismo"
+))
+
+#install.packages("biomod2", repos = "http://r-forge.r-project.org",dependencies=TRUE)
+
+library(biomod2)
+library(mgcv)
+
+
+#################################################################
+# PRELIMINARY DATA FORMATTING
+#################################################################
+
+
+
+
+
+# get observation data formatted
+pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
+colnames(pa)
+pa<-data.frame(pa)
+i <- (colSums(pa[4:ncol(pa)],na.rm=T)) > 14 # filter species by obs count
+pa<-pa[,i]
+nspec<-ncol(pa[,4:ncol(pa)]) # number of species modelled
+print(paste0(nspec," species/varieties selected in PA matrix"))
+
+names<-paste0(colnames(pa))
+names
+
+sp.n= dput(names [c(4:length(names))] # keep only species name, remove lat/long/etc. 
+) #vector of species name(s), excluding lat and long cols
+#Encoding(sp.n)<-"latin1"
+
+#sp.n= dput(names [c(4:11)] # keep only species name, remove lat/long/etc. 
+#) #vector of species name(s), excluding lat and long cols
+
+# read in model raster stacks
+library(raster)
+presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"))
+f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"))
+f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
+names(presmodstack)
+names(f50modstack)
+names(f70modstack)
+
+# plot(f50modstack)
+# plot(presmodstack)
+# plot(f70modstack)
+
+
+
+
+
+#################################################################
+# INITIALIZE FUNCTION TO APPLY TO EACH VARIETY
+#################################################################
+
+allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips","MAXENT.Tsuruoka")
+models = c("MAXENT.Phillips")
+metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
+
+
+# following https://rpubs.com/dgeorges/190889
+
+setwd(dir_bm) 
+maxent.background.dat.dir <- paste0(getwd(),"/maxent_bg")
+dir.create(maxent.background.dat.dir, showWarnings = FALSE, recursive = TRUE)
+
+
+setwd(dir_bm) 
+options(max.print=1000000)  # set max.print option high to capture outputs
+
+BioModApply <-function(sp.n) {
+  tryCatch({
+    
+    myRespName = sp.n
+    #myRespName = sp.n[1]
+    myResp <- as.numeric(pa[,myRespName])
+    myRespXY = pa[,c('Longitude.x.','Latitude.y.')]
+    
+    myExpl<-presmodstack
+    myExplFuture50<-f50modstack
+    myExplFuture70<-f70modstack
+    
+    setwd(dir_bm) 
+    bm_out_file <- load(paste0(getwd(),"/",myRespName,"/",myRespName,".",myRespName,"_current.models.out"))
+    myBiomodModelOut <- get(bm_out_file)
+    
+    # model projections
+    myBiomodProj <- BIOMOD_Projection(
+      modeling.output = myBiomodModelOut,
+      new.env = myExpl,
+      proj.name = 'current',
+      selected.models = 'all',
+      binary.meth = metrics,
+      filtered.meth = metrics,
+      compress = TRUE,
+      clamping.mask = T,
+      output.format = '.grd')
+    
+    #print(paste0("Projecting onto Future (2070) for ",myRespName))
+    # future projections for rcp 85 period 70
+    myBiomodProjFuture70 <- BIOMOD_Projection(
+      modeling.output = myBiomodModelOut,
+      new.env = myExplFuture70,
+      proj.name = 'rcp85_70',
+      selected.models = 'all',
+      binary.meth = metrics,
+      filtered.meth = metrics,
+      compress = TRUE,
+      clamping.mask = T,
+      output.format = '.grd')
+    
+    #print(paste0("Projecting  onto Future (2050) for ",myRespName))
+    # future projections for rcp 85 period 50
+    myBiomodProjFuture50 <- BIOMOD_Projection(
+      modeling.output = myBiomodModelOut,
+      new.env = myExplFuture50,
+      proj.name = 'rcp85_50',
+      selected.models = 'all',
+      binary.meth = metrics,
+      filtered.meth = metrics,
+      compress = TRUE,
+      clamping.mask = T,
+      output.format = '.grd')
+    
+    #do.call(file.remove,list(list.files(pattern="temp*"))) 
+    
+    #################################################################
+    # FORECAST EMSEMBLE MODELS BY CHOSEN METRICS
+    #################################################################
+    setwd(dir_bm) 
+    bm_em.out_file <- load(paste0(getwd(),"/",myRespName,"/",myRespName,".",myRespName,"_current.emsemble.models.out"))
+    myBiomodModelOut <- get(bm_em.out_file)
+    
+    #print(paste0("Performing Ensemble Forcasting onto Current Data for ",myRespName))
+    
+    # current ensemble projection
+    myBiomodEF <- BIOMOD_EnsembleForecasting(
+      EM.output = myBiomodEM,
+      projection.output = myBiomodProj,
+      selected.models = 'all',
+      binary.meth=metrics,
+      filtered.meth=metrics,
+      compress=TRUE)
+    
+    #print(paste0("Performing Ensemble Forcasting onto Future (2070) Data for ",myRespName))
+    
+    f70BiomodEF <- BIOMOD_EnsembleForecasting(
+      EM.output = myBiomodEM,
+      projection.output = myBiomodProjFuture70,
+      selected.models = 'all',
+      binary.meth=metrics,
+      filtered.meth=metrics,
+      compress=TRUE)
+    
+    #cat("\n\nExporting Ensemble as grd ...\n\n")
+    
+    #do.call(file.remove,list(list.files(pattern="temp*"))) 
+    
+    #print(paste0("Performing Ensemble Forcasting onto Future (2050) Data for ",myRespName))
+    
+    f50BiomodEF <- BIOMOD_EnsembleForecasting(
+      EM.output = myBiomodEM,
+      projection.output = myBiomodProjFuture50,
+      selected.models = 'all',
+      binary.meth=metrics,
+      filtered.meth=metrics,
+      compress=TRUE)
+    
+    
+    
+  }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+  
+}
+
+#save.image()
+
+
+#######
+# snowfall initialization
+#install.packages("Rmpi", lib="/gpfs/home/scg67/R/x86_64-pc-linux-gnu-library/3.4/", repos='http://cran.us.r-project.org')
+library(snowfall)
+library(Rmpi)
+library(future)
+#args = commandArgs(trailingOnly = TRUE);
+#ncpus = args[1];
+
+# ------------------------------------------------------------------------
+# initialize parallel mode using sockets and command-line args
+# ------------------------------------------------------------------------
+ntasks<-as.numeric(Sys.getenv("SLURM_NTASKS"))
+
+print(ntasks)
+print(class(ntasks))
+print(paste0(ntasks," tasks"))
+
+ncputask<-as.numeric(Sys.getenv("SLURM_CPUS_ON_NODE"))
+print(ncputask)
+print(class(ncputask))
+print(paste0(ncputask," N CPUs per task"))
+
+ncpus<-ncputask*ntasks
+#ncpus<-detectCores()
+print(paste0(ncpus," CPUs"))
+
+#ncpus<-future::availableCores()
+#ncpus<-mpi.universe.size()-1
+sfInit( parallel=TRUE, cpus=ncpus, type="MPI")
+# Export packages to snowfall
+sfLibrary('biomod2', character.only=TRUE)
+sfExportAll()
+
+# you may also use sfExportAll() to export all your workspace variables
+## Do the run
+mySFModelsOut <- sfLapply(sp.n,BioModApply)
+#save(mySFModelsOut)
+# stop snowfall
+
+sfStop()
+#######
