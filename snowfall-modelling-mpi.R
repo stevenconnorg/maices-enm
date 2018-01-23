@@ -6,10 +6,6 @@ setwd(root)
 getwd()
 # new directories for biomod
 
-
-# dir_bmz<-paste0(dir_R,"/02_biomodez")
-
-
 dir_dat<-paste0(root,"/01_data")
 dir_R<-paste0(root,"/02_R")
 dir_out<-paste0(root,"/03_output")
@@ -35,42 +31,6 @@ dir_f.mosaics<-paste0(dir_fut,"/1.4/")
 
 dir_stacks<-paste0(dir_dat,"/stacks/")
 
-## recursively create directories if not already there 
-
-
-## read in functions
-# Function to Install and Load R Packages
-# borrowed from Pratik Patil, https://stackoverflow.com/questions/9341635/check-for-installed-packages-before-running-install-packages
-Install_And_Load <- function(Required_Packages)
-{
-  Remaining_Packages <- Required_Packages[!(Required_Packages %in% installed.packages()[,"Package"])];
-  
-  if(length(Remaining_Packages)) 
-  {
-    install.packages(Remaining_Packages,lib="home/scg67/R/x86_64_pc-linux-gnu-library/");
-  }
-  for(package_name in Required_Packages)
-  {
-    library(package_name,lib.loc="/home/scg67/R/x86_64_pc-linux-gnu-library/",character.only=TRUE,quietly=TRUE);
-  }
-}
-# install and load required packages
-requiredPackages<-(c("foreign",
-                     "maptools",
-                     "dplyr",
-                     "rgdal",
-                     "biomod2",
-                     "reader",
-                     "caret",
-                     "tidyr",
-                     "raster",
-                     "quickPlot",
-                     "biomod2",
-                     "mgcv",
-                     "gbm",
-                     "dismo"
-))
-
 #install.packages("biomod2", repos = "http://r-forge.r-project.org",dependencies=TRUE)
 
 library(biomod2)
@@ -82,34 +42,45 @@ library(mgcv)
 #################################################################
 
 
-
-
-
-# get observation data formatted
-pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
-colnames(pa)
+### read in PAM with projected coordinates
+pa<-read.csv(file=paste0(dir_out,"/pa_dataframe-EA.csv"))
 pa<-data.frame(pa)
-i <- (colSums(pa[4:ncol(pa)],na.rm=T)) > 14 # filter species by obs count
+colnames(data.frame(pa))
+colnames(pa[,5:68])
+i <- (colSums(pa[5:68],na.rm=T)) > 14 # filter species by obs count
 pa<-pa[,i]
-nspec<-ncol(pa[,4:ncol(pa)]) # number of species modelled
-print(paste0(nspec," species/varieties selected in PA matrix"))
+colnames(pa)
 
 names<-paste0(colnames(pa))
-names
+sp.n= dput(names [c(5:53)]) # keep only species name, remove lat/long/etc. 
+sp.n
 
-sp.n= dput(names [c(4:length(names))] # keep only species name, remove lat/long/etc. 
-) #vector of species name(s), excluding lat and long cols
+###################################
+## original version, untransformed
+#i <- (colSums(pa[4:ncol(pa)],na.rm=T)) > 14 # filter species by obs count
+#pa<-pa[,i]
+#nspec<-ncol(pa[,4:ncol(pa)]) # number of species modelled
+#print(paste0(nspec," species/varieties selected in PA matrix"))
+
+#names<-paste0(colnames(pa))
+#names
+
+#sp.n= dput(names [c(4:length(names))] # keep only species name, remove lat/long/etc. 
+#) #vector of species name(s), excluding lat and long cols
 #Encoding(sp.n)<-"latin1"
 #sp.n= sp.n[1]
 
 #sp.n= dput(names [c(4:11)] # keep only species name, remove lat/long/etc. 
 #) #vector of species name(s), excluding lat and long cols
+###################################
 
-# read in model raster stacks
+# read in model raster stacks with EQUAL AREA PROJECTION
 library(raster)
-presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"))
-f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"))
-f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
+
+presmodstack<-stack(paste0(dir_stacks,"present_modstack_EA.grd"))
+f50modstack<-stack(paste0(dir_stacks,"f50_modstack_EA.grd"))
+f70modstack<-stack(paste0(dir_stacks,"f70_modstack_EA.grd"))
+
 names(presmodstack)
 names(f50modstack)
 names(f70modstack)
@@ -133,36 +104,37 @@ metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI
 
 # following https://rpubs.com/dgeorges/190889
 
-setwd(dir_bm) 
-maxent.background.dat.dir <- paste0(getwd(),"/maxent_bg")
-dir.create(maxent.background.dat.dir, showWarnings = FALSE, recursive = TRUE)
+#setwd(dir_bm) 
+#maxent.background.dat.dir <- paste0(getwd(),"/maxent_bg")
+#dir.create(maxent.background.dat.dir, showWarnings = FALSE, recursive = TRUE)
 
 ## resave explanatory data
 
-for(var_ in names(presmodstack)){
+#for(var_ in names(presmodstack)){
 
 #	cat("\n> saving", paste0(var_, ".asc"))
+#
+#	f<-file.path(maxent.background.dat.dir, paste0(var_, ".asc"))
+#	#if (!file.exists(f))
 
-	f<-file.path(maxent.background.dat.dir, paste0(var_, ".asc"))
-	if (!file.exists(f))
-
-		writeRaster(subset(presmodstack, var_), 
-               	filename = f,
-              	overwrite = TRUE)
-}
+#		writeRaster(subset(presmodstack, var_), 
+#               	filename = f,
+#              	overwrite = TRUE)
+#}
 
 
 
 setwd(dir_bm) 
-options(max.print=1000000)  # set max.print option high to capture outputs
-path.to.maxent.jar<-file.path(getwd(),"maxent.jar") # define maxent jar location
+#options(max.print=1000000)  # set max.print option high to capture outputs
+#path.to.maxent.jar<-file.path(getwd(),"maxent.jar") # define maxent jar location
 
 BioModApply <-function(sp.n) {
   tryCatch({
     
     myRespName = sp.n
+    #myRespName = sp.n[1]
     myResp <- as.numeric(pa[,myRespName])
-    myRespXY = pa[,c('Longitude.x.','Latitude.y.')]
+    myRespXY = pa[,c('X_Lambert','Y_Lambert')]
     
     myExpl<-presmodstack
     myExplFuture50<-f50modstack
@@ -276,10 +248,10 @@ BioModApply <-function(sp.n) {
                                                              nodesize = 5,
                                                              maxnodes = NULL),
                                                   
-                                                  MAXENT.Phillips = list(memory_allocated = 8192,
-                                                    background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
-                                                    maximumbackground = 10000,
-                                                    maximumiterations = 5000,
+                                                  MAXENT.Phillips = list(memory_allocated = NULL,
+                                                                         #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
+                                                                         #maximumbackground = 10000,
+                                                    maximumiterations = 10000,
                                                     visible = FALSE,
                                                     linear = FALSE,
                                                     quadratic = TRUE,
@@ -292,9 +264,9 @@ BioModApply <-function(sp.n) {
                                                     #beta_threshold = -1,
                                                     #beta_categorical = -1,
                                                     #beta_lqp = -1,
-                                                    beta_hinge = 0.5,
-                                                    betamultiplier = 1,
-                                                    defaultprevalence = 0.5),
+                                                    beta_hinge = -1,
+                                                    betamultiplier = 2.5,
+                                                    defaultprevalence = 0.3),
                                                   
                                                   MAXENT.Tsuruoka = list( l1_regularizer = 0,
                                                                           l2_regularizer = 0,
@@ -302,7 +274,27 @@ BioModApply <-function(sp.n) {
                                                                           set_heldout = 0,
                                                                           verbose = FALSE))
     
-    #bm.opt.maxent.bg <- BIOMOD_ModelingOptions(MAXENT.Phillips = list(path_to_maxent.jar = path.to.maxent.jar,background_data_dir = maxent.background.dat.dir))
+    #bm.opt.maxent.bg <- BIOMOD_ModelingOptions(MAXENT.Phillips = list(#memory_allocated = 8192,
+    #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
+    #maximumbackground = 10000,
+    #maximumiterations = 5000,
+    #visible = FALSE,
+    #linear = FALSE,
+    #quadratic = TRUE,
+    #product = FALSE,
+    #threshold = FALSE,
+    #hinge = TRUE,
+    #lq2lqptthreshold = 80,
+    #l2lqthreshold = 10,
+    #hingethreshold = 10,
+    #beta_threshold = -1,
+    #beta_categorical = -1,
+    #beta_lqp = -1,
+    #beta_hinge = 0.5,
+    #betamultiplier = 1,
+    #defaultprevalence = 0.5,
+    #path_to_maxent.jar = path.to.maxent.jar))
+    
     #################################################################
     # TUNE MODEL OPTIONS -- NOT WORKING RN
     #################################################################
@@ -311,25 +303,26 @@ BioModApply <-function(sp.n) {
     #library(doParallel);cl<-makeCluster(8);registerDoParallel(cl) 
     # devtools::install_github('topepo/caret/pkg/caret')
     #library(caret)
-    library(ENMeval)
+    # download new version of code from Frank Breiner (author), attached here: http://r-forge.wu.ac.at/forum/forum.php?max_rows=75&style=nested&offset=152&forum_id=995&group_id=302
     
-    # download new version of code from Frank Breiner (writer of BIOMOD_tuning), attached here: http://r-forge.wu.ac.at/forum/forum.php?max_rows=75&style=nested&offset=152&forum_id=995&group_id=302
+    #library(dismo) #ensure that maxent.jar is also in R/lib/dismo/java
+    #library(ENMeval)
     
-    source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
-    edit(BIOMOD_tuning)
-    BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
-                                         models="MAXENT.Phillips",
-                                    env.ME = myExpl,
-                                    n.bg.ME = ncell(myExpl),
-                                    metric.ME = "Mean.AUC"
-                                    )
-    
-    if( exists("BIOMOD_TunedOptions") )
-    {
-      BIOMOD_TunedOptions<-get("BIOMOD_TunedOptions")
-      BIOMOD_ModelOptions<-BIOMOD_TunedOptions$models.options
-     
-    }
+    #source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
+    #BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
+    #                                     models="MAXENT.Phillips",
+    #                                env.ME = myExpl,
+    #                                models.options = bm.opt.maxent.bg,
+    #                                n.bg.ME = ncell(myExpl),
+    #                                metric.ME = "ROC"
+    #                                )
+    #
+    #if( exists("BIOMOD_TunedOptions") )
+    #{
+    #  BIOMOD_TunedOptions<-get("BIOMOD_TunedOptions")
+    #  BIOMOD_ModelOptions<-BIOMOD_TunedOptions$models.options
+    # 
+    #}
     
     
     #capture.output(BIOMOD_TunedOptions$models.options,file=paste0(dir_out,"/model-opts/",myRespName,"_tuned_opts.txt"))
@@ -384,7 +377,7 @@ BioModApply <-function(sp.n) {
         NbRunEval=25,
         DataSplit=70, 
         # Yweights=sp_weights,
-        VarImport=3,
+        VarImport=10,
         models.eval.meth = metrics,
         SaveObj = TRUE,
         rescal.all.models = FALSE,
@@ -409,13 +402,15 @@ BioModApply <-function(sp.n) {
 
     # get model evaluations by metrics
     evalmods<-get_evaluations(myBiomodModelOut,as.data.frame=TRUE)
+    evalmods$variety<-myRespName
     write.csv(evalmods,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_models_eval.csv"))
     
     ### get variable importance
     modevalimport<-get_variables_importance(myBiomodModelOut,as.data.frame=TRUE)
+    colnames(modevalimport)
+
     write.csv(modevalimport,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_var_imp.csv"))
-     metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
-    
+
     # #################################################################
     # BUILD ENSEMBLE MODELS
     #################################################################
@@ -426,17 +421,18 @@ BioModApply <-function(sp.n) {
     myBiomodEM <- BIOMOD_EnsembleModeling(
       modeling.output = myBiomodModelOut,
       chosen.models = 'all',
-      em.by='all',
+      em.by='algo',
       eval.metric = metrics,
-      eval.metric.quality.threshold = c(0.7,0.7,0.7,0.3,0.7,0.7,0.7,0.7,0.7,0.7),
+      eval.metric.quality.threshold = NULL,
       prob.mean = T,
       prob.cv = T,
       prob.ci = T,
+      prob.ci.alpha = 0.05,
       prob.median = T,
       committee.averaging = T,
       prob.mean.weight = T,
       prob.mean.weight.decay = "proportional",
-      VarImport = 3)
+      VarImport = 10)
     
     #################################################################
     # CAPTURE ENSEMBLE MODEL OUTPUTS
@@ -450,8 +446,9 @@ BioModApply <-function(sp.n) {
     
     # capture em model evals 
     #print(paste0("Capturing Ensemble Models Evaluations ",myRespName))
-    capture.output(get_evaluations(myBiomodEM),
-                   file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_mods_eval.txt"))
+    evalmodsEM<-get_evaluations(myBiomodEM,as.data.frame=TRUE)
+    evalmodsEM$variety<-myRespName
+    write.csv(evalmodsEM,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_models_EM_eval.csv"))
     
     #do.call(file.remove,list(list.files(pattern="temp*"))) 
     
@@ -462,6 +459,79 @@ BioModApply <-function(sp.n) {
     write.csv(enevalmods,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_evals-df.csv"))
     
     #unlink(rtmpdir,recursive=TRUE)
+    
+    # model projections
+    myBiomodProj <- BIOMOD_Projection(
+      modeling.output = myBiomodModelOut,
+      new.env = myExpl,
+      proj.name = 'current',
+      selected.models = 'all',
+      binary.meth = metrics,
+      filtered.meth = metrics,
+      compress = TRUE,
+      clamping.mask = T,
+      output.format = '.grd')
+    
+    #print(paste0("Projecting onto Future (2070) for ",myRespName))
+    # future projections for rcp 85 period 70
+    myBiomodProjFuture70 <- BIOMOD_Projection(
+      modeling.output = myBiomodModelOut,
+      new.env = myExplFuture70,
+      proj.name = 'rcp85_70',
+      selected.models = 'all',
+      binary.meth = metrics,
+      filtered.meth = metrics,
+      compress = TRUE,
+      clamping.mask = T,
+      output.format = '.grd')
+    
+    #print(paste0("Projecting  onto Future (2050) for ",myRespName))
+    # future projections for rcp 85 period 50
+    myBiomodProjFuture50 <- BIOMOD_Projection(
+      modeling.output = myBiomodModelOut,
+      new.env = myExplFuture50,
+      proj.name = 'rcp85_50',
+      selected.models = 'all',
+      binary.meth = metrics,
+      filtered.meth = metrics,
+      compress = TRUE,
+      clamping.mask = T,
+      output.format = '.grd')
+    
+    #print(paste0("Performing Ensemble Forcasting onto Current Data for ",myRespName))
+    
+    # current ensemble projection
+    myBiomodEF <- BIOMOD_EnsembleForecasting(
+      EM.output = myBiomodEM,
+      projection.output = myBiomodProj,
+      selected.models = 'all',
+      binary.meth=metrics,
+      filtered.meth=metrics,
+      compress=TRUE)
+    
+    #print(paste0("Performing Ensemble Forcasting onto Future (2070) Data for ",myRespName))
+    
+    f70BiomodEF <- BIOMOD_EnsembleForecasting(
+      EM.output = myBiomodEM,
+      projection.output = myBiomodProjFuture70,
+      selected.models = 'all',
+      binary.meth=metrics,
+      filtered.meth=metrics,
+      compress=TRUE)
+    
+    #cat("\n\nExporting Ensemble as grd ...\n\n")
+    
+    #do.call(file.remove,list(list.files(pattern="temp*"))) 
+    
+    #print(paste0("Performing Ensemble Forcasting onto Future (2050) Data for ",myRespName))
+    
+    f50BiomodEF <- BIOMOD_EnsembleForecasting(
+      EM.output = myBiomodEM,
+      projection.output = myBiomodProjFuture50,
+      selected.models = 'all',
+      binary.meth=metrics,
+      filtered.meth=metrics,
+      compress=TRUE)
     
     
   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
@@ -623,13 +693,17 @@ print(paste0(ncpus," CPUs"))
 sfInit( parallel=TRUE, cpus=ncpus, type="MPI")
 # Export packages to snowfall
 sfLibrary('biomod2', character.only=TRUE)
+print("Exporting environment to cluster")
 sfExportAll()
 
 # you may also use sfExportAll() to export all your workspace variables
 ## Do the run
+print("Running >> sfLapply(sp.n,BioModApply)")
+
 mySFModelsOut <- sfLapply(sp.n,BioModApply)
 #save(mySFModelsOut)
 # stop snowfall
+print("Stopping cluster")
 
 sfStop()
 #######
