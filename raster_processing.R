@@ -795,6 +795,17 @@ writeRaster(f50modstack, paste0(dir_stacks,"/f50_modstack.grd"), bylayer=FALSE, 
 save(f70modstack,file=paste0(dir_stacks,"/f70_modstack.RData"))
 writeRaster(f70modstack, paste0(dir_stacks,"/f70_modstack.grd"), bylayer=FALSE, format='raster',overwrite=TRUE)
 
+# http://spatialreference.org/ref/sr-org/mexico-inegi-lambert-conformal-conic/
+equalarea<-CRS("+proj=lcc +lat_1=17.5 +lat_2=29.5 +lat_0=12 +lon_0=-102 +x_0=2500000 +y_0=0 +a=6378137 +b=6378136.027241431 +units=m +no_defs ")
+
+presmodstackEA<-projectRaster(presmodstack, crs=equalarea, method="bilinear") 
+f50modstackEA<-projectRaster(f50modstack, crs=equalarea, method="bilinear") 
+f70modstackEA<-projectRaster(f70modstack, crs=equalarea, method="bilinear") 
+
+writeRaster(presmodstackEA, paste0(dir_stacks,"/present_modstack_EA.grd"), bylayer=FALSE, format='raster',overwrite=TRUE)
+writeRaster(f50modstackEA, paste0(dir_stacks,"/f50_modstack_EA.grd"), bylayer=FALSE, format='raster',overwrite=TRUE)
+writeRaster(f70modstackEA, paste0(dir_stacks,"/f70_modstack_EA.grd"), bylayer=FALSE, format='raster',overwrite=TRUE)
+
 
 #save.image(file=paste0(dir_clim,"/raster_processing.RData"))
        
