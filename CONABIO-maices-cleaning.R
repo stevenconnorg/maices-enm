@@ -83,15 +83,13 @@ library(magrittr) # for piping functionality, i.e., %>%
 library(maptools)
 library(rgdal)
 
-r<-raster(nrow=2304,ncol=3770)
-extent(r)<-c(-117.625,-86.20833,14.025,33.225)
-r
+
 
 setwd(dir_maices)
 
 
 maiz<-readOGR(dsn="todos-maices.shp",layer = "todos-maices")
-
+todos<-maiz
 #for(i in todos@data$i){
 #  i<-iconv(todos@data$i, to="LATIN1")
 #}
@@ -108,11 +106,13 @@ str(todos@data)
 head(todos@data$Nom_ent)
 head(todos@data$Nom_mun)
 head(todos@data$NomComun)
+head(todos@data$NomComun)
 length(todos@data[is.na(todos@data$NomComun),])
 length(todos@data[is.na(todos@data$Raza_prima),])
 
 unique(todos@data$Raza_prima)
 unique(todos@data$Complejo_r)
+unique(todos@data$AnioColect)
 
 
 # remove data without prime race information
@@ -133,9 +133,19 @@ todos.5<-todos.4[todos.4@data$Validacion!="Inconsistente",]
 todos.5$maiz<-"Zea mays mays"
 
 # make maices object
-todos.6<-todos.5
+todos.6<-todos.5 #[todos.5@data$AnioColect >1969 & todos.5@data$AnioColect < 2001,]# remove period 1 collection
+
 summary(todos.6)
 summary(todos)
+
+unique(todos.6@data$Raza_prima)
+
+library(dplyr)
+
+todos.6@data%>%
+  group_by(Raza_prima) %>%
+  summarise(n = n())%>%
+filter(n > 15)
 
 # subset races with greater than 20 samples
 maices=todos.6
@@ -175,33 +185,127 @@ unique(maices@data$Complejo_r)
 
 
 # make presence/absence matrix
-# maices<-readOGR(dsn=paste0(dir_maices,"/todos-maices-cleaned.shp"),layer="todos-maices-cleaned")
+library(rgdal)
+maices<-readOGR(dsn=paste0(dir_maices,"/todos-maices-cleaned.shp"),layer="todos-maices-cleaned")
+# project maize observations to equal area projection
+
+# proj4string for mexico lambert conformal conic
+
+# http://spatialreference.org/ref/sr-org/mexico-inegi-lambert-conformal-conic/
+
+
+
+equalarea<-CRS("+proj=lcc +lat_1=17.5 +lat_2=29.5 +lat_0=12 +lon_0=-102 +x_0=2500000 +y_0=0 +a=6378137 +b=6378136.027241431 +units=m +no_defs")
+
+maices<-spTransform(maices,equalarea)
+
+
+
+
+
+# add new coordinates to dataframe
+
+maices@data[,c("X_Lambert","Y_Lambert")]<-coordinates(maices)
+
+
+
+# extract coordinates as xy object for lets.presab.points
+
+xy<-cbind(maices@data$X_Lambert,maices@data$Y_Lambert)
+
+
+
+
 
 # install.packages("letsR")
+
 library(letsR)
-xy<-cbind(maices@data$Longitud,maices@data$Latitud)
 
-# extent
-# xmin        : -117.625 
-# xmax        : -86.20833 
-# ymin        : 14.025 
-# ymax        : 33.225 
-# nrow=2304,ncol=3770
 
-PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn=-117.625, xmx=-86.20833 , ymn=14.025 , ymx=33.225 , resol = 0.00883333)
 
-plot(PA$Richness_Raster)
+# use template wgs raster for environmental predictors to create presence/absence matrix
+
+r<-raster(nrow=2304,ncol=3770)
+
+extent(r)<-c(-117.625,-86.20833,14.025,33.225)
+
+r
+
+crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+
+
+
+# project raster to equal area
+
+rSp<-projectRaster(r,crs=equalarea)
+
+
+
+# get extent of object
+
+extent(rSp)
+
+
+
+# extent(rSp) #(in equalarea projection)
+
+# xmin        : 797974
+
+# xmax        : 4220224 
+
+# ymin        : 223559.8
+
+# ymax        : 2449836
+
+
+
+# use template raster extent as domain for presence/absence matrix
+
+# 1000 resolution = 1 km (?)
+
+
+
+PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn= 797974, xmx= 4220224   , ymn=223559.8 , ymx= 2449836, resol = 1000,crs =equalarea,remove.cells=FALSE,remove.sp=FALSE)
+
+
+
+# extract matrix from presence/absence object
+
 pam<-PA$Presence_and_Absence_Matrix
+
 View(pam)
+
+
+
+# set zero values to NA (not true absences)
+
 pam[pam == 0 ] <- NA
+
 View(pam)
+
 pa<-data.frame(pam)
-pa_df_fn<-paste0(dir_out,"/pa_dataframe.csv")
-pam_fn<-paste0(dir_out,"/pam.csv")
+
+
+
+# set encoding for file to preserve Spanish encoding
+
+pa_df_fn<-paste0(dir_out,"/pa_dataframe_EA.csv")
+
+pam_fn<-paste0(dir_out,"/pam_EA.csv")
+
 con_pa<-file(pa_df_fn,encoding="LATIN1")
+
 con_pam<-file(pam_fn,encoding="LATIN1")
 
+
+
+# write csvs and save images
+
 write.csv(pa,file=con_pa)
+
 write.csv(pam,file=con_pam)
 
+
+
 save.image(file=paste0(dir_maices,"/clean_maices_obs.RData"))
+
