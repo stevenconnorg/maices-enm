@@ -43,16 +43,23 @@ library(mgcv)
 
 
 ### read in PAM with projected coordinates
-pa<-read.csv(file=paste0(dir_out,"/pa_dataframe-EA.csv"))
-pa<-data.frame(pa)
-colnames(data.frame(pa))
-colnames(pa[,5:68])
-i <- (colSums(pa[5:68],na.rm=T)) > 14 # filter species by obs count
-pa<-pa[,i]
+pam<-read.csv(file=paste0(dir_out,"/pa_dataframe_EA.csv"))
+pa<-data.frame(pam)
+
 colnames(pa)
 
-names<-paste0(colnames(pa))
-sp.n= dput(names [c(5:53)]) # keep only species name, remove lat/long/etc. 
+# drop unwanted columns by name
+drops <- c("X","Longitude.x.","Latitude.y.","X_Lambert", "Y_Lambert")
+pa_sp.n<-pa[ , !(names(pa) %in% drops)]
+
+colnames(pa)
+
+i <- (colSums(pa_sp.n,na.rm=T)) > 14 # filter species by obs count
+pa_sp.n<-pa_sp.n[,i]
+colnames(pa_sp.n)
+
+names<-paste0(colnames(pa_sp.n))
+sp.n= dput(names) # keep only species name, remove lat/long/etc. 
 sp.n
 
 ###################################
@@ -89,8 +96,8 @@ names(f70modstack)
 # plot(presmodstack)
 # plot(f70modstack)
 
-
-
+prev<-read.csv(file.path(dir_maices,"tau.csv"))
+prev<-as.data.frame(prev)
 
 
 #################################################################
@@ -134,7 +141,7 @@ BioModApply <-function(sp.n) {
     myRespName = sp.n
     #myRespName = sp.n[1]
     myResp <- as.numeric(pa[,myRespName])
-    myRespXY = pa[,c('X_Lambert','Y_Lambert')]
+    myRespXY = pa[,c('Longitude.x.','Latitude.y.')] # actually x, y in lambert conformal # letsR::presab points makes column names long/lat
     
     myExpl<-presmodstack
     myExplFuture50<-f50modstack
@@ -265,8 +272,8 @@ BioModApply <-function(sp.n) {
                                                     #beta_categorical = -1,
                                                     #beta_lqp = -1,
                                                     beta_hinge = -1,
-                                                    betamultiplier = 2.5,
-                                                    defaultprevalence = 0.3),
+                                                    betamultiplier = 2.0,
+                                                    defaultprevalence = 0.1),
                                                   
                                                   MAXENT.Tsuruoka = list( l1_regularizer = 0,
                                                                           l2_regularizer = 0,
@@ -369,6 +376,8 @@ BioModApply <-function(sp.n) {
     #head(myPresPAdf)
     #sp_weights<-myPresPAdf$yweights_stnd
     
+    
+    
     myBiomodModelOut <-
       BIOMOD_Modeling(
         myBiomodData, 
@@ -377,6 +386,7 @@ BioModApply <-function(sp.n) {
         NbRunEval=25,
         DataSplit=70, 
         # Yweights=sp_weights,
+        prevalence = prev$tau[prev$Raza_prima==myRespName], # use estimated tau from Perales et al 2015 for prevalence
         VarImport=10,
         models.eval.meth = metrics,
         SaveObj = TRUE,
@@ -458,6 +468,7 @@ BioModApply <-function(sp.n) {
     enevalmods<-get_evaluations(myBiomodEM,as.data.frame=TRUE)
     write.csv(enevalmods,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_evals-df.csv"))
     
+    
     #unlink(rtmpdir,recursive=TRUE)
     
     # model projections
@@ -470,7 +481,8 @@ BioModApply <-function(sp.n) {
       filtered.meth = metrics,
       compress = TRUE,
       clamping.mask = T,
-      output.format = '.grd')
+      output.format = '.grd',
+      do.stack=FALSE)
     
     #print(paste0("Projecting onto Future (2070) for ",myRespName))
     # future projections for rcp 85 period 70
@@ -483,7 +495,8 @@ BioModApply <-function(sp.n) {
       filtered.meth = metrics,
       compress = TRUE,
       clamping.mask = T,
-      output.format = '.grd')
+      output.format = '.grd',
+      do.stack=FALSE)
     
     #print(paste0("Projecting  onto Future (2050) for ",myRespName))
     # future projections for rcp 85 period 50
@@ -496,7 +509,8 @@ BioModApply <-function(sp.n) {
       filtered.meth = metrics,
       compress = TRUE,
       clamping.mask = T,
-      output.format = '.grd')
+      output.format = '.grd',
+      do.stack=FALSE)
     
     #print(paste0("Performing Ensemble Forcasting onto Current Data for ",myRespName))
     
@@ -507,7 +521,8 @@ BioModApply <-function(sp.n) {
       selected.models = 'all',
       binary.meth=metrics,
       filtered.meth=metrics,
-      compress=TRUE)
+      compress=TRUE,
+      do.stack=FALSE)
     
     #print(paste0("Performing Ensemble Forcasting onto Future (2070) Data for ",myRespName))
     
@@ -517,7 +532,8 @@ BioModApply <-function(sp.n) {
       selected.models = 'all',
       binary.meth=metrics,
       filtered.meth=metrics,
-      compress=TRUE)
+      compress=TRUE,
+      do.stack=FALSE)
     
     #cat("\n\nExporting Ensemble as grd ...\n\n")
     
@@ -531,7 +547,8 @@ BioModApply <-function(sp.n) {
       selected.models = 'all',
       binary.meth=metrics,
       filtered.meth=metrics,
-      compress=TRUE)
+      compress=TRUE,
+      do.stack=FALSE)
     
     
   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})

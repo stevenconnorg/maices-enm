@@ -2,13 +2,9 @@
 # establish directories
 root<-"/gpfs/home/scg67/thesis"
 #root<-"E:/thesis"
-setwd(root)
+#setwd(root)
 getwd()
 # new directories for biomod
-
-
-# dir_bmz<-paste0(dir_R,"/02_biomodez")
-
 
 dir_dat<-paste0(root,"/01_data")
 dir_R<-paste0(root,"/02_R")
@@ -35,42 +31,6 @@ dir_f.mosaics<-paste0(dir_fut,"/1.4/")
 
 dir_stacks<-paste0(dir_dat,"/stacks/")
 
-## recursively create directories if not already there 
-
-
-## read in functions
-# Function to Install and Load R Packages
-# borrowed from Pratik Patil, https://stackoverflow.com/questions/9341635/check-for-installed-packages-before-running-install-packages
-Install_And_Load <- function(Required_Packages)
-{
-  Remaining_Packages <- Required_Packages[!(Required_Packages %in% installed.packages()[,"Package"])];
-  
-  if(length(Remaining_Packages)) 
-  {
-    install.packages(Remaining_Packages,lib="home/scg67/R/x86_64_pc-linux-gnu-library/");
-  }
-  for(package_name in Required_Packages)
-  {
-    library(package_name,lib.loc="/home/scg67/R/x86_64_pc-linux-gnu-library/",character.only=TRUE,quietly=TRUE);
-  }
-}
-# install and load required packages
-requiredPackages<-(c("foreign",
-                     "maptools",
-                     "dplyr",
-                     "rgdal",
-                     "biomod2",
-                     "reader",
-                     "caret",
-                     "tidyr",
-                     "raster",
-                     "quickPlot",
-                     "biomod2",
-                     "mgcv",
-                     "gbm",
-                     "dismo"
-))
-
 #install.packages("biomod2", repos = "http://r-forge.r-project.org",dependencies=TRUE)
 
 library(biomod2)
@@ -81,34 +41,20 @@ library(mgcv)
 # PRELIMINARY DATA FORMATTING
 #################################################################
 
+setwd(dir_bm) 
+ensemble.files<-Sys.glob(paste0(getwd(),"/*/*","*_currentensemble.models.out")) # get ensemble files out
+ensemble.dirs<-sub(paste0(getwd(),"/"),"",ensemble.files) # remove everything from working directory path
+sp.n<-sub(" */.*", "",ensemble.dirs) # remove everything before first slash to get variety names that have ensemble models
+ 
 
 
-
-
-# get observation data formatted
-pa<-read.csv(file=paste0(dir_out,"/pa_dataframe.csv"))
-colnames(pa)
-pa<-data.frame(pa)
-i <- (colSums(pa[4:ncol(pa)],na.rm=T)) > 14 # filter species by obs count
-pa<-pa[,i]
-nspec<-ncol(pa[,4:ncol(pa)]) # number of species modelled
-print(paste0(nspec," species/varieties selected in PA matrix"))
-
-names<-paste0(colnames(pa))
-names
-
-sp.n= dput(names [c(4:length(names))] # keep only species name, remove lat/long/etc. 
-) #vector of species name(s), excluding lat and long cols
-#Encoding(sp.n)<-"latin1"
-
-#sp.n= dput(names [c(4:11)] # keep only species name, remove lat/long/etc. 
-#) #vector of species name(s), excluding lat and long cols
-
-# read in model raster stacks
+# read in model raster stacks with EQUAL AREA PROJECTION
 library(raster)
-presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"))
-f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"))
-f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
+
+presmodstack<-stack(paste0(dir_stacks,"present_modstack_EA.grd"))
+f50modstack<-stack(paste0(dir_stacks,"f50_modstack_EA.grd"))
+f70modstack<-stack(paste0(dir_stacks,"f70_modstack_EA.grd"))
+
 names(presmodstack)
 names(f50modstack)
 names(f70modstack)
@@ -116,8 +62,6 @@ names(f70modstack)
 # plot(f50modstack)
 # plot(presmodstack)
 # plot(f70modstack)
-
-
 
 
 
@@ -132,12 +76,10 @@ metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI
 
 # following https://rpubs.com/dgeorges/190889
 
-setwd(dir_bm) 
-maxent.background.dat.dir <- paste0(getwd(),"/maxent_bg")
-dir.create(maxent.background.dat.dir, showWarnings = FALSE, recursive = TRUE)
+#maxent.background.dat.dir <- paste0(getwd(),"/maxent_bg")
+#dir.create(maxent.background.dat.dir, showWarnings = FALSE, recursive = TRUE)
 
 
-setwd(dir_bm) 
 options(max.print=1000000)  # set max.print option high to capture outputs
 
 BioModApply <-function(sp.n) {
@@ -157,42 +99,42 @@ BioModApply <-function(sp.n) {
     myBiomodModelOut <- get(bm_out_file)
     
     # model projections
-    myBiomodProj <- BIOMOD_Projection(
-      modeling.output = myBiomodModelOut,
-      new.env = myExpl,
-      proj.name = 'current',
-      selected.models = 'all',
-      binary.meth = metrics,
-      filtered.meth = metrics,
-      compress = TRUE,
-      clamping.mask = T,
-      output.format = '.grd')
+     myBiomodProj <- BIOMOD_Projection(
+     modeling.output = myBiomodModelOut,
+     new.env = myExpl,
+     proj.name = 'current',
+     selected.models = 'all',
+     binary.meth = metrics,
+     filtered.meth = metrics,
+     compress = TRUE,
+     clamping.mask = T,
+     output.format = '.grd')
     
     #print(paste0("Projecting onto Future (2070) for ",myRespName))
     # future projections for rcp 85 period 70
-    myBiomodProjFuture70 <- BIOMOD_Projection(
-      modeling.output = myBiomodModelOut,
-      new.env = myExplFuture70,
-      proj.name = 'rcp85_70',
-      selected.models = 'all',
-      binary.meth = metrics,
-      filtered.meth = metrics,
-      compress = TRUE,
-      clamping.mask = T,
-      output.format = '.grd')
+     myBiomodProjFuture70 <- BIOMOD_Projection(
+       modeling.output = myBiomodModelOut,
+       new.env = myExplFuture70,
+       proj.name = 'rcp85_70',
+       selected.models = 'all',
+       binary.meth = metrics,
+       filtered.meth = metrics,
+       compress = TRUE,
+       clamping.mask = T,
+       output.format = '.grd')
     
-    #print(paste0("Projecting  onto Future (2050) for ",myRespName))
+     #print(paste0("Projecting  onto Future (2050) for ",myRespName))
     # future projections for rcp 85 period 50
-    myBiomodProjFuture50 <- BIOMOD_Projection(
-      modeling.output = myBiomodModelOut,
-      new.env = myExplFuture50,
-      proj.name = 'rcp85_50',
-      selected.models = 'all',
-      binary.meth = metrics,
-      filtered.meth = metrics,
-      compress = TRUE,
-      clamping.mask = T,
-      output.format = '.grd')
+     myBiomodProjFuture50 <- BIOMOD_Projection(
+       modeling.output = myBiomodModelOut,
+       new.env = myExplFuture50,
+       proj.name = 'rcp85_50',
+       selected.models = 'all',
+       binary.meth = metrics,
+       filtered.meth = metrics,
+        compress = TRUE,
+       clamping.mask = T,
+       output.format = '.grd')
     
     #do.call(file.remove,list(list.files(pattern="temp*"))) 
     
@@ -200,8 +142,8 @@ BioModApply <-function(sp.n) {
     # FORECAST EMSEMBLE MODELS BY CHOSEN METRICS
     #################################################################
     setwd(dir_bm) 
-    bm_em.out_file <- load(paste0(getwd(),"/",myRespName,"/",myRespName,".",myRespName,"_current.emsemble.models.out"))
-    myBiomodModelOut <- get(bm_em.out_file)
+    bm_em.out_file <- load(paste0(getwd(),"/",myRespName,"/",myRespName,".",myRespName,"_currentensemble.models.out"))
+    myBiomodEM <- get(bm_em.out_file)
     
     #print(paste0("Performing Ensemble Forcasting onto Current Data for ",myRespName))
     
