@@ -205,28 +205,15 @@ maices_EA<-spTransform(maices,equalarea)
 
 # add new coordinates to dataframe
 
-maices_EA@data[,c("X_Lambert","Y_Lambert")]<-coordinates(maices_EA)
+maices_EA@data[,c("X_Albers","Y_Albers")]<-coordinates(maices_EA)
 maices@data[,c("X_Long","Y_Lat")]<-coordinates(maices)
 
 
 # extract coordinates as xy object for lets.presab.points
 
-xy_EA<-cbind(maices_EA@data$X_Lambert,maices_EA@data$Y_Lambert)
+xy_EA<-cbind(maices_EA@data$X_Albers,maices_EA@data$Y_Albers)
 
 xy<-cbind(maices@data$X_Long,maices@data$Y_Lat)
-
-
-
-
-
-
-
-# install.packages("letsR")
-
-library(letsR)
-library(raster)
-
-
 
 # use template wgs raster for environmental predictors to create presence/absence matrix
 
@@ -252,12 +239,12 @@ r_extent<-extent(r) #(in equalarea projection)
 
 # use template raster extent as domain for presence/absence matrix
 PA_EA<-letsR::lets.presab.points(xy_EA,maices_EA@data$Raza_prima,xmn= rSp_extent@xmin, xmx= rSp_extent@xmax   , ymn=rSp_extent@ymin , ymx= rSp_extent@xmax, resol = res(c(rSp)),crs =equalarea,remove.cells=FALSE,remove.sp=FALSE)
-PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn= r_extent@xmin, xmx= r_extent@xmax   , ymn=r_extent@ymin , ymx= r_extent@xmax, resol = res(c(r)),crs =latlong,remove.cells=FALSE,remove.sp=FALSE)
+#PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn= r_extent@xmin, xmx= r_extent@xmax   , ymn=r_extent@ymin , ymx= r_extent@xmax, resol = res(c(r)),crs =latlong,remove.cells=FALSE,remove.sp=FALSE)
 
 
 # extract matrix from presence/absence object
 pam_EA<-PA_EA$Presence_and_Absence_Matrix
-pam<-PA$Presence_and_Absence_Matrix
+#pam<-PA$Presence_and_Absence_Matrix
 
 #View(pam_EA)
 
@@ -268,32 +255,32 @@ pam_EA[pam_EA == 0 ] <- NA
 #View(pam_EA)
 pa_EA<-data.frame(pam_EA)
 
-pam[pam == 0 ] <- NA
-#View(pam_EA)
-pa<-data.frame(pam)
+#pam[pam == 0 ] <- NA
+#View(pam)
+#pa<-data.frame(pam)
 
 
-# set encoding for file to preserve Spanish encoding
+# # set encoding for file to preserve Spanish encoding
 pa_df_fn_EA<-paste0(dir_out,"/pa_dataframe_EA.csv")
 pam_fn_EA<-paste0(dir_out,"/pam_EA.csv")
 
 con_pa_EA<-file(pa_df_fn_EA,encoding="LATIN1")
 con_pam_EA<-file(pam_fn_EA,encoding="LATIN1")
 
-pa_df_fn<-paste0(dir_out,"/pa_dataframe.csv")
-pam_fn<-paste0(dir_out,"/pam.csv")
+#pa_df_fn<-paste0(dir_out,"/pa_dataframe.csv")
+#pam_fn<-paste0(dir_out,"/pam.csv")
 
-con_pa<-file(pa_df_fn,encoding="LATIN1")
-con_pam<-file(pam_fn,encoding="LATIN1")
+#con_pa<-file(pa_df_fn,encoding="LATIN1")
+#con_pam<-file(pam_fn,encoding="LATIN1")
 
 
-# write csvs and save images
+# # write csvs and save images
 
 write.csv(pa_EA,file=con_pa_EA)
 write.csv(pam_EA,file=con_pam_EA)
 
-write.csv(pa,file=con_pa)
-write.csv(pam,file=con_pam)
+#write.csv(pa,file=con_pa)
+#write.csv(pam,file=con_pam)
 
 
 save.image(file=paste0(dir_maices,"/clean_maices_obs.RData"))
