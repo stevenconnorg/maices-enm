@@ -212,7 +212,8 @@ maices@data[,c("X_Long","Y_Lat")]<-coordinates(maices)
 # extract coordinates as xy object for lets.presab.points
 
 xy_EA<-cbind(maices_EA@data$X_Lambert,maices_EA@data$Y_Lambert)
-xy<-cbind(maices@data$X_Long,maices_EA@data$Y_Lat)
+
+xy<-cbind(maices@data$X_Long,maices@data$Y_Lat)
 
 
 
@@ -250,7 +251,7 @@ r_extent<-extent(r) #(in equalarea projection)
 # ymax        : 1148009
 
 # use template raster extent as domain for presence/absence matrix
-PA_EA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn= rSp_extent@xmin, xmx= rSp_extent@xmax   , ymn=rSp_extent@ymin , ymx= rSp_extent@xmax, resol = res(c(rSp)),crs =equalarea,remove.cells=FALSE,remove.sp=FALSE)
+PA_EA<-letsR::lets.presab.points(xy_EA,maices_EA@data$Raza_prima,xmn= rSp_extent@xmin, xmx= rSp_extent@xmax   , ymn=rSp_extent@ymin , ymx= rSp_extent@xmax, resol = res(c(rSp)),crs =equalarea,remove.cells=FALSE,remove.sp=FALSE)
 PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn= r_extent@xmin, xmx= r_extent@xmax   , ymn=r_extent@ymin , ymx= r_extent@xmax, resol = res(c(r)),crs =latlong,remove.cells=FALSE,remove.sp=FALSE)
 
 
