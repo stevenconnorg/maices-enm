@@ -189,13 +189,14 @@ library(rgdal)
 maices<-readOGR(dsn=paste0(dir_maices,"/todos-maices-cleaned.shp"),layer="todos-maices-cleaned")
 # project maize observations to equal area projection
 
-# proj4string for mexico lambert conformal conic
+# proj4string for Mexico Albers Equal Area Conic
 
-# http://spatialreference.org/ref/sr-org/mexico-inegi-lambert-conformal-conic/
+# http://spatialreference.org/ref/sr-org/38/
 
 
 
-equalarea<-CRS("+proj=lcc +lat_1=17.5 +lat_2=29.5 +lat_0=12 +lon_0=-102 +x_0=2500000 +y_0=0 +a=6378137 +b=6378136.027241431 +units=m +no_defs")
+equalarea<-CRS("+proj=aea +lat_1=14.5 +lat_2=32.5 +lat_0=24 +lon_0=-105 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+latlong<-CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 
 maices_EA<-spTransform(maices,equalarea)
 
@@ -211,7 +212,6 @@ maices@data[,c("X_Long","Y_Lat")]<-coordinates(maices)
 # extract coordinates as xy object for lets.presab.points
 
 xy_EA<-cbind(maices_EA@data$X_Lambert,maices_EA@data$Y_Lambert)
-
 xy<-cbind(maices@data$X_Long,maices_EA@data$Y_Lat)
 
 
@@ -223,18 +223,16 @@ xy<-cbind(maices@data$X_Long,maices_EA@data$Y_Lat)
 # install.packages("letsR")
 
 library(letsR)
+library(raster)
 
 
 
 # use template wgs raster for environmental predictors to create presence/absence matrix
 
 r<-raster(nrow=2304,ncol=3770)
-
 extent(r)<-c(-117.625,-86.20833,14.025,33.225)
-
 r
-
-crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+crs(r) <- latlong
 
 
 
@@ -243,17 +241,23 @@ crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 rSp<-projectRaster(r,crs=equalarea)
 
 # get extent of object
-extent(rSp) #(in equalarea projection)
-# xmin        : 797974
-# xmax        : 4220224 
-# ymin        : 223559.8
-# ymax        : 2449836
+rSp_extent<-extent(rSp) #(in equalarea projection)
+r_extent<-extent(r) #(in equalarea projection)
+
+# xmin        : -1368813
+# xmax        : 2031507  
+# ymin        : -1117875
+# ymax        : 1148009
 
 # use template raster extent as domain for presence/absence matrix
-PA_EA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn= 797974, xmx= 4220224   , ymn=223559.8 , ymx= 2449836, resol = res(c(rSp)),crs =equalarea,remove.cells=FALSE,remove.sp=FALSE)
+PA_EA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn= rSp_extent@xmin, xmx= rSp_extent@xmax   , ymn=rSp_extent@ymin , ymx= rSp_extent@xmax, resol = res(c(rSp)),crs =equalarea,remove.cells=FALSE,remove.sp=FALSE)
+PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn= r_extent@xmin, xmx= r_extent@xmax   , ymn=r_extent@ymin , ymx= r_extent@xmax, resol = res(c(r)),crs =latlong,remove.cells=FALSE,remove.sp=FALSE)
+
 
 # extract matrix from presence/absence object
 pam_EA<-PA_EA$Presence_and_Absence_Matrix
+pam<-PA$Presence_and_Absence_Matrix
+
 #View(pam_EA)
 
 
@@ -263,15 +267,23 @@ pam_EA[pam_EA == 0 ] <- NA
 #View(pam_EA)
 pa_EA<-data.frame(pam_EA)
 
+pam[pam == 0 ] <- NA
+#View(pam_EA)
+pa<-data.frame(pam)
 
 
 # set encoding for file to preserve Spanish encoding
 pa_df_fn_EA<-paste0(dir_out,"/pa_dataframe_EA.csv")
 pam_fn_EA<-paste0(dir_out,"/pam_EA.csv")
 
-con_pa_EA<-file(pa_df_fn,encoding="LATIN1")
-con_pam_EA<-file(pam_fn,encoding="LATIN1")
+con_pa_EA<-file(pa_df_fn_EA,encoding="LATIN1")
+con_pam_EA<-file(pam_fn_EA,encoding="LATIN1")
 
+pa_df_fn<-paste0(dir_out,"/pa_dataframe.csv")
+pam_fn<-paste0(dir_out,"/pam.csv")
+
+con_pa<-file(pa_df_fn,encoding="LATIN1")
+con_pam<-file(pam_fn,encoding="LATIN1")
 
 
 # write csvs and save images
@@ -279,6 +291,8 @@ con_pam_EA<-file(pam_fn,encoding="LATIN1")
 write.csv(pa_EA,file=con_pa_EA)
 write.csv(pam_EA,file=con_pam_EA)
 
+write.csv(pa,file=con_pa)
+write.csv(pam,file=con_pam)
 
 
 save.image(file=paste0(dir_maices,"/clean_maices_obs.RData"))
