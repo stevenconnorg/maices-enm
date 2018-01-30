@@ -197,21 +197,24 @@ maices<-readOGR(dsn=paste0(dir_maices,"/todos-maices-cleaned.shp"),layer="todos-
 
 equalarea<-CRS("+proj=lcc +lat_1=17.5 +lat_2=29.5 +lat_0=12 +lon_0=-102 +x_0=2500000 +y_0=0 +a=6378137 +b=6378136.027241431 +units=m +no_defs")
 
-maices<-spTransform(maices,equalarea)
-
+maices_EA<-spTransform(maices,equalarea)
 
 
 
 
 # add new coordinates to dataframe
 
-maices@data[,c("X_Lambert","Y_Lambert")]<-coordinates(maices)
-
+maices_EA@data[,c("X_Lambert","Y_Lambert")]<-coordinates(maices_EA)
+maices@data[,c("X_Long","Y_Lat")]<-coordinates(maices)
 
 
 # extract coordinates as xy object for lets.presab.points
 
-xy<-cbind(maices@data$X_Lambert,maices@data$Y_Lambert)
+xy_EA<-cbind(maices_EA@data$X_Lambert,maices_EA@data$Y_Lambert)
+
+xy<-cbind(maices@data$X_Long,maices_EA@data$Y_Lat)
+
+
 
 
 
@@ -239,71 +242,42 @@ crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 
 rSp<-projectRaster(r,crs=equalarea)
 
-
-
 # get extent of object
-
-extent(rSp)
-
-
-
-# extent(rSp) #(in equalarea projection)
-
+extent(rSp) #(in equalarea projection)
 # xmin        : 797974
-
 # xmax        : 4220224 
-
 # ymin        : 223559.8
-
 # ymax        : 2449836
 
-
-
 # use template raster extent as domain for presence/absence matrix
-
-# 1000 resolution = 1 km (?)
-
-
-
-PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn= 797974, xmx= 4220224   , ymn=223559.8 , ymx= 2449836, resol = 1000,crs =equalarea,remove.cells=FALSE,remove.sp=FALSE)
-
-
+PA_EA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn= 797974, xmx= 4220224   , ymn=223559.8 , ymx= 2449836, resol = res(c(rSp)),crs =equalarea,remove.cells=FALSE,remove.sp=FALSE)
 
 # extract matrix from presence/absence object
-
-pam<-PA$Presence_and_Absence_Matrix
-
-View(pam)
+pam_EA<-PA_EA$Presence_and_Absence_Matrix
+#View(pam_EA)
 
 
 
 # set zero values to NA (not true absences)
-
-pam[pam == 0 ] <- NA
-
-View(pam)
-
-pa<-data.frame(pam)
+pam_EA[pam_EA == 0 ] <- NA
+#View(pam_EA)
+pa_EA<-data.frame(pam_EA)
 
 
 
 # set encoding for file to preserve Spanish encoding
+pa_df_fn_EA<-paste0(dir_out,"/pa_dataframe_EA.csv")
+pam_fn_EA<-paste0(dir_out,"/pam_EA.csv")
 
-pa_df_fn<-paste0(dir_out,"/pa_dataframe_EA.csv")
-
-pam_fn<-paste0(dir_out,"/pam_EA.csv")
-
-con_pa<-file(pa_df_fn,encoding="LATIN1")
-
-con_pam<-file(pam_fn,encoding="LATIN1")
+con_pa_EA<-file(pa_df_fn,encoding="LATIN1")
+con_pam_EA<-file(pam_fn,encoding="LATIN1")
 
 
 
 # write csvs and save images
 
-write.csv(pa,file=con_pa)
-
-write.csv(pam,file=con_pam)
+write.csv(pa_EA,file=con_pa_EA)
+write.csv(pam_EA,file=con_pam_EA)
 
 
 
