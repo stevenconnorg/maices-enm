@@ -238,12 +238,12 @@ r_extent<-extent(r) #(in equalarea projection)
 # ymax        : 1148009
 
 # use template raster extent as domain for presence/absence matrix
-PA_EA<-letsR::lets.presab.points(xy_EA,maices_EA@data$Raza_prima,xmn= rSp_extent@xmin, xmx= rSp_extent@xmax   , ymn=rSp_extent@ymin , ymx= rSp_extent@xmax, resol = res(c(rSp)),crs =equalarea,remove.cells=FALSE,remove.sp=FALSE)
+PA_EA<-letsR::lets.presab.points(xy_EA,maices_EA@data$Raza_prima,xmn= rSp_extent@xmin, xmx= rSp_extent@xmax   , ymn=rSp_extent@ymin , ymx= rSp_extent@xmax, resol = res(rSp),crs =equalarea,show.matrix=TRUE,remove.cells=FALSE,remove.sp=FALSE)
 #PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn= r_extent@xmin, xmx= r_extent@xmax   , ymn=r_extent@ymin , ymx= r_extent@xmax, resol = res(c(r)),crs =latlong,remove.cells=FALSE,remove.sp=FALSE)
 
 
 # extract matrix from presence/absence object
-pam_EA<-PA_EA$Presence_and_Absence_Matrix
+pam_EA<-PA_EA
 #pam<-PA$Presence_and_Absence_Matrix
 
 #View(pam_EA)
