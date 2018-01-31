@@ -186,6 +186,7 @@ unique(maices@data$Complejo_r)
 
 # make presence/absence matrix
 library(rgdal)
+library(raster)
 maices<-readOGR(dsn=paste0(dir_maices,"/todos-maices-cleaned.shp"),layer="todos-maices-cleaned")
 # project maize observations to equal area projection
 
