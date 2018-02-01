@@ -1,11 +1,17 @@
+sessionInfo()
+
 #SLURMdat<-load("hpc.RData")
 # establish directories
+
+print("Setting Root Directory")
 root<-"/gpfs/home/scg67/thesis"
 #root<-"E:/thesis"
 setwd(root)
 getwd()
 # new directories for biomod
 
+
+print("Establishing directories")
 dir_dat<-paste0(root,"/01_data")
 dir_R<-paste0(root,"/02_R")
 dir_out<-paste0(root,"/03_output")
@@ -41,6 +47,7 @@ library(mgcv)
 # PRELIMINARY DATA FORMATTING
 #################################################################
 
+print("Reading in Presence/Absence Matrix")
 
 ### read in PAM with projected coordinates
 pam<-read.csv(file=paste0(dir_out,"/pa_dataframe_EA.csv"))
@@ -54,13 +61,19 @@ pa_sp.n<-pa[ , !(names(pa) %in% drops)]
 
 colnames(pa)
 
+print("Filtering varieties with > 14 observations:")
+
 i <- (colSums(pa_sp.n,na.rm=T)) > 14 # filter species by obs count
 pa_sp.n<-pa_sp.n[,i]
 colnames(pa_sp.n)
 
 names<-paste0(colnames(pa_sp.n))
 sp.n= dput(names) # keep only species name, remove lat/long/etc. 
+
+print("The species to be modeled:")
+print("")
 sp.n
+
 
 ###################################
 ## original version, untransformed
@@ -84,17 +97,26 @@ sp.n
 # read in model raster stacks with EQUAL AREA PROJECTION
 library(raster)
 
+print("Reading in Equal-Area modeling raster stack:")
 presmodstack<-stack(paste0(dir_stacks,"present_modstack_EA.grd"))
-f50modstack<-stack(paste0(dir_stacks,"f50_modstack_EA.grd"))
-f70modstack<-stack(paste0(dir_stacks,"f70_modstack_EA.grd"))
+r<-raster(nrow=nrow(presmodstack),ncol=ncol(presmodstack))
+extent(r)<-extent(presmodstack)
+res(r)<-1000
+crs(r)<-crs(presmodstack)
+presmodstack<-resample(presmodstack,r,method="bilinear")
+presmodstack
+print("Reading in Lat/Long projection raster stacks:")
 
-names(presmodstack)
-names(f50modstack)
-names(f70modstack)
+presmodstack_proj<-stack(paste0(dir_stacks,"present_modstack.grd"))
+f50modstack_proj<-stack(paste0(dir_stacks,"f50_modstack.grd"))
+f70modstack_proj<-stack(paste0(dir_stacks,"f70_modstack.grd"))
+
 
 # plot(f50modstack)
 # plot(presmodstack)
 # plot(f70modstack)
+
+print("Reading in estimated prevalence .csv:")
 
 prev<-read.csv(file.path(dir_maices,"tau.csv"))
 prev<-as.data.frame(prev)
@@ -104,14 +126,12 @@ prev<-as.data.frame(prev)
 # INITIALIZE FUNCTION TO APPLY TO EACH VARIETY
 #################################################################
 
-allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips","MAXENT.Tsuruoka")
-models = c("MAXENT.Phillips")
-metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
-
 
 # following https://rpubs.com/dgeorges/190889
+print("Setting Working Directory:")
 
-#setwd(dir_bm) 
+setwd(dir_bm) 
+
 #maxent.background.dat.dir <- paste0(getwd(),"/maxent_bg")
 #dir.create(maxent.background.dat.dir, showWarnings = FALSE, recursive = TRUE)
 
@@ -131,21 +151,30 @@ metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI
 
 
 
-setwd(dir_bm) 
 #options(max.print=1000000)  # set max.print option high to capture outputs
 #path.to.maxent.jar<-file.path(getwd(),"maxent.jar") # define maxent jar location
 
+
+print("Establishing Function BioModApply() :")
+
 BioModApply <-function(sp.n) {
   tryCatch({
-    
+    setwd(dir_bm)
     myRespName = sp.n
     #myRespName = sp.n[1]
     myResp <- as.numeric(pa[,myRespName])
     myRespXY = pa[,c('Longitude.x.','Latitude.y.')] # actually x, y in lambert conformal # letsR::presab points makes column names long/lat
     
     myExpl<-presmodstack
-    myExplFuture50<-f50modstack
-    myExplFuture70<-f70modstack
+    myExpl_proj<-presmodstack_proj
+    myExplFuture50<-f50modstack_proj
+    myExplFuture70<-f70modstack_proj
+    
+    
+    
+    allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips","MAXENT.Tsuruoka")
+    models = c("MAXENT.Phillips")
+    metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
     
     #load("/gpfs/home/scg67/thesis/02_R/maices-enm/.RData")
     #rasterOptions()$tmpdir      # get raster temp director
@@ -177,7 +206,7 @@ BioModApply <-function(sp.n) {
                                          resp.name = myRespName,
                                          na.rm=TRUE,
                                          PA.nb.rep =1,
-                                         PA.nb.absences = 10000,
+                                         PA.nb.absences = 20000,
                                          PA.strategy = 'random'
     )
     
@@ -196,90 +225,129 @@ BioModApply <-function(sp.n) {
     library(gam)
 
     # edit default options accordingly
-    BIOMOD_ModelOptions <- BIOMOD_ModelingOptions(GLM = list( type = 'quadratic',      
-                                                              interaction.level = 0,
-                                                              myFormula = NULL,
-                                                              test = 'AIC',           # tk BIC? 
-                                                              family = binomial(link = 'logit'),
-                                                              mustart = 0.5,
-                                                              control = glm.control(epsilon = 1e-08, maxit = 50, trace = FALSE) ),
-                                                  
-                                                  
-                                                  GBM = list( distribution = 'bernoulli',
-                                                              n.trees = 2500,
-                                                              interaction.depth = 7,
-                                                              n.minobsinnode = 5,
-                                                              shrinkage = 0.001,
-                                                              bag.fraction = 0.5,
-                                                              train.fraction = 1,
-                                                              cv.folds = 3,
-                                                              keep.data = FALSE,
-                                                              verbose = FALSE,
-                                                              perf.method = 'cv'),
-                                                  
-                                                  GAM = list(algo = 'GAM_mgcv', type = 's_smoother', k = NULL, 
-                                                             interaction.level = 0, 
-                                                             myFormula = NULL, 
-                                                             family = 'binomial', 
-                                                             control = gam.control(epsilon = 1e-06, trace = FALSE, maxit = 100)),
-                                                  
-                                                  CTA = list( method = 'class',
-                                                              parms = 'default',
-                                                              cost = NULL,
-                                                              control = list(xval = 5, minbucket = 5, minsplit = 5, cp = 0.01, maxdepth = 25) ),
-                                                  
-                                                  
-                                                  ANN = list( NbCV = 5,
-                                                              size = NULL,
-                                                              decay = NULL,
-                                                              rang = 0.1,
-                                                              maxit = 200),
-                                                  
-                                                  SRE = list( quant = 0.025),
-                                                  
-                                                  FDA = list( method = 'mars',
-                                                              add_args = NULL),
-                                                  
-                                                  MARS = list( type = 'simple',
-                                                               interaction.level = 0,
-                                                               myFormula = NULL,
-                                                               nk = NULL,
-                                                               penalty = 2,
-                                                               thresh = 0.001,
-                                                               nprune = NULL,
-                                                               pmethod = 'backward'),
-                                                  
-                                                  RF = list( do.classif = TRUE,
-                                                             ntree = 500,
-                                                             mtry = 'default',
-                                                             nodesize = 5,
-                                                             maxnodes = NULL),
-                                                  
-                                                  MAXENT.Phillips = list(memory_allocated = NULL,
-                                                                         #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
-                                                                         #maximumbackground = 10000,
-                                                    maximumiterations = 10000,
-                                                    visible = FALSE,
-                                                    linear = FALSE,
-                                                    quadratic = TRUE,
-                                                    product = FALSE,
-                                                    threshold = FALSE,
-                                                    hinge = TRUE,
-                                                    #lq2lqptthreshold = 80,
-                                                    #l2lqthreshold = 10,
-                                                    #hingethreshold = 10,
-                                                    #beta_threshold = -1,
-                                                    #beta_categorical = -1,
-                                                    #beta_lqp = -1,
-                                                    beta_hinge = -1,
-                                                    betamultiplier = 2.0,
-                                                    defaultprevalence = 0.1),
-                                                  
-                                                  MAXENT.Tsuruoka = list( l1_regularizer = 0,
-                                                                          l2_regularizer = 0,
-                                                                          use_sgd = FALSE,
-                                                                          set_heldout = 0,
-                                                                          verbose = FALSE))
+    BIOMOD_ModelOptions <-
+      BIOMOD_ModelingOptions(
+        
+        GLM = list(
+          type = 'quadratic',
+          interaction.level = 0,
+          myFormula = NULL,
+          test = 'AIC',
+          # tk BIC?
+          family = binomial(link = 'logit'),
+          mustart = 0.5,
+          control = glm.control(
+            epsilon = 1e-08,
+            maxit = 50,
+            trace = FALSE
+          )
+        ),
+        
+        
+        GBM = list(
+          distribution = 'bernoulli',
+          n.trees = 2500,
+          interaction.depth = 7,
+          n.minobsinnode = 5,
+          shrinkage = 0.001,
+          bag.fraction = 0.5,
+          train.fraction = 1,
+          cv.folds = 3,
+          keep.data = FALSE,
+          verbose = FALSE,
+          perf.method = 'cv'
+        ),
+        
+        GAM = list(
+          algo = 'GAM_mgcv',
+          type = 's_smoother',
+          k = NULL,
+          interaction.level = 0,
+          myFormula = NULL,
+          family = 'binomial',
+          control = gam.control(
+            epsilon = 1e-06,
+            trace = FALSE,
+            maxit = 100
+          )
+        ),
+        
+        CTA = list(
+          method = 'class',
+          parms = 'default',
+          cost = NULL,
+          control = list(
+            xval = 5,
+            minbucket = 5,
+            minsplit = 5,
+            cp = 0.01,
+            maxdepth = 25
+          )
+        ),
+        
+        
+        ANN = list(
+          NbCV = 5,
+          size = NULL,
+          decay = NULL,
+          rang = 0.1,
+          maxit = 200
+        ),
+        
+        SRE = list(quant = 0.025),
+        
+        FDA = list(method = 'mars',
+                   add_args = NULL),
+        
+        MARS = list(
+          type = 'simple',
+          interaction.level = 0,
+          myFormula = NULL,
+          nk = NULL,
+          penalty = 2,
+          thresh = 0.001,
+          nprune = NULL,
+          pmethod = 'backward'
+        ),
+        
+        RF = list(
+          do.classif = TRUE,
+          ntree = 500,
+          mtry = 'default',
+          nodesize = 5,
+          maxnodes = NULL
+        ),
+        
+        MAXENT.Phillips = list(
+          memory_allocated = 8192,
+          #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
+          #maximumbackground = 10000,
+          maximumiterations = 10000,
+          visible = FALSE,
+          linear = FALSE,
+          quadratic = FALSE,
+          product = FALSE,
+          threshold = FALSE,
+          hinge = TRUE,
+          #lq2lqptthreshold = 80,
+          #l2lqthreshold = 10,
+          #hingethreshold = 10,
+          #beta_threshold = -1,
+          #beta_categorical = -1,
+          #beta_lqp = -1,
+          beta_hinge = -1,
+          betamultiplier = 2.5,
+          defaultprevalence = 0.1
+        ),
+        
+        MAXENT.Tsuruoka = list(
+          l1_regularizer = 0,
+          l2_regularizer = 0,
+          use_sgd = FALSE,
+          set_heldout = 0,
+          verbose = FALSE
+        )
+      )
     
     #bm.opt.maxent.bg <- BIOMOD_ModelingOptions(MAXENT.Phillips = list(#memory_allocated = 8192,
     #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
@@ -316,19 +384,20 @@ BioModApply <-function(sp.n) {
     #library(ENMeval)
     
     #source(paste0(dir_R,"/maices-enm/BIOMOD.tuning_v6.R"))
-    #BIOMOD_TunedOptions <- BIOMOD_tuning(myBiomodData,
-    #                                     models="MAXENT.Phillips",
-    #                                env.ME = myExpl,
-    #                                models.options = bm.opt.maxent.bg,
-    #                                n.bg.ME = ncell(myExpl),
-    #                                metric.ME = "ROC"
-    #                                )
-    #
-    #if( exists("BIOMOD_TunedOptions") )
+    #BIOMOD_TunedOptions <- BIOMOD_tuning(
+    #  myBiomodData,
+    #  models = "MAXENT.Phillips",
+    #  env.ME = myExpl,
+    #  models.options = bm.opt.maxent.bg,
+    #  n.bg.ME = ncell(myExpl),
+    #  metric.ME = "ROC"
+    #)
+    
+    #if (exists("BIOMOD_TunedOptions"))
     #{
-    #  BIOMOD_TunedOptions<-get("BIOMOD_TunedOptions")
-    #  BIOMOD_ModelOptions<-BIOMOD_TunedOptions$models.options
-    # 
+    #  BIOMOD_TunedOptions <- get("BIOMOD_TunedOptions")
+    #  BIOMOD_ModelOptions <- BIOMOD_TunedOptions$models.options
+    #  
     #}
     
     
@@ -380,61 +449,72 @@ BioModApply <-function(sp.n) {
     
     myBiomodModelOut <-
       BIOMOD_Modeling(
-        myBiomodData, 
-        models = c("MAXENT.Phillips"), 
-        models.options = BIOMOD_ModelOptions, 
-        NbRunEval=25,
-        DataSplit=70, 
-        # Yweights=sp_weights,
-        prevalence = prev$tau[prev$Raza_prima==myRespName], # use estimated tau from Perales et al 2015 for prevalence
-        VarImport=10,
+        myBiomodData,
+        models = c("MAXENT.Phillips"),
+        models.options = BIOMOD_ModelOptions,
+        NbRunEval = 20,
+        DataSplit = 70,
+        Prevalence = prev$tau[prev$Raza_prima == myRespName],
+        # use estimated tau using Perales et al 2015 outputs 
+        VarImport = 5,
         models.eval.meth = metrics,
         SaveObj = TRUE,
         rescal.all.models = FALSE,
         do.full.models = FALSE,
-        modeling.id = paste0(myRespName,"_current"))
+        modeling.id = paste0(myRespName, "_current")
+      )
     
     #do.call(file.remove,list(list.files(pattern="temp*"))) 
     
     #print(paste0("Done Running Models for ",sp.n))
     
-    dir.create(paste0(dir_out,"/",myRespName))
-    
-    
+
+    if (exists("myBiomodModelOut"))
+    {
+      myBiomodModelOut <- get("myBiomodModelOut")
+      
     
     #################################################################
     # CAPTURE DATA INPUT AND MODEL OUTPUTS
     #################################################################
     
+	dir.create(paste0(dir_out, "/", myRespName),showWarnings = FALSE)
+    
     # write data used for modelling
-    capture.output(get_formal_data(myBiomodModelOut),
-                   file=paste0(dir_out,"/",myRespName,"/",myRespName,"_model_data.txt"))
-
+    capture.output(
+      get_formal_data(myBiomodModelOut),
+      file = paste0(dir_out, "/", myRespName, "/", myRespName, "_model_data.txt")
+    )
+    
     # get model evaluations by metrics
-    evalmods<-get_evaluations(myBiomodModelOut,as.data.frame=TRUE)
-    evalmods$variety<-myRespName
-    write.csv(evalmods,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_models_eval.csv"))
+    evalmods <- get_evaluations(myBiomodModelOut, as.data.frame = TRUE)
+    evalmods$variety <- myRespName
+    write.csv(evalmods,
+              file = paste0(dir_out, "/", myRespName, "/", myRespName, "_models_eval.csv"))
     
     ### get variable importance
-    modevalimport<-get_variables_importance(myBiomodModelOut,as.data.frame=TRUE)
+    modevalimport <-
+      get_variables_importance(myBiomodModelOut, as.data.frame = TRUE)
     colnames(modevalimport)
-
-    write.csv(modevalimport,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_var_imp.csv"))
-
+    
+    write.csv(modevalimport,
+              file = paste0(dir_out, "/", myRespName, "/", myRespName, "_var_imp.csv"))
+    
+    
+	
     # #################################################################
     # BUILD ENSEMBLE MODELS
     #################################################################
-    
     #print(paste0("Building Ensemble Models for ",myRespName))
     
     # ensemble modeling
     myBiomodEM <- BIOMOD_EnsembleModeling(
       modeling.output = myBiomodModelOut,
       chosen.models = 'all',
-      em.by='algo',
+      em.by = 'all',
       eval.metric = metrics,
       eval.metric.quality.threshold = NULL,
-      prob.mean = T,
+      prob.mean = F,
       prob.cv = T,
       prob.ci = T,
       prob.ci.alpha = 0.05,
@@ -442,7 +522,8 @@ BioModApply <-function(sp.n) {
       committee.averaging = T,
       prob.mean.weight = T,
       prob.mean.weight.decay = "proportional",
-      VarImport = 10)
+      VarImport = 10
+    )
     
     #################################################################
     # CAPTURE ENSEMBLE MODEL OUTPUTS
@@ -451,52 +532,134 @@ BioModApply <-function(sp.n) {
     #print(paste0("Capturing Ensemble Model Outputs for  ",myRespName))
     
     # write em models built
-    capture.output(get_built_models (myBiomodEM),
-                   file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_models.txt"))
+    capture.output(
+      get_built_models (myBiomodEM),
+      file = paste0(dir_out, "/", myRespName, "/", myRespName, "_em_models.txt")
+    )
     
-    # capture em model evals 
+    # capture em model evals
     #print(paste0("Capturing Ensemble Models Evaluations ",myRespName))
-    evalmodsEM<-get_evaluations(myBiomodEM,as.data.frame=TRUE)
-    evalmodsEM$variety<-myRespName
-    write.csv(evalmodsEM,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_models_EM_eval.csv"))
+    evalmodsEM <- get_evaluations(myBiomodEM, as.data.frame = TRUE)
+    evalmodsEM$variety <- myRespName
+    write.csv(evalmodsEM,
+              file = paste0(
+                dir_out,
+                "/",
+                myRespName,
+                "/",
+                myRespName,
+                "_models_EM_eval.csv"
+              ))
     
-    #do.call(file.remove,list(list.files(pattern="temp*"))) 
+    #do.call(file.remove,list(list.files(pattern="temp*")))
     
     ### eval current model
     
     #print(paste0("Capturing Model Ensemble Evaluations for ",myRespName))
-    enevalmods<-get_evaluations(myBiomodEM,as.data.frame=TRUE)
-    write.csv(enevalmods,file=paste0(dir_out,"/",myRespName,"/",myRespName,"_em_evals-df.csv"))
+    enevalmods <- get_evaluations(myBiomodEM, as.data.frame = TRUE)
+    write.csv(enevalmods,
+              file = paste0(dir_out, "/", myRespName, "/", myRespName, "_em_evals-df.csv"))
     
+        
+    } # if.exists biomodout > ensemble, project, then forecast
     
-    #unlink(rtmpdir,recursive=TRUE)
+  }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+  
+}
     
+
+#######
+# snowfall initialization
+#install.packages("Rmpi", lib="/gpfs/home/scg67/R/x86_64-pc-linux-gnu-library/3.4/", repos='http://cran.us.r-project.org')
+library(snowfall)
+library(Rmpi)
+library(raster)
+#args = commandArgs(trailingOnly = TRUE);
+#ncpus = args[1];
+
+# ------------------------------------------------------------------------
+# initialize parallel mode using SLURM and command-line args
+# ------------------------------------------------------------------------
+
+# # get number of SLURM tasks
+ntasks <- as.numeric(Sys.getenv("SLURM_NTASKS"))
+
+print(ntasks)
+print(class(ntasks))
+print(paste0(ntasks, " tasks"))
+
+# # get number of CPUs per node from SLURM
+ncputask <- as.numeric(Sys.getenv("SLURM_CPUS_ON_NODE"))
+print(ncputask)
+print(class(ncputask))
+print(paste0(ncputask, " N CPUs per task"))
+
+# # total cpus equals tasks * cpus per taks
+ncpus <- ncputask * ntasks
+print(paste0(ncpus, " CPUs"))
+
+# other options:
+#ncpus<-detectCores()
+#ncpus<-future::availableCores()
+#ncpus<-mpi.universe.size()-1
+
+sfSetMaxCPUs(ncpus)
+# # initialize cluster
+sfInit(parallel = TRUE,
+       cpus = ncpus,
+       type = "MPI",
+       slaveOutfile = paste0(Sys.getenv("SLURM_JOB_ID"),"_sfInit.log"))
+
+# # Export packages to snowfall
+print("Exporting packages to cluster")
+sfLibrary('biomod2', character.only = TRUE)
+sfLibrary('raster', character.only = TRUE)
+
+
+# # Export environment to snowfall
+print("Exporting environment to cluster")
+sfExportAll()
+
+# # Do the run
+# use sfClusterApplyLB when machines have different specs
+print("Running >> sfLapply(sp.n,BioModApply)") # sfLapply
+mySFModelsOut <- sfLapply(sp.n, BioModApply)
+
+
+    #################################################################
+    # GET PROJECTIONS
+    #################################################################
+
+# collect models that ran
+setwd(dir_bm) 
+model.files<-Sys.glob(paste0(getwd(),"/*/*","*_current.models.out")) # get model out files 
+model.dirs<-sub(paste0(getwd(),"/"),"",model.files) # remove everything from working directory path
+sp.n<-sub(" */.*", "",model.dirs) # remove everything before first slash to get variety names that have  model out files
+print("Models successfully ran for:")
+sp.n
+
+BioProjectApply <-function(sp.n) {
+  tryCatch({
+
+    setwd(dir_bm) 
+
+    bm_out_file <- load(paste0(getwd(),"/",sp.n,"/",sp.n,".",sp.n,"_current.models.out"))
+    myBiomodModelOut <- get(bm_out_file)
+
     # model projections
     myBiomodProj <- BIOMOD_Projection(
       modeling.output = myBiomodModelOut,
-      new.env = myExpl,
+      new.env = myExpl_proj,
       proj.name = 'current',
       selected.models = 'all',
       binary.meth = metrics,
-      filtered.meth = metrics,
-      compress = TRUE,
-      clamping.mask = T,
-      output.format = '.grd',
-      do.stack=FALSE)
-    
-    #print(paste0("Projecting onto Future (2070) for ",myRespName))
-    # future projections for rcp 85 period 70
-    myBiomodProjFuture70 <- BIOMOD_Projection(
-      modeling.output = myBiomodModelOut,
-      new.env = myExplFuture70,
-      proj.name = 'rcp85_70',
-      selected.models = 'all',
-      binary.meth = metrics,
-      filtered.meth = metrics,
-      compress = TRUE,
-      clamping.mask = T,
-      output.format = '.grd',
-      do.stack=FALSE)
+      compress = "gzip",
+      build.clamping.mask = T,
+      output.format = '.RData',
+      do.stack = FALSE,
+      keep.in.memory = FALSE,
+      silent = TRUE
+    )
     
     #print(paste0("Projecting  onto Future (2050) for ",myRespName))
     # future projections for rcp 85 period 50
@@ -506,23 +669,51 @@ BioModApply <-function(sp.n) {
       proj.name = 'rcp85_50',
       selected.models = 'all',
       binary.meth = metrics,
-      filtered.meth = metrics,
-      compress = TRUE,
-      clamping.mask = T,
-      output.format = '.grd',
-      do.stack=FALSE)
+      compress = "gzip",
+      build.clamping.mask = T,
+      output.format = '.RData',
+      do.stack = FALSE,
+      keep.in.memory = FALSE,
+      silent = TRUE
+    )
+    
+    #print(paste0("Projecting onto Future (2070) for ",myRespName))
+    # future projections for rcp 85 period 70
+    myBiomodProjFuture70 <- BIOMOD_Projection(
+      modeling.output = myBiomodModelOut,
+      new.env = myExplFuture70,
+      proj.name = 'rcp85_70',
+      selected.models = 'all',
+      binary.meth = metrics,
+      compress = "gzip",
+      build.clamping.mask = T,
+      output.format = '.RData',
+      do.stack = FALSE,
+      keep.in.memory = FALSE,
+      silent = TRUE
+    )
+    
+    #unlink(rtmpdir,recursive=TRUE)
     
     #print(paste0("Performing Ensemble Forcasting onto Current Data for ",myRespName))
+    #################################################################
+    # GET ENSEMBLE FORECASTS
+    #################################################################
+    
+
+    bm_emout_file <- load(paste0(getwd(),"/",sp.n,"/",sp.n,".",sp.n,"_currentensemble.models.out"))
+    myBiomodEM <- get(bm_emout_file)
+
     
     # current ensemble projection
     myBiomodEF <- BIOMOD_EnsembleForecasting(
       EM.output = myBiomodEM,
       projection.output = myBiomodProj,
       selected.models = 'all',
-      binary.meth=metrics,
-      filtered.meth=metrics,
-      compress=TRUE,
-      do.stack=FALSE)
+      binary.meth = metrics,
+      compress = "gzip",
+      total.consensus = TRUE
+    )
     
     #print(paste0("Performing Ensemble Forcasting onto Future (2070) Data for ",myRespName))
     
@@ -530,14 +721,14 @@ BioModApply <-function(sp.n) {
       EM.output = myBiomodEM,
       projection.output = myBiomodProjFuture70,
       selected.models = 'all',
-      binary.meth=metrics,
-      filtered.meth=metrics,
-      compress=TRUE,
-      do.stack=FALSE)
+      binary.meth = metrics,
+      compress = "gzip",
+      total.consensus = TRUE
+    )
     
     #cat("\n\nExporting Ensemble as grd ...\n\n")
     
-    #do.call(file.remove,list(list.files(pattern="temp*"))) 
+    #do.call(file.remove,list(list.files(pattern="temp*")))
     
     #print(paste0("Performing Ensemble Forcasting onto Future (2050) Data for ",myRespName))
     
@@ -545,182 +736,19 @@ BioModApply <-function(sp.n) {
       EM.output = myBiomodEM,
       projection.output = myBiomodProjFuture50,
       selected.models = 'all',
-      binary.meth=metrics,
-      filtered.meth=metrics,
-      compress=TRUE,
-      do.stack=FALSE)
-    
+      binary.meth = metrics,
+      compress = "gzip",
+      total.consensus = TRUE
+    )
     
   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   
 }
 
-#save.image()
+mySFProjOut <-sfLapply(sp.n, BioProjectApply)
+#mySFProjOut <-lapply(sp.n, BioProjectApply)
 
-
-#myModelsOutlapply <-lapply(sp.n,BioModApply)
-
-## alternatively with lapply
-# myLapply_SFModelsOut <- lapply( sp.n, BioModApply)
-
-# sph.umich.edu/biostat/computing/cluster/examples/r.html
-#library(Rmpi)
-
-# following http://www.glennklockwood.com/data-intensive/r/lapply-parallelism.html#3-1-lapply-halfway-to-parallel
-
-# cl <- makeCluster( mpi.universe.size(), type="MPI" )
-
-########
-#or try...  following https://rcc.uchicago.edu/docs/software/environments/R/index.html
-#np <- 27
-#cl <- makeMPIcluster(np)
-#worker.init <- function(packages) {
-#  for (p in packages) {
-#  library(p, character.only=TRUE) }
-#NULL }
-#clusterCall(cl, worker.init, c('biomod2','raster'))
-
-#clusterExport(cl,c('sp.n','SLURMdat','presmodstack','f50modstack','f70modstack'))
-#myModelsOut<-parLapply(cl,sp.n,BioModApply)
-#mySFModelsOutCL <- clusterApply(cl, sp.n,BioModApply)
-
-#stopCluster(cl)
-#mpi.exit()
-#########
-
-
-
-
-
-#########
-#library(Rmpi)
-# https://rcc.uchicago.edu/docs/software/environments/R/index.html
-# Initialize SNOW using MPI communication. The first line will get the number of
-# MPI processes the scheduler assigned to us. Everything else is standard SNOW
-
-
-#clusterExport(cl, SLURMdat)
-#mySFModelsOut<-parLapplyLB(cl,sp.n,BioModApply)
-#stopCluster(cl)
-#mpi.exit()
-
-
-
-# https://help.rc.ufl.edu/doc/R_MPI_Example
-#ns <- mpi.universe.size() - 1
-#mpi.spawn.Rslaves(nslaves=ns)
-#cluster <- makeMPIcluster(np)
-
-# Tell all slaves to return a message identifying themselves
-#mpi.bcast.cmd( id <- mpi.comm.rank() )
-#mpi.bcast.cmd( ns <- mpi.comm.size() )
-#mpi.bcast.cmd( host <- mpi.get.processor.name() )
-#mpi.remote.exec(paste("I am",mpi.comm.rank(),"of",mpi.comm.size()))
-
-#mpi.parLapply(sp.n,BioModApply)
-
-
-#mpi.close.Rslaves()
-#mpi.quit()
-
-########
-
-#mpi.spawn.Rslaves(); cl = getMPIcluster()
-
-
-
-## JOB 22645 -- WORKING??
-########
-#library(Rmpi)
-#library(snow)
-# https://www.osc.edu/~kmanalo/r_parallel
-#slaves <- as.numeric(Sys.getenv(c("PBS_NP")))-1
-#slaves <- mpi.universe.size()
-
-#cl <- makeCluster(slaves, type = "MPI")
-# or following http://homepage.divms.uiowa.edu/~luke/R/cluster/cluster.html
-#cl <- getMPIcluster()
-
-#clusterExport(cl, SLURMdat)
-#library(snowfall)
-#sfLibrary('biomod2', character.only=TRUE)
-#sfExportAll()
-
-
-
-#tick <- proc.time()
-#mySFModelsOut<-parLapplyLB(cl,sp.n,BioModApply)
-#tock <- proc.time() - tick
-
-#cat("\nsnow w/ Rmpi test times using", slaves, "MPI slaves: \n")
-
-#stopCluster(cl)
-#mpi.quit()
-
-########
-
-
-
-
-
-
-########
-#cl <- makeCluster(64, type = "MPI")
-#clusterExport(cl, SLURMdat)
-
-#mySFModelsOut<-clusterApply(cl,sp.n,fun=BioModApply)
-#mySFModelsOut<-parLapplyLB(cl,sp.n,BioModApply)
-#mySFModelsOut<-parLapply(cl,sp.n,BioModApply)
-#stopCluster(cl)
-#Rmpi:mpi.finalize()
-#######
-
-
-
-
-#######
-# snowfall initialization
-#install.packages("Rmpi", lib="/gpfs/home/scg67/R/x86_64-pc-linux-gnu-library/3.4/", repos='http://cran.us.r-project.org')
-library(snowfall)
-library(Rmpi)
-library(future)
-#args = commandArgs(trailingOnly = TRUE);
-#ncpus = args[1];
-
-# ------------------------------------------------------------------------
-# initialize parallel mode using sockets and command-line args
-# ------------------------------------------------------------------------
-ntasks<-as.numeric(Sys.getenv("SLURM_NTASKS"))
-
-print(ntasks)
-print(class(ntasks))
-print(paste0(ntasks," tasks"))
-
-ncputask<-as.numeric(Sys.getenv("SLURM_CPUS_ON_NODE"))
-print(ncputask)
-print(class(ncputask))
-print(paste0(ncputask," N CPUs per task"))
-
-ncpus<-ncputask*ntasks
-#ncpus<-detectCores()
-print(paste0(ncpus," CPUs"))
-
-#ncpus<-future::availableCores()
-#ncpus<-mpi.universe.size()-1
-sfInit( parallel=TRUE, cpus=ncpus, type="MPI")
-# Export packages to snowfall
-sfLibrary('biomod2', character.only=TRUE)
-print("Exporting environment to cluster")
-sfExportAll()
-
-# you may also use sfExportAll() to export all your workspace variables
-## Do the run
-print("Running >> sfLapply(sp.n,BioModApply)")
-
-mySFModelsOut <- sfLapply(sp.n,BioModApply)
-#save(mySFModelsOut)
-# stop snowfall
+# # Stop the cluster
 print("Stopping cluster")
 
 sfStop()
-#######
