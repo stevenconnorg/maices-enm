@@ -1132,6 +1132,7 @@ f50landstack <- stack(paste0(dir_stacks, "/FAOlandstack.grd"))
 f50topostack <- stack(paste0(dir_stacks, "/topostack.grd"))
 
 fullf50stack <- stack(f50biostack, f50landstack, f50topostack)
+names(fullf50stack)
 f50modstack <- fullf50stack[[vars]]
 
 f50modstack <-
@@ -1185,9 +1186,9 @@ equalarea <-
     "+proj=aea +lat_1=14.5 +lat_2=32.5 +lat_0=24 +lon_0=-105 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
   )
 
-#presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"))
-#f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"))
-#f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
+presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"))
+f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"))
+f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
 
 presmodstackEA <-
   projectRaster(presmodstack, crs = equalarea, method = "bilinear")
