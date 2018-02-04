@@ -1,14 +1,13 @@
 #!/bin/bash
 #SBATCH --time=7-0:00:00
-#SBATCH --nodes=4
-#SBATCH --ntasks=4
+#SBATCH --nodes=6
+#SBATCH --ntasks=6
 #SBATCH --cpus-per-task=28
 #SBATCH --mail-user=scg67@txstate.edu
 #SBATCH --mail-type=END
 #SBATCH --job-name=SNOWFALL
-#SBATCH -p parallel
+#SBATCH -p shared
 #SBATCH --exclusive
-#SBATCH --export=ALL
 
 scontrol show job $SLURM_JOB_ID >> echo $SLURM_JOB_ID"scontrol_info.txt"
 
@@ -18,23 +17,26 @@ echo "Start Time = "`date`
 cd $SLURM_SUBMIT_DIR
 echo "working directory = " = pwd 
 
-module load rocks-openmpi
+
+module purge
 module load java/1.8.0_162
 module load R
+module load rocks-openmpi
 
+# export JAVA_HOME="path that you found"
 export JAVA_HOME=$JAVA_HOME
-export JAVA_OPTS="-Xms10240 -Xmx24576"
 export CLASSPATH=$CLASSPATH:/gpfs/home/scg67/thesis/02_R/00_biomod/maxent.jar
-export CLASSPATH=$CLASSPATH:/gpfs/home/scg67/R/x86_64-pc-linux-gnu-library/3.4/dismo/java/maxent.jar
+export CLASSPATH=$CLASSPATH:/gpfs/home/scg67/R/x86_64-pc-linux-gnu-library/3.4/lib/dismo/java/maxent.jar
+
+chmod +x /gpfs/home/scg67/thesis/02_R/00_biomod/maxent.jar
+chmod +x /gpfs/home/scg67/R/x86_64-pc-linux-gnu-library/3.4/lib/dismo/java/maxent.jar
+
 export LD_LIBRARY_PATH=/opt/openmpi/lib:$LD_LIBRARY_PATH
 export R_LIBS=/gpfs/home/scg67/R/x86_64-pc-linux-gnu-library/3.4/lib
 export R_LIBS=/share/apps/R/3.4.0/lib64/R/library
 
 mkdir -p tmp
 export TMPDIR=$(pwd)/tmp
-
-chmod -x /gpfs/home/scg67/thesis/02_R/00_biomod/maxent.jar
-chmod -x /gpfs/home/scg67/R/x86_64-pc-linux-gnu-library/3.4/dismo/java/maxent.jar
 
 
 echo "Launching snowfall script using R"
@@ -49,8 +51,6 @@ toc=`date +%s`
 elapsedTime=`expr $toc - $tic`
 echo "Elapsed Time = $elapsedTime seconds" 
 
-echo "Run with SLURM commands:"
-cat snowfall-modelling-mpi.slurm
-
-echo "Run with R commands:"
-cat snowfall-modelling-mpi.R
+#echo "Run with"
+#cat snowfall-modelling-mpi.R
+# cat snowfall-modelling-mpi.slurm

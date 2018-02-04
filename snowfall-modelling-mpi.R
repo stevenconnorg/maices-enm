@@ -37,7 +37,7 @@ dir_f.mosaics<-paste0(dir_fut,"/1.4/")
 
 dir_stacks<-paste0(dir_dat,"/stacks/")
 
-#install.packages("biomod2", repos = "http://r-forge.r-project.org",dependencies=TRUE)
+#install.packages("biomod2", repos = "http://r-forge.r-project.org") #,dependencies=TRUE)
 
 library(biomod2)
 library(mgcv)
@@ -50,22 +50,22 @@ library(mgcv)
 print("Reading in Presence/Absence Matrix")
 
 ### read in PAM with projected coordinates
-pam<-read.csv(file=paste0(dir_out,"/pa_dataframe_EA.csv"))
-pa<-data.frame(pam)
+pa<-data.frame(read.csv(file=paste0(dir_out,"/pa_dataframe_EA.csv")))
+colnames(pa) 
 
+# filter species by obs count
+print("Filtering varieties with > 14 observations:")
+i <- colSums(pa[,4:ncol(pa)],na.rm=T) > 14 
+pa<-pa[,i]
 colnames(pa)
 
-# drop unwanted columns by name
+# drop unwanted columns by name to get vector of species names
+#colnames(pa)
 drops <- c("X","Longitude.x.","Latitude.y.","X_Lambert", "Y_Lambert")
 pa_sp.n<-pa[ , !(names(pa) %in% drops)]
 
-colnames(pa)
-
-print("Filtering varieties with > 14 observations:")
-
-i <- (colSums(pa_sp.n,na.rm=T)) > 14 # filter species by obs count
-pa_sp.n<-pa_sp.n[,i]
 colnames(pa_sp.n)
+
 
 names<-paste0(colnames(pa_sp.n))
 sp.n= dput(names) # keep only species name, remove lat/long/etc. 
@@ -73,7 +73,6 @@ sp.n= dput(names) # keep only species name, remove lat/long/etc.
 print("The species to be modeled:")
 print("")
 sp.n
-
 
 ###################################
 ## original version, untransformed
@@ -98,29 +97,42 @@ sp.n
 library(raster)
 
 print("Reading in Equal-Area modeling raster stack:")
-presmodstack<-stack(paste0(dir_stacks,"present_modstack_EA.grd"))
-r<-raster(nrow=nrow(presmodstack),ncol=ncol(presmodstack))
-extent(r)<-extent(presmodstack)
-res(r)<-1000
-crs(r)<-crs(presmodstack)
-presmodstack<-resample(presmodstack,r,method="bilinear")
-presmodstack
-print("Reading in Lat/Long projection raster stacks:")
+#presmodstack_EA<-stack(paste0(dir_stacks,"present_modstack_EA.grd"))
+#r<-raster(nrow=nrow(presmodstack_EA),ncol=ncol(presmodstack_EA))
+#extent(r)<-extent(presmodstack_EA)
+#res(r)<-1000
+#crs(r)<-crs(presmodstack_EA)
 
-presmodstack_proj<-stack(paste0(dir_stacks,"present_modstack.grd"))
-f50modstack_proj<-stack(paste0(dir_stacks,"f50_modstack.grd"))
-f70modstack_proj<-stack(paste0(dir_stacks,"f70_modstack.grd"))
+#f50modstack_EA<-stack(paste0(dir_stacks,"f50_modstack_EA.grd"))
+#f70modstack_EA<-stack(paste0(dir_stacks,"f70_modstack_EA.grd"))
 
 
-# plot(f50modstack)
-# plot(presmodstack)
-# plot(f70modstack)
+#presmodstack_EA<-resample(presmodstack_EA,r,method="bilinear")
+#f50modstack_proj<-resample(f50modstack_EA,r,method="bilinear")
+#f70modstack_proj<-resample(f70modstack_EA,r,method="bilinear")
+#presmodstack_proj<-presmodstack_EA
+
+
+#writeRaster( presmodstack_proj,paste0(dir_stacks, "/present_modstack_EA1km.grd"),bylayer = FALSE,format = 'raster',overwrite = TRUE)
+#writeRaster(f50modstack_proj,paste0(dir_stacks, "/f50_modstack_EA1km.grd"),bylayer = FALSE,format = 'raster',overwrite = TRUE)
+#writeRaster(f70modstack_proj,paste0(dir_stacks, "/f70_modstack_EA1km.grd"),bylayer = FALSE,format = 'raster',overwrite = TRUE)
+
+presmodstack<-stack(paste0(dir_stacks,"present_modstack_EA1km.grd"))
+
+f50modstack<-stack(paste0(dir_stacks,"f50_modstack_EA1km.grd"))
+f70modstack<-stack(paste0(dir_stacks,"f70_modstack_EA1km.grd"))
+
+names(presmodstack)
 
 print("Reading in estimated prevalence .csv:")
 
-prev<-read.csv(file.path(dir_maices,"tau.csv"))
-prev<-as.data.frame(prev)
-
+prev<-as.data.frame(read.csv(file.path(dir_maices,"tau.csv")))
+colnames(prev)
+prev$Raza_prima
+prev$Raza_prima <- sub(" ", "_", prev$Raza_prima)
+prev$Raza_prima <- sub(" ", "_", prev$Raza_prima)
+prev$Raza_prima <- sub(" ", "_", prev$Raza_prima)
+prev$Raza_prima
 
 #################################################################
 # INITIALIZE FUNCTION TO APPLY TO EACH VARIETY
@@ -129,7 +141,6 @@ prev<-as.data.frame(prev)
 
 # following https://rpubs.com/dgeorges/190889
 print("Setting Working Directory:")
-
 setwd(dir_bm) 
 
 #maxent.background.dat.dir <- paste0(getwd(),"/maxent_bg")
@@ -157,31 +168,60 @@ setwd(dir_bm)
 
 print("Establishing Function BioModApply() :")
 
+
+#################################################################
+# DEFINE MODELING FUNCTION
+#################################################################
 BioModApply <-function(sp.n) {
   tryCatch({
     setwd(dir_bm)
+
+    # keep temporary files separate for sp.n 
+    #... the maxent output and raster tmp files might get overwritten and cause errors in parallel
+
+
+    #rasterOptions()$tmpdir      # get raster temp director
+    rtmpdir<-paste0(root,"/tmp/",sp.n)
+    dir.create(rtmpdir, showWarnings = FALSE, recursive = TRUE)
+    rasterOptions(tmpdir=rtmpdir)  # set raster temp directory
+    tempfile(pattern=sp.n) ## pattern for temp files prefixed with sp.n
+	
+    ### 
+    # if using raster stack
     myRespName = sp.n
     #myRespName = sp.n[1]
     myResp <- as.numeric(pa[,myRespName])
     myRespXY = pa[,c('Longitude.x.','Latitude.y.')] # actually x, y in lambert conformal # letsR::presab points makes column names long/lat
-    
     myExpl<-presmodstack
-    myExpl_proj<-presmodstack_proj
-    myExplFuture50<-f50modstack_proj
-    myExplFuture70<-f70modstack_proj
+    myExpl_proj<-presmodstack
+    myExplFuture50<-f50modstack
+    myExplFuture70<-f70modstack
     
     
     
+    ###
+    
+    ###
+    # if using matrix
+    #myRespName = sp.n
+    # myRespName = sp.n[1]
+    #myResp <- as.numeric(pa[,myRespName])
+    #myRespXY = pa[,c('Longitude.x.','Latitude.y.')] # actually x, y in lambert conformal # letsR::presab points makes column names long/lat
+    #myExpl<-extract(presmodstack,as.data.frame(myRespXY),na.rm=FALSE)
+    #myExpl_proj<-raster::as.matrix(presmodstack)
+    #myExplFuture50<-raster::as.matrix(f50modstack)
+    #myExplFuture70<-raster::as.matrix(f70modstack)
+    
+
+    ###
+
+    # if using matrix as predictor
     allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips","MAXENT.Tsuruoka")
     models = c("MAXENT.Phillips")
     metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
     
     #load("/gpfs/home/scg67/thesis/02_R/maices-enm/.RData")
-    #rasterOptions()$tmpdir      # get raster temp director
-    #rtmpdir<-paste0(root,"/",sp.n,"/tmp")
-    #dir.create(rtmpdir, showWarnings = FALSE, recursive = TRUE)
-    #rasterOptions(tmpdir=rtmpdir)  # set raster temp directory
-    
+
     # Barbet-Massin et al 2012:
     #   Overall, we recommend the use of a large number (e.g. 10 000) of pseudo-absences with equal
     # weighting for presences and absences when using regression techniques (e.g. generalised linear
@@ -198,10 +238,10 @@ BioModApply <-function(sp.n) {
     #################################################################
     # FORMAT INPUT DATA -- NOTE pseudo absences rep, selection, and #
     #################################################################
-    
+
     # format input data for biomod
     myBiomodData <- BIOMOD_FormatingData(resp.var = myResp,
-                                         resp.xy = myRespXY,
+                                         resp.xy = myRespXY, # if using matrix comment this line out
                                          expl.var = myExpl,
                                          resp.name = myRespName,
                                          na.rm=TRUE,
@@ -209,8 +249,7 @@ BioModApply <-function(sp.n) {
                                          PA.nb.absences = 20000,
                                          PA.strategy = 'random'
     )
-    
-    
+
     #do.call(file.remove,list(list.files(pattern="temp*"))) 
     
     #################################################################
@@ -256,20 +295,6 @@ BioModApply <-function(sp.n) {
           keep.data = FALSE,
           verbose = FALSE,
           perf.method = 'cv'
-        ),
-        
-        GAM = list(
-          algo = 'GAM_mgcv',
-          type = 's_smoother',
-          k = NULL,
-          interaction.level = 0,
-          myFormula = NULL,
-          family = 'binomial',
-          control = gam.control(
-            epsilon = 1e-06,
-            trace = FALSE,
-            maxit = 100
-          )
         ),
         
         CTA = list(
@@ -319,7 +344,7 @@ BioModApply <-function(sp.n) {
         ),
         
         MAXENT.Phillips = list(
-          memory_allocated = 8192,
+          #memory_allocated = 10240,
           #background_data_dir = maxent.background.dat.dir, # https://rpubs.com/dgeorges/190889
           #maximumbackground = 10000,
           maximumiterations = 10000,
@@ -452,7 +477,7 @@ BioModApply <-function(sp.n) {
         myBiomodData,
         models = c("MAXENT.Phillips"),
         models.options = BIOMOD_ModelOptions,
-        NbRunEval = 20,
+        NbRunEval = 25,
         DataSplit = 70,
         Prevalence = prev$tau[prev$Raza_prima == myRespName],
         # use estimated tau using Perales et al 2015 outputs 
@@ -483,14 +508,14 @@ BioModApply <-function(sp.n) {
     # write data used for modelling
     capture.output(
       get_formal_data(myBiomodModelOut),
-      file = paste0(dir_out, "/", myRespName, "/", myRespName, "_model_data.txt")
+      file = paste0(getwd(),"/",myRespName,"/",myRespName, "_model_data.txt")
     )
     
     # get model evaluations by metrics
     evalmods <- get_evaluations(myBiomodModelOut, as.data.frame = TRUE)
     evalmods$variety <- myRespName
     write.csv(evalmods,
-              file = paste0(dir_out, "/", myRespName, "/", myRespName, "_models_eval.csv"))
+              file = paste0(getwd(),"/",myRespName,"/",myRespName, "_models_eval.csv"))
     
     ### get variable importance
     modevalimport <-
@@ -498,7 +523,7 @@ BioModApply <-function(sp.n) {
     colnames(modevalimport)
     
     write.csv(modevalimport,
-              file = paste0(dir_out, "/", myRespName, "/", myRespName, "_var_imp.csv"))
+              file = paste0(getwd(),"/",myRespName,"/",myRespName, "_var_imp.csv"))
     
     
 	
@@ -534,7 +559,7 @@ BioModApply <-function(sp.n) {
     # write em models built
     capture.output(
       get_built_models (myBiomodEM),
-      file = paste0(dir_out, "/", myRespName, "/", myRespName, "_em_models.txt")
+      file = paste0(myRespName, "_em_models.txt")
     )
     
     # capture em model evals
@@ -542,14 +567,7 @@ BioModApply <-function(sp.n) {
     evalmodsEM <- get_evaluations(myBiomodEM, as.data.frame = TRUE)
     evalmodsEM$variety <- myRespName
     write.csv(evalmodsEM,
-              file = paste0(
-                dir_out,
-                "/",
-                myRespName,
-                "/",
-                myRespName,
-                "_models_EM_eval.csv"
-              ))
+              file = paste0(getwd(),"/",myRespName,"/",myRespName,"_models_EM_eval.csv"))
     
     #do.call(file.remove,list(list.files(pattern="temp*")))
     
@@ -558,91 +576,29 @@ BioModApply <-function(sp.n) {
     #print(paste0("Capturing Model Ensemble Evaluations for ",myRespName))
     enevalmods <- get_evaluations(myBiomodEM, as.data.frame = TRUE)
     write.csv(enevalmods,
-              file = paste0(dir_out, "/", myRespName, "/", myRespName, "_em_evals-df.csv"))
+              file = paste0(getwd(),"/",myRespName,"/",myRespName, "_em_evals-df.csv"))
     
-        
     } # if.exists biomodout > ensemble, project, then forecast
     
-  }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+  }, error=function(e){cat("ERROR :",conditionMessage(e), "\n", sep=" ", master=TRUE )})
   
 }
-    
+ 
 
-#######
-# snowfall initialization
-#install.packages("Rmpi", lib="/gpfs/home/scg67/R/x86_64-pc-linux-gnu-library/3.4/", repos='http://cran.us.r-project.org')
-library(snowfall)
-library(Rmpi)
-library(raster)
-#args = commandArgs(trailingOnly = TRUE);
-#ncpus = args[1];
-
-# ------------------------------------------------------------------------
-# initialize parallel mode using SLURM and command-line args
-# ------------------------------------------------------------------------
-
-# # get number of SLURM tasks
-ntasks <- as.numeric(Sys.getenv("SLURM_NTASKS"))
-
-print(ntasks)
-print(class(ntasks))
-print(paste0(ntasks, " tasks"))
-
-# # get number of CPUs per node from SLURM
-ncputask <- as.numeric(Sys.getenv("SLURM_CPUS_ON_NODE"))
-print(ncputask)
-print(class(ncputask))
-print(paste0(ncputask, " N CPUs per task"))
-
-# # total cpus equals tasks * cpus per taks
-ncpus <- ncputask * ntasks
-print(paste0(ncpus, " CPUs"))
-
-# other options:
-#ncpus<-detectCores()
-#ncpus<-future::availableCores()
-#ncpus<-mpi.universe.size()-1
-
-sfSetMaxCPUs(ncpus)
-# # initialize cluster
-sfInit(parallel = TRUE,
-       cpus = ncpus,
-       type = "MPI",
-       slaveOutfile = paste0(Sys.getenv("SLURM_JOB_ID"),"_sfInit.log"))
-
-# # Export packages to snowfall
-print("Exporting packages to cluster")
-sfLibrary('biomod2', character.only = TRUE)
-sfLibrary('raster', character.only = TRUE)
-
-
-# # Export environment to snowfall
-print("Exporting environment to cluster")
-sfExportAll()
-
-# # Do the run
-# use sfClusterApplyLB when machines have different specs
-print("Running >> sfLapply(sp.n,BioModApply)") # sfLapply
-mySFModelsOut <- sfLapply(sp.n, BioModApply)
-
-
-    #################################################################
-    # GET PROJECTIONS
-    #################################################################
-
-# collect models that ran
-setwd(dir_bm) 
-model.files<-Sys.glob(paste0(getwd(),"/*/*","*_current.models.out")) # get model out files 
-model.dirs<-sub(paste0(getwd(),"/"),"",model.files) # remove everything from working directory path
-sp.n<-sub(" */.*", "",model.dirs) # remove everything before first slash to get variety names that have  model out files
-print("Models successfully ran for:")
-sp.n
-
+#################################################################
+# PROJECTIONS AND FORECASTING
+#################################################################
 BioProjectApply <-function(sp.n) {
   tryCatch({
-
+    setwd(dir_bm)
+    
     setwd(dir_bm) 
-
+    
+    myExpl<-presmodstack
+    myExplFuture50<-f50modstack
+    myExplFuture70<-f70modstack
+    
+    
     bm_out_file <- load(paste0(getwd(),"/",sp.n,"/",sp.n,".",sp.n,"_current.models.out"))
     myBiomodModelOut <- get(bm_out_file)
 
@@ -740,13 +696,73 @@ BioProjectApply <-function(sp.n) {
       compress = "gzip",
       total.consensus = TRUE
     )
-    
-  }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+            
+  }, error=function(e){cat("ERROR :",conditionMessage(e), "\n", sep=" ", master=TRUE )})
   
 }
 
-mySFProjOut <-sfLapply(sp.n, BioProjectApply)
-#mySFProjOut <-lapply(sp.n, BioProjectApply)
+
+#######
+# snowfall initialization
+#install.packages("Rmpi", lib="/gpfs/home/scg67/R/x86_64-pc-linux-gnu-library/3.4/", repos='http://cran.us.r-project.org')
+library(snowfall)
+library(Rmpi)
+library(raster)
+#args = commandArgs(trailingOnly = TRUE);
+#ncpus = args[1];
+
+# ------------------------------------------------------------------------
+# initialize parallel mode using SLURM and command-line args
+# ------------------------------------------------------------------------
+
+# # get number of SLURM tasks
+ntasks <- as.numeric(Sys.getenv("SLURM_NTASKS"))
+
+print(ntasks)
+print(class(ntasks))
+print(paste0(ntasks, " tasks"))
+
+# # get number of CPUs per node from SLURM
+ncputask <- as.numeric(Sys.getenv("SLURM_CPUS_ON_NODE"))
+print(paste0(ncputask, " N CPUs per task"))
+
+# # total cpus equals tasks * cpus per taks
+ncpus <- ncputask * ntasks
+print(paste0(ncpus, " CPUs"))
+
+# other options:
+#ncpus<-detectCores()
+#ncpus<-future::availableCores()
+#ncpus<-mpi.universe.size()-1
+
+sfSetMaxCPUs(ncpus)
+# # initialize cluster
+sfInit(parallel = TRUE,
+       cpus = ncpus,
+       type = "MPI",
+       slaveOutfile = paste0(Sys.getenv("SLURM_JOB_ID"),"_sfInit.log"))
+
+# # Export packages to snowfall
+print("Exporting packages to cluster")
+sfLibrary('biomod2', character.only = TRUE)
+sfLibrary('raster', character.only = TRUE)
+
+
+# # Export environment to snowfall
+print("Exporting environment to cluster")
+#sfExportAll()
+
+sfExport("sp.n","BioModApply","presmodstack","f50modstack","f70modstack",
+         "pa","prev","dir_out","dir_bm","root")
+
+# # Do the run
+# use sfClusterApplyLB when machines have different specs
+print("Running >> sfLapply(sp.n,BioModApply)") # sfLapply
+mySFModelsOut <- sfLapply(sp.n[1:length(sp.n)], BioModApply)
+
+#mySFModelsOut <- sfLapply(sp.n[1:20], BioModApply)
+#mySFModelsOut <- sfLapply(sp.n[21:40], BioModApply)
+#mySFModelsOut <- sfLapply(sp.n[41:length(sp.n)], BioModApply)
 
 # # Stop the cluster
 print("Stopping cluster")
