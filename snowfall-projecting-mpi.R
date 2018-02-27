@@ -42,8 +42,8 @@ library(mgcv)
 #################################################################
 
 setwd(dir_bm) 
-ensemble.files<-Sys.glob(paste0(getwd(),"/*/*","*_currentensemble.models.out")) # get ensemble files out
-ensemble.dirs<-sub(paste0(getwd(),"/"),"",ensemble.files) # remove everything from working directory path
+ensemble.files<-Sys.glob(paste0(dir_bm,"/*/*","*_currentensemble.models.out")) # get ensemble files out
+ensemble.dirs<-sub(paste0(dir_bm,"/"),"",ensemble.files) # remove everything from working directory path
 sp.n<-sub(" */.*", "",ensemble.dirs) # remove everything before first slash to get variety names that have ensemble models
  
 
@@ -96,7 +96,7 @@ BioModApply <-function(sp.n) {
     myExplFuture70<-f70modstack
     
     setwd(dir_bm) 
-    bm_out_file <- load(paste0(getwd(),"/",myRespName,"/",myRespName,".",myRespName,"_current.models.out"))
+    bm_out_file <- load(paste0(dir_bm,"/",myRespName,"/",myRespName,".",myRespName,"_current.models.out"))
     myBiomodModelOut <- get(bm_out_file)
     
     # model projections
@@ -140,7 +140,7 @@ BioModApply <-function(sp.n) {
     # FORECAST EMSEMBLE MODELS BY CHOSEN METRICS
     #################################################################
     setwd(dir_bm) 
-    bm_em.out_file <- load(paste0(getwd(),"/",myRespName,"/",myRespName,".",myRespName,"_currentensemble.models.out"))
+    bm_em.out_file <- load(paste0(dir_bm,"/",myRespName,"/",myRespName,".",myRespName,"_currentensemble.models.out"))
     myBiomodEM <- get(bm_em.out_file)
     
     #print(paste0("Performing Ensemble Forcasting onto Current Data for ",myRespName))
@@ -174,9 +174,7 @@ BioModApply <-function(sp.n) {
       selected.models = 'all',
       binary.meth=metrics,
       compress=TRUE)
-    
-    
-    
+  
   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   
 }
