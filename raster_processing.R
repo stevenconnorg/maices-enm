@@ -798,7 +798,7 @@ prestmax_cropstack <- stack(grep(grds, pattern = "tmax", value = T))
 
 prestmin_cropstack <- prestmin_cropstack * 10
 prestmax_cropstack <- prestmax_cropstack * 10
-presbio_cropstack <- presbio_cropstack * 10
+presbio_cropstack[[c(1,2,4:11)]] <- presbio_cropstack[[c(1,2,4:11)]]* 10
 
 pres_cropstack <-
   stack(presbio_cropstack,
