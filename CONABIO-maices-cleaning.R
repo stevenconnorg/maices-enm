@@ -113,7 +113,39 @@ length(todos@data[is.na(todos@data$Raza_prima),])
 unique(todos@data$Raza_prima)
 unique(todos@data$Complejo_r)
 unique(todos@data$AnioColect)
+library(htmlTable)
+library(dplyr)
 
+
+# html table example
+output <- 
+  matrix(paste("Content", LETTERS[1:16]), 
+         ncol=4, byrow = TRUE)
+
+library(htmlTable)
+htmlTableexample<-htmlTable(output,
+          header =  paste(c("1st", "2nd",
+                            "3rd", "4th"), "header"),
+          rnames = paste(c("1st", "2nd",
+                           "3rd", "4th"), "row"),
+          rgroup = c("Group A",
+                     "Group B"),
+          n.rgroup = c(2,2),
+          cgroup = c("Cgroup 1", "Cgroup 2&dagger;"),
+          n.cgroup = c(2,2), 
+          caption="Basic table with both column spanners (groups) and row groups",
+          tfoot="&dagger; A table footer commment")
+
+
+output <- todos@data %>%
+  #group_by(Raza_prima) %>%
+  summarise(n = n())
+
+raza_counts.html<-htmlTable(output)
+maices_enm_dir<-paste0(dir_R,"/maices-enm")
+html_dir<-paste0(maices_enm_dir,"/html")
+setwd(html_dir)
+capture.output(raza_counts.html,file="CONABIO_all_count_by_race_table.html")
 
 # remove data without prime race information
 todos.1<-todos[!is.na(todos@data$Raza_prima),]
@@ -134,6 +166,18 @@ todos.5$maiz<-"Zea mays mays"
 
 # make maices object
 todos.6<-todos.5 #[todos.5@data$AnioColect >1969 & todos.5@data$AnioColect < 2001,]# remove period 1 collection
+maices=todos.6
+
+output <- todos.6@data %>%
+  group_by(Raza_prima) %>%
+  summarise(n = n())
+
+raza_counts.html<-htmlTable(output)
+maices_enm_dir<-paste0(dir_R,"/maices-enm")
+html_dir<-paste0(maices_enm_dir,"/html")
+setwd(html_dir)
+capture.output(raza_counts.html,file="CONABIO_cleaned_count_by_race_table.html")
+
 
 summary(todos.6)
 summary(todos)
@@ -142,14 +186,19 @@ unique(todos.6@data$Raza_prima)
 
 library(dplyr)
 
-todos.6@data%>%
+output <- todos.6@data%>%
   group_by(Raza_prima) %>%
   summarise(n = n())%>%
 filter(n > 15)
 
 # subset races with greater than 20 samples
-maices=todos.6
 
+
+raza_counts.html<-htmlTable(output)
+maices_enm_dir<-paste0(dir_R,"/maices-enm")
+html_dir<-paste0(maices_enm_dir,"/html")
+setwd(html_dir)
+capture.output(raza_counts.html,file="CONABIO_cleaned&filtered15_count_by_race_table.html")
 
 
 writeOGR(maices,dsn=paste0(dir_maices),layer="todos-maices-cleaned",driver="ESRI Shapefile",overwrite=TRUE)
@@ -239,7 +288,10 @@ r_extent<-extent(r) #(in equalarea projection)
 # ymax        : 1148009
 
 # use template raster extent as domain for presence/absence matrix
-PA_EA<-letsR::lets.presab.points(xy_EA,maices_EA@data$Raza_prima,xmn= rSp_extent@xmin, xmx= rSp_extent@xmax   , ymn=rSp_extent@ymin , ymx= rSp_extent@ymax, resol = res(rSp),crs =equalarea,show.matrix=TRUE,remove.cells=TRUE,remove.sp=TRUE)
+PA_EA<-letsR::lets.presab.points(xy_EA,maices_EA@data$Raza_prima,xmn= rSp_extent@xmin, xmx= rSp_extent@xmax   , ymn=rSp_extent@ymin , ymx= rSp_extent@ymax, 
+                                 resol = res(rSp),crs =equalarea,show.matrix=TRUE,remove.cells=FALSE,remove.sp=TRUE)
+
+#PA_EA<-letsR::lets.presab.points(xy_EA,maices_EA@data$Raza_prima,xmn= rSp_extent@xmin, xmx= rSp_extent@xmax   , ymn=rSp_extent@ymin , ymx= rSp_extent@ymax, resol = res(rSp),crs =equalarea,show.matrix=TRUE,remove.cells=TRUE,remove.sp=TRUE)
 #PA<-letsR::lets.presab.points(xy,maices@data$Raza_prima,xmn= r_extent@xmin, xmx= r_extent@xmax   , ymn=r_extent@ymin , ymx= r_extent@xmax, resol = res(c(r)),crs =latlong,remove.cells=FALSE,remove.sp=FALSE)
 
 
@@ -262,8 +314,8 @@ pa_EA<-data.frame(pam_EA)
 
 
 # # set encoding for file to preserve Spanish encoding
-pa_df_fn_EA<-paste0(dir_out,"/pa_dataframe_EA.csv")
-pam_fn_EA<-paste0(dir_out,"/pam_EA.csv")
+pa_df_fn_EA<-paste0(dir_out,"/pa_dataframe_EA_full.csv")
+pam_fn_EA<-paste0(dir_out,"/pam_EA_full.csv")
 
 con_pa_EA<-file(pa_df_fn_EA,encoding="LATIN1")
 con_pam_EA<-file(pam_fn_EA,encoding="LATIN1")
