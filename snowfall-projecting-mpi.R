@@ -1,81 +1,100 @@
-#SLURMdat<-load("hpc.RData")
-# establish directories
-root<-"/gpfs/home/scg67/thesis"
-#root<-"E:/thesis"
-#setwd(root)
-getwd()
-# new directories for biomod
-
-dir_dat<-paste0(root,"/01_data")
-dir_R<-paste0(root,"/02_R")
-dir_out<-paste0(root,"/03_output")
-dir_figs<-paste0(root,"/04_figs")
-dir_lit<-paste0(root,"/05_lit")
-dir_comp<-paste0(root,"/06_comp")
-dir_presentations<-paste0(root,"/07_pres")
-
-dir_maices<-paste0(dir_dat,"/maices")
-dir_ind<-paste0(dir_dat,"/ind")
-
-
-dir_bm<-paste0(dir_R,"/00_biomod")
-dir_topo<-paste0(dir_dat,"/topo")
-
-# 
-dir_clim<-paste0(dir_dat,"/clim")
-dir_pres<-paste0(dir_clim,"/present")
-dir_fut<-paste0(dir_clim,"/future")
-
-dir_p.mosaics<-paste0(dir_pres,"/2.0/")
-dir_f.mosaics<-paste0(dir_fut,"/1.4/")
-
-dir_stacks<-paste0(dir_dat,"/stacks/")
+source("init.R")
 
 #install.packages("biomod2", repos = "http://r-forge.r-project.org",dependencies=TRUE)
-
 library(biomod2)
-library(mgcv)
+library(raster)
+library(rgdal)
+library(biomod2)
 
 
 #################################################################
 # PRELIMINARY DATA FORMATTING
 #################################################################
 
-setwd(dir_bm) 
-ensemble.files<-Sys.glob(paste0(dir_bm,"/*/*","*_currentensemble.models.out")) # get ensemble files out
-ensemble.dirs<-sub(paste0(dir_bm,"/"),"",ensemble.files) # remove everything from working directory path
-sp.n<-sub(" */.*", "",ensemble.dirs) # remove everything before first slash to get variety names that have ensemble models
- 
 
 
-# read in model raster stacks with EQUAL AREA PROJECTION
-library(raster)
+# read in model raster stacks in LONG/LAT
+# can't project onto equal area because Maxent needs resolution with equal x, y
+# this data came from lat/long, so the projected 
 
-presmodstack<-stack(paste0(dir_stacks,"present_modstack_EA.grd"))
-f50modstack<-stack(paste0(dir_stacks,"f50_modstack_EA.grd"))
-f70modstack<-stack(paste0(dir_stacks,"f70_modstack_EA.grd"))
+#presmodstack<-stack(paste0(dir_stacks,"present_modstack.grd"))
+#f50modstack<-stack(paste0(dir_stacks,"f50_modstack.grd"))
+#f70modstack<-stack(paste0(dir_stacks,"f70_modstack.grd"))
+
+#equalarea <-
+#  CRS(
+#    "+proj=aea +lat_1=14.5 +lat_2=32.5 +lat_0=24 +lon_0=-105 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+#  )
+
+#presmodstackEA <-
+#  projectRaster(presmodstack, crs = equalarea, method = "bilinear")
+#f50modstackEA <-
+#  projectRaster(f50modstack, crs = equalarea, method = "bilinear")
+#f70modstackEA <-
+#  projectRaster(f70modstack, crs = equalarea, method = "bilinear")
+
+#r<-raster(nrow=nrow(presmodstackEA),ncol=ncol(presmodstackEA))
+
+# same extent
+#extent(r)<-extent(presmodstackEA)
+
+# but change to square resolution (1km^2)
+#res(r)<-1000
+
+# apply sample crs
+#crs(r)<-crs(presmodstackEA)
+
+## use bilinear if your predictors are continuous
+#presmodstackEA1km<-resample(presmodstackEA,r,method="bilinear")
+#f50modstackEA1km<-resample(f50modstackEA,r,method="bilinear")
+#f70modstackEA1km<-resample(f70modstackEA,r,method="bilinear")
+
+## function to define the intersect of rasters
+## remove cells that dont have data in all layers
+intersect_mask <- function(x){
+  values_x <- raster::getValues(x)
+  inter_x <- values_x %*% rep(1,nlayers(x))
+  mask <- raster::setValues(subset(x,1),values = (inter_x>0))
+  return(mask)
+}
+
+
+#presmodstackEA1km<- stack(mask(presmodstackEA1km, intersect_mask(presmodstackEA1km)))
+#print("on future 50:")
+
+#f50modstackEA1km<- stack(raster::mask(f50modstackEA1km, intersect_mask(f50modstackEA1km)))
+#print("on future 70 stack:")
+
+#f70modstackEA1km<- stack(raster::mask(f70modstackEA1km, intersect_mask(f70modstackEA1km)))
+
+
+#writeRaster( presmodstackEA1km,paste0(dir_stacks, "/present_modstack_EA1km.grd"),bylayer = FALSE,format = 'raster',overwrite = TRUE)
+#writeRaster(f50modstackEA1km,paste0(dir_stacks, "/f50_modstack_EA1km.grd"),bylayer = FALSE,format = 'raster',overwrite = TRUE)
+#writeRaster(f70modstackEA1km,paste0(dir_stacks, "/f70_modstack_EA1km.grd"),bylayer = FALSE,format = 'raster',overwrite = TRUE)
+
+presmodstackEA1km<-stack(paste0(dir_stacks,"present_modstack_EA1km.grd"))
+f50modstackEA1km<-stack(paste0(dir_stacks,"f50_modstack_EA1km.grd"))
+f70modstackEA1km<-stack(paste0(dir_stacks,"f70_modstack_EA1km.grd"))
+
+presmodstack<-presmodstackEA1km
+f50modstack<-f50modstackEA1km
+f70modstack<-f70modstackEA1km
+
 
 # check units
-f70modstack<-f70modstack[[1]]/10
-f70modstack<-f70modstack[[1]]/10
-
-names(presmodstack)
-names(f50modstack)
-names(f70modstack)
-
-# plot(f50modstack)
-# plot(presmodstack)
-# plot(f70modstack)
-
+f50modstack[[1]]
+f70modstack[[1]]
+presmodstack[[1]]
 
 
 #################################################################
 # INITIALIZE FUNCTION TO APPLY TO EACH VARIETY
 #################################################################
 
-allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips","MAXENT.Tsuruoka")
-models = c("MAXENT.Phillips")
-metrics = c(  'KAPPA', 'TSS', 'ROC')
+#allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips","MAXENT.Tsuruoka")
+#models = c("MAXENT.Phillips")
+# allmetrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
+metrics = c( 'KAPPA', 'TSS', 'ROC')
 
 
 # following https://rpubs.com/dgeorges/190889
@@ -86,79 +105,130 @@ metrics = c(  'KAPPA', 'TSS', 'ROC')
 
 options(max.print=1000000)  # set max.print option high to capture outputs
 
-BioModApply <-function(sp.n) {
+setwd(dir_bmf) 
+
+# get species vector name by getting all with ensemble projections for 2070 time period
+# or whichever was last in the BioModApply function/loop
+
+emprojfiles<-Sys.glob(paste0(dir_bmf,"/*/*/","*70.ensemble.projection.out")) # get ensemble files out
+emproj.dirs<-sub(paste0(dir_bmf,"/"),"",emprojfiles) # remove everything from working directory path
+sp.n<-sub(" */.*", "",emproj.dirs) # remove everything before first slash to get variety names that have ensemble models
+sp.n
+
+
+#for (sp.n in sp.n){
+BioProjApply <-function(sp.n) {
+  
   tryCatch({
     
+    setwd(dir_bmf) 
+    
+    
+    #con <- file(paste(getwd(),"/",sp.n,"/",sp.n,"proj.log", sep="") , open = "wt")
+    #sink(con, append=TRUE)
+    #sink(con, append=TRUE, type = "message")
+    
     myRespName = sp.n
-
+    
     myExpl<-presmodstack
     myExplFuture50<-f50modstack
     myExplFuture70<-f70modstack
+    metrics = c( 'KAPPA', 'TSS', 'ROC')
     
-    setwd(dir_bm) 
-    bm_out_file <- load(paste0(dir_bm,"/",myRespName,"/",myRespName,".",myRespName,"_current.models.out"))
-    myBiomodModelOut <- get(bm_out_file)
+    #load("/gpfs/home/scg67/thesis/02_R/maices-enm/.RData")
+    #rasterOptions()$tmpdir      # get raster temp director
+    #rtmpdir<-paste0(getwd(),"/tmp/",sp.n)
+    #dir.create(rtmpdir, showWarnings = FALSE, recursive = TRUE)
+    #rasterOptions(tmpdir=rtmpdir)  # set raster temp directory
+    #rasterOptions(chunksize = 1e+07,maxmemory = 1e+09)
+    
+    
+    myBiomodModelOut  <- get(load(paste0(getwd(),"/",myRespName,"/",myRespName,".",myRespName,"_current.models.out")))
+    # 
+    # myBiomodProj<-get(load(paste0(dir_bmf,"/",sp.n,"/proj_current/",sp.n,".current.projection.out")))
+
+    library(rgdal)
+    library(raster)
+    
     
     # model projections
-     myBiomodProj <- BIOMOD_Projection(
-     modeling.output = myBiomodModelOut,
+    myBiomodProj <- BIOMOD_Projection(
+     modeling.output = myBiomodModelOut  ,
      new.env = myExpl,
      proj.name = 'current',
      selected.models = 'all',
      binary.meth = metrics,
      compress = TRUE,
-     clamping.mask = T,
-     output.format = '.grd')
+     build.clamping.mask = FALSE
+    )
     
+    #print(paste0("Projecting  onto Future (2050) for ",myRespName))
+    # future projections for rcp 85 period 50
+    myBiomodProjFuture50 <- BIOMOD_Projection(
+      modeling.output = myBiomodModelOut  ,
+      new.env = myExplFuture50,
+      proj.name = 'rcp85_50',
+      selected.models = 'all',
+      binary.meth = metrics,
+      compress = TRUE,
+      build.clamping.mask = FALSE
+    )
+
     #print(paste0("Projecting onto Future (2070) for ",myRespName))
     # future projections for rcp 85 period 70
-     myBiomodProjFuture70 <- BIOMOD_Projection(
-       modeling.output = myBiomodModelOut,
-       new.env = myExplFuture70,
-       proj.name = 'rcp85_70',
-       selected.models = 'all',
-       binary.meth = metrics,
-       compress = TRUE,
-       clamping.mask = T,
-       output.format = '.grd')
-    
-     #print(paste0("Projecting  onto Future (2050) for ",myRespName))
-    # future projections for rcp 85 period 50
-     myBiomodProjFuture50 <- BIOMOD_Projection(
-       modeling.output = myBiomodModelOut,
-       new.env = myExplFuture50,
-       proj.name = 'rcp85_50',
-       selected.models = 'all',
-       binary.meth = metrics,
-        compress = TRUE,
-       clamping.mask = T,
-       output.format = '.grd')
-    
+    myBiomodProjFuture70 <- BIOMOD_Projection(
+      modeling.output = myBiomodModelOut  ,
+      new.env = myExplFuture70,
+      proj.name = 'rcp85_70',
+      selected.models = 'all',
+      binary.meth = metrics,
+      compress = TRUE,
+      build.clamping.mask = FALSE
+    )
+
     #do.call(file.remove,list(list.files(pattern="temp*"))) 
     
+    #myBiomodProj<-get(load(paste0(dir_bmf,"/",sp.n,"/proj_current/",sp.n,".current.projection.out")))    
+    #myBiomodProjFuture50<-get(load(paste0(dir_bmf,"/",sp.n,"/proj_rcp85_50/",sp.n,".rcp85_50.projection.out")))
+    #myBiomodProjFuture70<-get(load(paste0(dir_bmf,"/",sp.n,"/proj_rcp85_70/",sp.n,".rcp85_70.projection.out")))
+
+
     #################################################################
     # FORECAST EMSEMBLE MODELS BY CHOSEN METRICS
     #################################################################
-    setwd(dir_bm) 
-    bm_em.out_file <- load(paste0(dir_bm,"/",myRespName,"/",myRespName,".",myRespName,"_currentensemble.models.out"))
-    myBiomodEM <- get(bm_em.out_file)
-    
+    setwd(dir_bmf) 
+    myBiomodEM <- get(load(paste0(getwd(),"/",myRespName,"/",myRespName,".",myRespName,"_currentensemble.models.out")))
+
     #print(paste0("Performing Ensemble Forcasting onto Current Data for ",myRespName))
     
     # current ensemble projection
     myBiomodEF <- BIOMOD_EnsembleForecasting(
-      EM.output = myBiomodEM,
+      EM.output = myBiomodEM ,
       projection.output = myBiomodProj,
       selected.models = 'all',
+     em.by='all',
       binary.meth=metrics,
       compress=TRUE)
+    
+    #print(paste0("Performing Ensemble Forcasting onto Future (2050) Data for ",myRespName))
+    
+    f50BiomodEF <- BIOMOD_EnsembleForecasting(
+      EM.output = myBiomodEM ,
+      projection.output = myBiomodProjFuture50,
+      selected.models = 'all',
+      em.by='all',
+      binary.meth=metrics,
+      compress=TRUE)
+    
+    #do.call(file.remove,list(list.files(pattern="temp*"))) 
     
     #print(paste0("Performing Ensemble Forcasting onto Future (2070) Data for ",myRespName))
     
     f70BiomodEF <- BIOMOD_EnsembleForecasting(
-      EM.output = myBiomodEM,
+      EM.output = myBiomodEM ,
       projection.output = myBiomodProjFuture70,
       selected.models = 'all',
+      em.by='all',
       binary.meth=metrics,
       compress=TRUE)
     
@@ -166,15 +236,14 @@ BioModApply <-function(sp.n) {
     
     #do.call(file.remove,list(list.files(pattern="temp*"))) 
     
-    #print(paste0("Performing Ensemble Forcasting onto Future (2050) Data for ",myRespName))
+    # alternatively, doing projections then ensemble by time-period/space
+    ## do projections
     
-    f50BiomodEF <- BIOMOD_EnsembleForecasting(
-      EM.output = myBiomodEM,
-      projection.output = myBiomodProjFuture50,
-      selected.models = 'all',
-      binary.meth=metrics,
-      compress=TRUE)
-  
+    #cat("\n\nExporting Ensemble as grd ...\n\n")
+    
+    #do.call(file.remove,list(list.files(pattern="temp*"))) 
+    
+    
   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   
 }
@@ -188,9 +257,10 @@ BioModApply <-function(sp.n) {
 library(snowfall)
 library(Rmpi)
 library(future)
+library(parallel)
+
 #args = commandArgs(trailingOnly = TRUE);
 #ncpus = args[1];
-
 # ------------------------------------------------------------------------
 # initialize parallel mode using sockets and command-line args
 # ------------------------------------------------------------------------
@@ -200,31 +270,32 @@ print(ntasks)
 print(class(ntasks))
 print(paste0(ntasks," tasks"))
 
-ncputask<-as.numeric(Sys.getenv("SLURM_CPUS_ON_NODE"))
-print(ncputask)
-print(class(ncputask))
-print(paste0(ncputask," N CPUs per task"))
+nnodes<-as.numeric(Sys.getenv("SLURM_JOB_NUM_NODES"))
+print(nnodes)
+print(class(nnodes))
+print(paste0(nnodes," Nodes"))
 
-ncpus<-ncputask*ntasks
+ncpus<-ntasks*nnodes
 #ncpus<-detectCores()
 print(paste0(ncpus," CPUs"))
 
-#ncpus<-future::availableCores()
-#ncpus<-mpi.universe.size()-1
-sfInit( parallel=TRUE, cpus=ncpus, type="MPI")
-# Export packages to snowfall
-sfLibrary('biomod2', character.only=TRUE)
-sfExportAll()
+cl <- makeCluster(ncpus)
+clusterEvalQ(cl, library(biomod2))
+clusterEvalQ(cl, library(raster))
+clusterEvalQ(cl, library(rgdal))
 
-# you may also use sfExportAll() to export all your workspace variables
-## Do the run
-for (sp.n in sp.n){
- mySFModelsOut <- sfLapply(sp.n,BioModApply)
- #gc()
-}
 
-#save(mySFModelsOut)
-# stop snowfall
+clusterExport(cl=cl, list("sp.n","BioProjApply","presmodstack","f50modstack","f70modstack",
+                          "dir_out","dir_R","dir_dat","dir_stacks","dir_bmf","root"))
 
-sfStop()
-#######
+#for (sp.n in sp.n){
+#print(sp.n)
+parLapply(cl, sp.n[1:6],BioProjApply)
+parLapply(cl, sp.n[7:15],BioProjApply)
+parLapply(cl, sp.n[16:21],BioProjApply)
+parLapply(cl, sp.n[22:29],BioProjApply)
+parLapply(cl, sp.n[30:37],BioProjApply)
+parLapply(cl, sp.n[38:46],BioProjApply)
+
+#}
+stopCluster(cl)#######
