@@ -42,8 +42,8 @@ library(mgcv)
 #################################################################
 
 setwd(dir_bm) 
-ensemble.files<-Sys.glob(paste0(getwd(),"/*/*","*_currentensemble.models.out")) # get ensemble files out
-ensemble.dirs<-sub(paste0(getwd(),"/"),"",ensemble.files) # remove everything from working directory path
+ensemble.files<-Sys.glob(paste0(dir_bm,"/*/*","*_currentensemble.models.out")) # get ensemble files out
+ensemble.dirs<-sub(paste0(dir_bm,"/"),"",ensemble.files) # remove everything from working directory path
 sp.n<-sub(" */.*", "",ensemble.dirs) # remove everything before first slash to get variety names that have ensemble models
  
 
@@ -54,6 +54,10 @@ library(raster)
 presmodstack<-stack(paste0(dir_stacks,"present_modstack_EA.grd"))
 f50modstack<-stack(paste0(dir_stacks,"f50_modstack_EA.grd"))
 f70modstack<-stack(paste0(dir_stacks,"f70_modstack_EA.grd"))
+
+# check units
+f70modstack<-f70modstack[[1]]/10
+f70modstack<-f70modstack[[1]]/10
 
 names(presmodstack)
 names(f50modstack)
@@ -71,7 +75,7 @@ names(f70modstack)
 
 allmodels<-c("GLM","GAM","GBM","ANN","CTA","RF","MARS","FDA","MAXENT.Phillips","MAXENT.Tsuruoka")
 models = c("MAXENT.Phillips")
-metrics = c(  'KAPPA', 'TSS', 'ROC', 'FAR','SR', 'ACCURACY', 'BIAS', 'POD', 'CSI', 'ETS')
+metrics = c(  'KAPPA', 'TSS', 'ROC')
 
 
 # following https://rpubs.com/dgeorges/190889
@@ -86,16 +90,13 @@ BioModApply <-function(sp.n) {
   tryCatch({
     
     myRespName = sp.n
-    #myRespName = sp.n[1]
-    myResp <- as.numeric(pa[,myRespName])
-    myRespXY = pa[,c('Longitude.x.','Latitude.y.')]
-    
+
     myExpl<-presmodstack
     myExplFuture50<-f50modstack
     myExplFuture70<-f70modstack
     
     setwd(dir_bm) 
-    bm_out_file <- load(paste0(getwd(),"/",myRespName,"/",myRespName,".",myRespName,"_current.models.out"))
+    bm_out_file <- load(paste0(dir_bm,"/",myRespName,"/",myRespName,".",myRespName,"_current.models.out"))
     myBiomodModelOut <- get(bm_out_file)
     
     # model projections
@@ -105,7 +106,6 @@ BioModApply <-function(sp.n) {
      proj.name = 'current',
      selected.models = 'all',
      binary.meth = metrics,
-     filtered.meth = metrics,
      compress = TRUE,
      clamping.mask = T,
      output.format = '.grd')
@@ -118,7 +118,6 @@ BioModApply <-function(sp.n) {
        proj.name = 'rcp85_70',
        selected.models = 'all',
        binary.meth = metrics,
-       filtered.meth = metrics,
        compress = TRUE,
        clamping.mask = T,
        output.format = '.grd')
@@ -131,7 +130,6 @@ BioModApply <-function(sp.n) {
        proj.name = 'rcp85_50',
        selected.models = 'all',
        binary.meth = metrics,
-       filtered.meth = metrics,
         compress = TRUE,
        clamping.mask = T,
        output.format = '.grd')
@@ -142,7 +140,7 @@ BioModApply <-function(sp.n) {
     # FORECAST EMSEMBLE MODELS BY CHOSEN METRICS
     #################################################################
     setwd(dir_bm) 
-    bm_em.out_file <- load(paste0(getwd(),"/",myRespName,"/",myRespName,".",myRespName,"_currentensemble.models.out"))
+    bm_em.out_file <- load(paste0(dir_bm,"/",myRespName,"/",myRespName,".",myRespName,"_currentensemble.models.out"))
     myBiomodEM <- get(bm_em.out_file)
     
     #print(paste0("Performing Ensemble Forcasting onto Current Data for ",myRespName))
@@ -153,7 +151,6 @@ BioModApply <-function(sp.n) {
       projection.output = myBiomodProj,
       selected.models = 'all',
       binary.meth=metrics,
-      filtered.meth=metrics,
       compress=TRUE)
     
     #print(paste0("Performing Ensemble Forcasting onto Future (2070) Data for ",myRespName))
@@ -163,7 +160,6 @@ BioModApply <-function(sp.n) {
       projection.output = myBiomodProjFuture70,
       selected.models = 'all',
       binary.meth=metrics,
-      filtered.meth=metrics,
       compress=TRUE)
     
     #cat("\n\nExporting Ensemble as grd ...\n\n")
@@ -177,11 +173,8 @@ BioModApply <-function(sp.n) {
       projection.output = myBiomodProjFuture50,
       selected.models = 'all',
       binary.meth=metrics,
-      filtered.meth=metrics,
       compress=TRUE)
-    
-    
-    
+  
   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   
 }
@@ -225,7 +218,11 @@ sfExportAll()
 
 # you may also use sfExportAll() to export all your workspace variables
 ## Do the run
-mySFModelsOut <- sfLapply(sp.n,BioModApply)
+for (sp.n in sp.n){
+ mySFModelsOut <- sfLapply(sp.n,BioModApply)
+ #gc()
+}
+
 #save(mySFModelsOut)
 # stop snowfall
 
