@@ -1,5 +1,0 @@
-option batch abort
-option confire off
-sftp://scg67:Operas098765@leap.txstate.edu/ -hostkey="ssh-rsa 2048 c2:72:c5:c5:84:8f:3c:b5:3c:cb:d4:b2:cc:21:0c:20"
-synchronize local E:\thesis\02_R\00_biomod /gpfs/home/scg67/thesis/02_R/00_biomod
-exit

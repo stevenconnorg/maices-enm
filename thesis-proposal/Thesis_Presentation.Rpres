@@ -1,0 +1,877 @@
+<style>
+body {
+    overflow: scroll;
+}
+</style>
+
+
+Evaluating Impacts of Climate Change on Traditional Mexican Maize and Indigenous Communities
+========================================================
+author: Steven C. Gonzalez
+date: 
+autosize: true
+width: 1920
+height: 1080
+font-family: arial
+css: exlaim.css
+Presented to:<br />
+Dr. Russell Weaver (Chair) <br />
+Dr. Jennifer Jensen <br />
+Dr. Thomas Ballinger <br />
+
+M.S. Thesis Proposal <br />
+Department of Geography  <br />
+Texas State University, San Marcos, TX <br />
+github: www.github.com/stevenconnorg/maices-enm <br />
+contact: scg67@txstate.edu
+
+```{r  echo=FALSE} 
+
+# establish directories
+
+root<-"E:/thesis"
+setwd(root)
+
+dir_dat<-paste0(root,"/01_data")
+dir_R<-paste0(root,"/02_R")
+dir_out<-paste0(root,"/03_output")
+dir_figs<-paste0(root,"/04_figs")
+dir_lit<-paste0(root,"/05_lit")
+dir_comp<-paste0(root,"/06_comp")
+dir_presentations<-paste0(root,"/07_pres")
+
+dir_maices<-paste0(dir_dat,"/maices")
+dir_ind<-paste0(dir_dat,"/ind")
+dir_topo<-paste0(dir_dat,"/topo")
+# 
+dir_clim<-paste0(dir_dat,"/clim")
+dir_pres<-paste0(dir_clim,"/present")
+dir_fut<-paste0(dir_clim,"/future")
+
+dir_p.mosaics<-paste0(dir_pres,"/2.0/")
+dir_f.mosaics<-paste0(dir_fut,"/1.4/")
+
+dir_land<-paste0(dir_dat,"/land-cover")
+
+dir_stacks<-paste0(dir_dat,"/stacks/")
+dir_envirem<-paste0(dir_dat,"/envirem/")
+
+dir_wmean<-paste0(dir_out,"/wmean-consensus")
+dir_binary<-paste0(dir_out,"/binaries")
+dir_rangeras<-paste0(dir_out,"/range-size/rasters")
+dir_range<-paste0(dir_out,"/range-size")
+dir_rangedf<-paste0(dir_out,"/range-size/dfs")
+dir_rangeR<-paste0(dir_out,"/range-size/RData")
+dir_div<-paste0(dir_out,"/diversity")
+
+
+```
+
+```{r include=FALSE}
+opts_chunk$set(cache=TRUE)
+```
+
+
+```{r echo=FALSE}
+library(knitcitations)
+options(encoding = 'UTF-8')
+```
+
+
+Introduction
+=======================================================
+type: section
+</br>
+<font color="black">
+- Climate change is expected heavily impact natural and human systems worldwide  (Walther, G.-R. et al., 2002; IPCC 2007, 2013; Kang, Y, S. Khan 2009; Hoegh-Guldberg, O. 2010)
+- The IPCC reports numerous negative impacts of climate change on domesticated crops regardless of the emission scenario implemented(Brown and Funk 2008; Ureta et al. 2012; IPCC 2013) 
+- Ensuring global food security in an increasingly warming world with  exponentially increasing world population requires multidisciplinary research  (Brown and Funk 2008; Ureta et al. 2012; IPCC 2013, 2015) 
+</font>
+
+*** 
+</br>
+</br>
+</br>
+<img src="proposal-figure\future-of-food.jpg";><br/>
+<font size = "5px">  Five percent reduction in crop season, sensitivity to change, capacity to cope. Source: CGIAR. </font>
+
+
+Mexico: Maize's 'C.O.D.'
+=======================================================
+type: section
+</br>
+<font color="black">
+- Maize (<i>Zea mays</i> subsp. <i>mays</i> L.) supplies a staple food crop for more than 200 million people worldwide (Nuss and Tanumihardjo 2010; Ureta et al. 2013)
+- Climate change is expected to alter maize suitability, especially between the tropics (Ramirez-Cabral et al., 2017)
+- Mexico, maize's C.O.D., harbors traditional maize landraces that account for 60% of maize genetic diversity globally (Ureta et al. 2013)
+- Preservation of agrobiodiversity at centers of domestication critical for global food security (Thrupp 2000; Esquinas-Alcazar 2005; Ureta et al. 2013).  
+</font>
+
+***
+
+<img src="proposal-figure\maize-diversity.jpg";></br>
+<font size = "5px">  Source: The International Maize and Wheat Improvement Center (CIMMYT) </font>
+
+Maize Diversity & Evolution
+=======================================================
+type: section
+
+</br>
+- > 9,000 years from Mexican annual teosinte (<i>Z. mays</i> ssp. <i>Parviglumus</i> and ssp. <i>mexicana</i> ) in highlands via artificial selection by indigenous cultures (Matsuoka et al. 2002; Kato et al. 2009)
+- Maize landraces have been grown (Ruiz Corral et al. 2008):
+      - from sea-level to 2,900 (m asl)
+      - avg. growing temp 12.0 &deg;C - 29.1 &deg;C
+      - avg. seasonal precip. 400 mm to 3555 mm 
+- Offer valuable genetic resources
+
+*** 
+<img src="proposal-figure\maiz-y-teosinte.jpg";></br>
+<font size = "5px">  Source: https://lacienciaysusdemonios.com </font>
+
+
+Maize Mirrors Humanity
+=======================================================
+type: section
+
+</br>
+- As a domesticated crop, maize is intimately contingent upon societal influences:
+      - Seed management practices (Anderson 1947; Dyer and Lopez-Feldman 2013)
+      - Indigenous religious practices (R. Ortega-Paczka., 2003) 
+      - Ethnolinguistic diversity (Perales, Benz, and Brush 2005; Brush and Perales 2007; Rivero-Romero et al. 2016)
+      - Indigenous agricultural knowledge (Garcia-Martinez et al. 2016; Rivero-Romero et al. 2016)
+      - Agro-technological practices (Garcia-Martinez et al. 2016; Rivero-Romero et al. 2016; Toledo and Barrera-Bassols 2017)
+      - variations across ethnic groups (Perales, Benz, and Brush 2005; Brush and Perales 2007)
+    
+***
+
+
+</br>
+</br>
+</br>
+</br>
+<font color="white">
+<div align="center">
+"Maize is a sensitive mirror of the people who grow it" (1942)
+</br>
+</br>
+</br>
+</br>
+
+"Mexico, more than any other country in the New World, is the land of corn" (1946)
+</br>
+</br>
+</br>
+</br>
+</div>
+
+<div align="right">
+
+- Edgar Anderson (1897-1969)</br>
+American researcher of corn </br> 
+
+</div>
+</font>
+Ethno-linguistic Diversity of Mexico
+=======================================================
+type: section
+```{r readinlengua, echo=FALSE}
+library(rgdal)
+
+leng<-readOGR(dsn=paste0(dir_ind,"/lengmun90gw/lengmun90gw.shp"),layer="lengmun90gw",verbose = FALSE)
+#colnames(leng@data)
+#leng@data$LENGUA1<-as.factor(leng@data$LENGUA1)
+#summary(leng@data)
+#str(leng@data)
+#spplot(leng,"LENGUA1")
+#map(add=TRUE)
+```
+</br>
+- <i> La Comision Nacional para el Conocimiento y Uso de la Biodiversidad </i>(CONABIO)
+- 2000 indigenous population % by <i>municipio</i> (n = 2446 + 16)
+- 68 indigenous macro-languages in Mexico  <i>(Instituto Nacional de Lenguas Indigenas (INALI)) </i>
+    - In reality, many more distinct languages and dialects
+    - 10-14% identify as indigenous, but only 6% speak an indigenous language
+    - Stability is dubious
+    - Loss of potentially irrecoverable deep climatic knowledge
+
+*** 
+</br>
+
+```{r pobInd, echo=FALSE,fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
+library(raster)
+pobind<-raster(paste0(dir_ind,"/pob-ind.grd"))
+plot(pobind, oldstyle=T)
+title(main="Indigenous Population Percentage (2000)")
+
+```
+
+
+
+<!-- 1st - 4th major indigenous languages by municipality (1990) -->
+<!-- ======================================================= -->
+<!-- type: section -->
+<!-- ```{r lenguaindigenahtml, echo=F,results='asis',error=F,warning=F} -->
+<!-- library(knitr) -->
+<!-- library(kableExtra) -->
+<!-- df<- leng@data -->
+<!-- lang<-unique(df[c("LENGUA1", "LENGUA2", "LENGUA3", "LENGUA4")]) -->
+
+<!-- kable(lang,"html") %>% -->
+<!--   kable_styling() %>% -->
+<!--   scroll_box(height = "700px") -->
+
+<!-- ``` -->
+
+
+
+Purpose Statements
+=======================================================
+type: section
+1. Model current relationships between maize landraces and their niches
+    + Project maize niches into geographic space 
+    + Forecast these projections with future climate models 
+2. Identify patterns
+    + Evaluate spatio-temporal relationships between indigeneity and maize diversity 
+    + Quantify maize landrace diversity and it's forecasted change 
+    + Identify similarities among landrace niches
+3. Provide the groundwork for future work
+
+
+
+Research Questions
+=======================================================
+type: section
+1.	Where do current maize landrace exist, and how do social and environmental factors contribute to their distributions?
+2.	How is climate change expected to alter current maize landrace distributions?
+3.	Which indigenous populations are expected to be most heavily impacted by maize's distribution and diversity change?
+4.	What are the characteristics of each maize landraces 'bioclimate envelope'?
+
+Ecological Niche
+=======================================================
+type: section
+<img src="proposal-figure\hutchinson_tree.jpg" ;></br>
+<font size = "5px">  Source: (Edmondson, 1971) </font>
+
+***
+<br />
+- Joseph Grinnell (Grinnell, 1917) - niches corresponded to species' environments 
+- Charles Elton (Elton, 1927) - associated species niches through biotic relationships
+- George Evelyn Hutchinson  - species role in environment (Hutchinson, 1957; Colwell and Rangel 2009). 
+    - The Hutchinsonian Niche - an "n-dimensional hypervolume" in ecological space in which a species can persist (Colwell and Rangel 2009; Holt 2009)
+    - Fundmental Niche - A species' potential geographic distribution in true 4D space, constrained by its n-dimensional bioclimatic envelope
+    - Realized Niche - fundamental niche constrained by 'bionomic' interactions; the niche that exists in reality and that does not overlap with other species niches (Griesemer 1992,Pulliam 2000)
+
+
+
+Biotic-Abiotic-Mobility Diagram
+=======================================================
+type: section
+<img src="proposal-figure\BAM.png";> </br>
+<font size = "5px"> Source: (Guisan et al., 2017) Credit: (Guisan et al., 2017,A. Townsend Peterson et al. 2011; Soberon & Peterson, 2005) </font>
+
+***
+ </br>
+  </br>
+  
+- G : Studied geographic area
+  - A : Suitable abiotic environment (Grinellean niche)
+  - B : Suitable biotic environment (Eltonian niche)
+  - C : Colonizable range
+
+1.  Realize Niche, suitable to all three (Hutchinson's Niche)
+2. Sutiable abiotic with unsuitable biotic conditions (e.g.: high competition)
+3. Colonization outside of suitable environment (sink populations)
+4. Sink in unsuitable biotic and abiotic environments (historical effects)
+
+Ecological Niche Modelling
+=======================================================
+type: section
+<img src="proposal-figure\ensemble-modelling.png";> </br>
+
+***
+</br>
+- Uses species presence and/or absence observation data and ecological data at those observation sites to estimate complex relationships of species niche (Elith et al. 2011). 
+- Project hyperdimensional ecological space onto 2- or 3D geographic space
+- Numerous algorithms developed for and adapted to ENM
+- Ensemble Ecological Niche Modelling weights individual models based on performance(Filho et. al, 2010, Araujo & New 2007)
+- Reduce uncertainty across model type, model repetition, Pseudo-absence selection, etc.
+- WA and Mean consensus methods provided significantly more robust predictions than single-models and the other consensus methods (Marimon et al., 2009)
+
+
+Data
+=======================================================
+type: section
+1. Georeferenced maize observations
+2. Ethno-linguistic Data
+3. Gridded Climatologies
+  - derived "Bioclimatic Variables"
+4. Topography/Land Cover
+
+Georeferenced Maize Observations
+=======================================================
+type: section
+
+
+```{r readinmaices, echo=FALSE}
+library(dplyr)
+library(rgdal)
+library(pander)
+library(maps)
+library(latticeExtra) # For layer()
+library(raster)
+ library(spatstat)
+library(rgdal)
+library(sp)
+library(rgeos)        # For its readWKT() function
+library(latticeExtra) # For layer()
+
+
+
+load(paste0(dir_maices,"/clean_maices_obs.RData"))
+
+todos.counts<-todos@data %>% group_by(Raza_prima) %>% summarise(n()) 
+
+raza.counts<-maices@data %>% group_by(Raza_prima) %>% summarise(n()) 
+
+```
+
+</br>
+</br>
+- `r sum(todos.counts[,2])` available through <i>La Comision Nacional para el Conocimiento y Uso de la Biodiversidad </i>(CONABIO)
+- Cleaned records of erroneous records and those flagged 'Inconsistent'
+- `r sum(raza.counts[,2])` remaining records
+- `r length(unique(maices@data$Raza_prima))` unique maize races
+
+***
+```{r echo=FALSE, fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="1000px",out.height="750px"}
+### MAKE PLOT OF MAIZE OBS  ### 
+library(sp)
+load(paste0(dir_maices,"/clean_maices_obs.RData")) # load maices object 
+maices@data$Raza_prima<-as.factor(maices@data$Raza_prima) # set prime race as factor
+leng<-readOGR(dsn=paste0(dir_ind,"/lengmun90gw/lengmun90gw.shp"),layer="lengmun90gw",verbose = FALSE) # read in mexico polygons
+mex<-gUnaryUnion(leng) # to dissolve to get border
+
+spplot(maices,"Raza_prima", auto.key=FALSE,scales=list(draw=T), add=TRUE,cex = .2,
+        sp.layout = list(list(mex, first=FALSE))) # plot border with observations by color
+```
+
+
+Maize Observations Kernal Density Estimation
+====================================
+type: section
+
+# ```{r maizehisto&count, echo=FALSE,fig.align="center",fig.show='hold',eval=T,fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
+# library(rgdal)
+# ### MAKE HISTOGRAM OF OBS DISTIBUTION ### 
+# MaizeObservations<-as.data.frame(raza.counts)
+# MaizeObservations$Count<-MaizeObservations$'n()'
+# hist(MaizeObservations$Count, breaks=20, main= 'Histogram of Maize Observation')
+# ```
+
+
+<img src="proposal-figure\bias_raster_with_cleaned_obs.png";> </br>
+
+
+Climatological Data - WorldClim
+=======================================================
+type: section
+</br>
+- ANUSPLIN up to 60,000 weather stations (with >10 years data)
+- largest available archive of downscaled climate data for ecology  (Guisan et al., 2017)
+- >2,700 citations for ecological studies including ENMs and SDMs (Booth et al., 2014)
+- 30 arc-second resolution (~1 km^2)
+- Current (1970-2000) (v2.0) (Fick & Hijmans, 2017)
+  - Maximum and Minimum Monthly Temperatures (&deg;C * 10)
+  - Monthly Precipitation (mm)
+  - also includes solar radiation, windspeed, water vapor pressure
+- Future RCP 8.5 (2041-2060, 2061-2080) (v1.4) (Hijmans et al., 2005)
+  - dynamically-downscaled from 19 GCM used in CMIP5 (IPCC, 2013, Meehl et al., 2009)
+
+
+***
+```{r 2050precStack, echo=FALSE,eval=T,fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
+library(rasterVis)
+f50<-stack(paste0(dir_stacks,"/f50cropstack.grd"))
+f70<-stack(paste0(dir_stacks,"/f70cropstack.grd"))
+pres<-stack(paste0(dir_stacks,"/present_cropstack.grd"))
+pres50diff<-f50[[19:30]]-pres[[19:30]]
+pres70diff<-f70[[19:30]]-pres[[19:30]]
+months<-c("Jan","Feb","Mar","Apr","May","June","July","Aug","Sep","Oct","Nov","Dec")
+names(pres50diff)<-months
+names(pres70diff)<-months
+rasterVis::levelplot(pres50diff,par.settings="RdBuTheme",main="2070 (avg.) minus 1970-2000 (avg.) Monthly Mean Precip. Difference (mm)")
+rasterVis::levelplot(pres70diff,par.settings="RdBuTheme",main="2070 (avg.) minus 1970-2000 (avg.) Monthly Mean Precip. Difference (mm)")
+
+```
+
+Projecting onto Future Climatologies
+=======================================================
+type: section
+- Ensemble future climate models to reduce uncertainty across:
+    - Relative Concentration Pathways
+    - GCM
+- Monthly future climatologies were averaged across five GCMs:
+    - CCSM4 (Community Climate System Model, UCAR)
+    - MIROC5 (Model for Interdisciplinary Research on Climate)
+    - MPI-ESM-LR (Max-Plank Institute) 
+    - HADGEM2-ES (Met Office Hadley)
+    - GFDL-CM3 (Geophysical Fluid Dynamics Laboratory )
+- Any of these five model performs better singularly than ensemble of all other models in predicting previous climatologies (Conde et al. 2011)
+- Here, using updated analogs of GCMs used in (Conde et al. 2011) & 5th National Communication of Mexico for the United Nations Framework Convention on Climate Change (2012)
+
+Bioclimatic Variables
+=======================================================
+type: section
+</br>
+- Derived from first ecological niche modelling alogorithm 'BIOCLIM' (Nix, 1986)
+- More ecologically importance predictor variables
+- Can reduce multicollineary, VIF; expands options
+- Calculated from monthly Tmax, Tmin, Tmean, and Prec
+- 19 Bioclimatic proxy variables from monthly means using 'dismo' (Hijmans et al., 2017)
+-  16 'complementary' variables from 'envirem' package in R (Title & Bemmels, 2017)
+    - Use WorldClim 2.0 current terrestial solar radiation for both current and future climatologies
+    - Averageg Tmin and Tmax to get Tmean (.99 R^2) (Title & Bemmels, 2017)
+
+***
+1970-2000 Bioclimatic Variables
+```{r echo=FALSE,eval=T,fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="750px",out.height="1000px"}
+library(raster)
+presbio<-stack(paste0(dir_stacks,"1970-2000_biostack.grd"))
+plot(presbio[[1:16]])
+plot(presbio[[17:32]])
+```
+
+'dismo' Biovars
+=======================================================
+type: section
+</br>
+- BIO1 = Annual Mean Temperature
+- BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
+- BIO3 = Isothermality (BIO2/BIO7) (* 100)
+- BIO4 = Temperature Seasonality (standard deviation *100)
+- BIO5 = Max Temperature of Warmest Month
+- BIO6 = Min Temperature of Coldest Month
+- BIO7 = Temperature Annual Range (BIO5-BIO6)
+- BIO8 = Mean Temperature of Wettest Quarter
+- BIO9 = Mean Temperature of Driest Quarter
+- BIO10 = Mean Temperature of Warmest Quarter 
+
+***
+</br>
+- BIO11 = Mean Temperature of Coldest Quarter
+- BIO12 = Annual Precipitation
+- BIO13 = Precipitation of Wettest Month
+- BIO14 = Precipitation of Driest Month
+- BIO15 = Precipitation Seasonality (Coefficient of Variation)
+- BIO16 = Precipitation of Wettest Quarter
+- BIO17 = Precipitation of Driest Quarter
+- BIO18 = Precipitation of Warmest Quarter
+- BIO19 = Precipitation of Coldest Quarter
+
+'envirem' Biovars
+=======================================================
+type: section
+</br>
+- Annual PET
+- Thornthwaite Aridity Index 
+- Climatic Moisture Index
+- Continentality
+- EmbergerQ
+- Growing Deg Days 0
+- Growing Deg Days 5
+- Growing Deg Days 10
+- Max Temp Coldest
+- Min Temp Warmest
+
+***
+</br>
+
+- Month Count By Temp 10
+- PET Coldest Quarter
+- PET Driest Quarter
+- PET seasonality
+- PET Warmest Quarter
+- PET Wettest Quarter
+- Thermicity Index
+
+Correlation Matrix - 'dismo' and 'envirem' 
+======================================================
+type: section
+<div align="center">
+
+<img src="proposal-figure\biovars_cormat.png">
+</div>
+
+Topographic Variable Processing
+======================================================
+type: section
+</br>
+- Terrain Indices from Elevation from WorldClim 1.4 via SRTM (Shuttle Radar Topographic Mission)  with 'raster' package (Hijmans, 2017) (Wilson et al., 2007)
+  - Cosine-transformed Aspect (radians) for 'Northness'
+  - Slope
+  - Vector Ruggedness Measure (VRM) (Sappington et al., 2007) 
+
+***
+</br>
+</br>
+
+```{r topostack, echo=FALSE, fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="1920px",out.height="1080px"}
+topofiles<-list.files(paste0(dir_topo,"/crop"),full.names = T,pattern = ".grd")
+topostack<-stack(topofiles)
+plot(topostack)
+
+```
+
+FAO Harmonized Soil Database 1.2
+======================================================
+type: section
+</br>
+- resample from 1 arc minute to 30 arc-second resolution (Fischer et al., 2008)
+</br>
+</br>
+- Land cover (Continuous)
+    1. rain-fed cultivated land
+    2. irrigated cultivated land, according to GMIA 4.0
+    3. total cultivated land
+    4. forest land, calibrated to FRA2000 land statistics
+    5. grass/scrub/woodland
+    6. built-up land (residential and infrastructure)
+    7. barren/very sparsely vegetated land
+    8. Mapped Water Bodies
+
+
+Landcover
+======================================================
+type: section
+```{r lcstack, echo=FALSE, fig.align="center",fig.width=8,fig.height=4.5,dpi=300,out.width="1000px",out.height="700px"}
+landcover<-stack(paste0(dir_stacks,"FAOlandstack.grd"))
+
+plot(landcover)
+```
+
+Variable Selection 
+======================================================
+type: section
+</br>
+- Land Cover Classification
+- 19 'dismo' bioclimatic variables
+- 16 supplemental 'envirem' bioclimatic variables
+
+Method
+- select biologically-relevant variables
+- iteratively use 'usdm' R package to subset variables with VIF < 10 (Naimi et al., 2014)
+- preferred over correlation thresholds due to 'hidden' correlation structures (Guisan et al., 2017)
+- correlation structures may change over time
+- 
+***
+```{r vifload, eval=T, echo=F}
+
+load(paste0(dir_out,"/vif.RData"))
+load(paste0(dir_out,"/vifstep.RData"))
+load(paste0(dir_out,"/vifcor.RData"))
+```
+
+```{r vifstep, eval=TRUE, echo=T}
+# using all data, no pre-selection
+presvifstep@results
+
+```
+
+
+
+'vifcor' results
+======================================================
+type: section
+```{r vifcor, eval=TRUE, echo=TRUE}
+presvifcor@results
+```
+
+
+
+
+Maximum Entropy ENM Modeling (MaxEnt)
+=======================================================
+- Phillips et al. (2004, 2006, 2008)
+- 
+
+Ensemble Ecological Niche Modeling in biomod2
+=======================================================
+type: section
+- MaxEnt modeling parameters
+    - Linear, quadratic, and hinge features used
+    - Landrace-specific <i> a priori </i> prevalence (tau), else lowered from 1 to 0.01
+    - 70/30 data split for modeling/evaluation
+    - 10,000 Maximum iterations
+    - Regularization parameters for each feature type automatic
+    - Beta regularization multiplier increased from 1 to 2.5
+    - Target background sampling using PAM
+-  MaxEnt modeling ensembled using
+    - 3 evaluation metrics (all scaled 0-1)
+        - 'KAPPA', 'TSS', 'ROC'
+    - 7 modelling repetitions 
+- Average across each evaluation metric weighted-mean ensemble
+- Convert to binary with 0.75 threshold 
+
+
+
+Ensemble model performance
+=======================================================
+- AUC values less than 0.7 can be considered poor, while KAPPA and TSS values below 0.4 are considered poor. KAPPA and TSS scores between 0.4 - 0.8 indicate useful models, while scores > 0.8 indicate good to excellent model performance.
+
+
+- The average AUC values across the maize landrace varieties is 0.939 � 0.08, with the highest AUC value (0.990) and the lowest score (0.835) derived from the ensemble models of the Apachito and Celaya maize landrace, respectively.
+- True Skill Statistics (TSS) values were relatively high with a mean of 0.785 � 0.316. Similarly, the highest and lowest TSS scores derived from the Apachito (0.943) and Celaya (0.511) ensemble models. 
+- As expected, KAPPA values were relatively low (mean = 0.444 � 0.294), indicating negative effects of prevalence values on KAPPA scores.
+
+
+ROC Plot
+=======================================================
+
+
+
+Niche Overlap - Geographic 
+=======================================================
+
+
+Niche Overlap - Ecological
+=======================================================
+
+
+Hierarchical Clustering by Variable Importance
+=======================================================
+
+
+Hierarchical Clustering Dengrogram
+=======================================================
+
+
+Niche Correlation Matrix 
+=======================================================
+
+
+Multivariate Environmental Similarity Surfaces (MESS)
+=======================================================
+-provide an index to evaluate the multivariate, as well as univariate, differences between two different sets of environmental predictors
+- aid in visualizing not only the magnitude of potential, problematic extrapolation, but also the locations of such dissimilarity
+- similar to BIOCLIM, but provides negative values for levels of dissimilarity
+
+
+Multivariate Environmental Similarity Surfaces
+=======================================================
+
+
+
+Bioclimatic Multivariate Environmental Similarity Surfaces (MESS)
+=======================================================
+
+
+Niche Size
+=======================================================
+- Using the binary forecasts for each maize landrace, niche size was calculated by summing the cells equal to 1 and converting to area (km2). Niche size is often a basic indicator of whether a species is a generalist or specialist and are listed in decreasing order in Table 8.
+
+Niche Size
+=======================================================
+# insert table
+
+
+Maize Alpha Diversity
+=======================================================
+- Qualitatively similar to Perales and Golicher (2015)
+- Lower levels of maximum diversity, may be due to:
+    + Lack of threshold features
+    + Landrace-specific prevalence
+    + Heighted resolution
+    
+Maize Alpha Diversity
+=======================================================
+# insert map
+
+Maize Alpha Diversity
+=======================================================
+# insert map
+
+
+Maize Alpha Diversity by Group
+=======================================================
+- Mapping alpha diversity by the variable importance groups illustrates that these ecological groups also tend to cluster in geographic space
+- Quantitatively, Moran's I statistics of mean diversity by municipio are high for all landrace groups extracted- 0.82, 0.79, 0.85, 0.85, and 0.78 - for groups 1 through five, respectively, when using a spatial weights matrix with 8 k-Nearest Neighbors.
+
+Maize Alpha Diversity Group 1
+=======================================================
+# insert map
+
+
+Maize Alpha Diversity Group 2
+=======================================================
+# insert map
+
+
+Maize Alpha Diversity Group 3
+=======================================================
+# insert map
+
+
+Maize Alpha Diversity Group 4
+=======================================================
+# insert map
+
+
+Maize Alpha Diversity Group 5
+=======================================================
+# insert map
+
+
+Influences of Indigeneity of Maize Landrace Diversity
+=======================================================
+
+
+Changes inn Maize Landrace Diversity with Climate Change
+=======================================================
+
+
+Clusters of Group 2 Maize Diversity Change and Indigenous Communities
+=======================================================
+
+
+
+Novelty of Research
+=======================================================
+type: section
+Methods
+- Ensemble modelling
+- Expanded datasets
+- Averaging good-performing updated GCMs for forcasting
+- CMIP5 Data
+- Careful pseudo-absence selection
+- WorldClim 2.0 > 1.4
+
+Contributions
+- Geographic representation of climate change impacts on maize biodiversity at COD
+- Visualize locations of impacted communities
+
+Bibliography
+========================================================
+type: section
+Anderson, E. 1947. Field Studies of Guatemalan Maize. Annals of the Missouri Botanical Garden 34 (4):433–467. http://www.jstor.org/stable/2394775.
+
+Anderson, E., and H. C. Cutler. 1942. Races of Zea Mays: I. Their Recognition and Classification. Annals of the Missouri Botanical Garden 29 (2):69–88. http://www.jstor.org/stable/2394331.
+
+Beatriz Rendón-Aguilar, Verónica Aguilar-Rojas, María del Consuelo Aragón- Martínez, José Francisco Ávila-Castañeda, Luis Alberto Bernal-Ramírez, David 
+Bravo-Avilez, Guadalupe Carrillo-Galván, Amelia Cornejo-Romero, Ernesto Delgadillo-Durán, Gilberto Hern, R. O.-P. 2015. DIVERSIDAD DE MAÍZ EN LA SIERRA SUR DE OAXACA, MÉXICO: CONOCIMIENTO Y MANEJO TRADICIONAL.
+
+Brown, M. E., and C. C. Funk. 2008. Climate. Food security under climate change. Science (New York, N.Y.) 319:580–581.
+
+Buckler IV, E. S., M. M. Goodman, T. P. Holtsford, J. F. Doebley, and J. Sanchez G. 2006. Phylogeography of the wild subspecies of Zea mays. Maydica 51 (1):123–134.
+
+Cheng, J., M. Mattiuzzi, M. Sumner, J. A. Greenberg, A. Bevan, A. Shortridge, and M. R. J. Hijmans. 2016. Package “ raster .”
+
+Colwell, R. K., and T. F. Rangel. 2009. Hutchinson’s duality: The once and future niche. Proceedings of the National Academy of Sciences.
+
+========================================================
+type: section
+CONDE, C., C. CONDE, F. ESTRADA, B. MARTÍNEZ, O. SÁNCHEZ, and C. GAY. 2011. Regional climate change scenarios for México. Atmósfera 24 (1):125–140. http://www.revistascca.unam.mx/atm/index.php/atm/article/view/23806.
+
+Conde, C., R. Ferrer, and S. Orozco. 2006. Climate change and climate variability impacts on rainfed agricultural activities and possible adaptation measures. A Mexican case study. Atmosfera 19 (3):181–194.
+
+Cutler, E. A. and H. C. . 1942. Races of Zea Mays : I . Their Recognition and Classification. Annals of the Missouri Botanical Garden 29 (2):69–86+88. http://www.jstor.org/stable/2394331.
+
+Diniz Filho, J. A. F., V. G. V. G. Ferro, T. Santos, J. C. Nabout, R. Dobrovolski, P. De Marco Jr., J. D. Filho, V. G. V. G. Ferro, J. A. F. Diniz, T. Santos, J. C. Nabout, R. Dobrovolski, and P. de Marco. 2010. The three phases of the ensemble forecasting of niche models: geographic range and shifts in climatically suitable areas of Utetheisa ornatrix (Lepidoptera,. Revista Brasileira de Entomologia 54 (3):339–349. d:%5Cbiblio%5Cd%5C24483.pdf%5Cnhttp://www.scielo.br/scielo.php?pid=S0085-56262010000300001&script=sci_arttext.
+
+Dyer, G. A., and A. López-Feldman. 2013. Inexplicable or Simply Unexplained? The Management of Maize Seed in Mexico. PLoS ONE.
+
+========================================================
+type: section
+
+E.J. Wellhausen, L.M. Roberts, E.Hernandez X., Paul C, M. 1952. Races of Maize in Mexico. The Bussey Institution of Harvard University.
+
+Elith, J., C. H. Graham, R. P. Anderson, M. Dudik, S. Ferrier, A. Guisan, R. J. Hijmans, F. Huettmann, J. R. Leathwick, A. Lehmann, J. Li, L. G. Lohmann, B. A. Loiselle, G. Manion, C. Moritz, M. Nakamura, Y. Nakazawa, J. M. Overton, A. T. Peterson, S. J. Phillips, K. Richardson, R. Scachetti-Pereira, R. E. Schapire, J. Soberon, S. Williams, M. S. Wisz, and N. E. Zimmermann. 2006. Novel methods improve prediction of species’ distributions from occurrence data. Ecography 29 (2):129–151.
+
+Elith, J., M. Kearney, and S. Phillips. 2010. The art of modelling range-shifting species. Methods in Ecology and Evolution 1 (4):330–342. http://dx.doi.org/10.1111/j.2041-210X.2010.00036.x%5Cnhttp://onlinelibrary.wiley.com/store/10.1111/j.2041-210X.2010.00036.x/asset/j.2041-210X.2010.00036.x.pdf?v=1&t=hrlhwru3&s=48e17a701a52d91fbecae111ba2dfea8a8912197.
+
+Elith, J., J. R. Leathwick, and T. Hastie. 2008. A working guide to boosted regression trees. Journal of Animal Ecology 77 (4):802–813.
+
+Elith, J., T. Phillips, StevenHastie, M. Dudík, Y. E. Chee, and C. J. Yates. 2011. A statistical explanation of MaxEnt for ecologists. Diversity and Distributions 17 (1):43–57.
+
+Elton, C. S. 1927. Animal Ecology. Animal ecology :1–260. http://books.google.com/books?hl=fr&lr=&id=lZvgTuB9Gh4C&pgis=1%5Cnhttp://www.cabdirect.org/abstracts/19632204195.html%5Cnhttp://www.mendeley.com/research/animal-ecology-14/%5Cnhttp://www.cabdirect.org/abstracts/19632204195.html.
+
+
+========================================================
+type: section
+
+Esquinas-Alcázar, J. 2005. Science and society: protecting crop genetic diversity for food security: political, ethical and technical challenges. Nature reviews. Genetics 6 (12):946–53. http://www.ncbi.nlm.nih.gov/pubmed/16341075%5Cnhttp://dx.doi.org/10.1038/nrg1729%5Cnhttp://www.nature.com/nrg/journal/v6/n12/abs/nrg1729.html.
+
+Fick, S. E., and R. J. Hijmans. 2017. WorldClim 2: New 1-km spatial resolution climate surfaces for global land areas. International Journal of Climatology.
+
+Garcia-Marmolejo, G., L. Chapa-Vargas, E. Huber-Sannwald, M. Weber, O. C. Rosas-Rosas, J. Martinez-Carderas, H. F. López-Arévalo, S. Gallina, R. Landgrave, E. Martínez-Meyer, L. E. Muñoz-Villers, S. a Queenborough, M. R. Metz, T. Wiegand, R. Valencia, W. Oliver, A. Fuller, T. Dawson, B. Helmuth, R. S. Hetem, D. Mitchell, S. K. Maloney, P. Illoldi-Rangel, V. Sánchez-Cordero, A. Townsend Peterson, S. Albert, C. A. Ramotnik, C. G. Schmitt, S. 
+Albert, C. A. Ramotnik, A. L. J. Desbiez, S. A. Santos, A. Keuroghlian, R. E. Bodmer, L. Siege, J. Elith, S. J. Phillips, T. Hastie, M. Dudík, Y. E. 
+Chee, C. J. Yates, J. Meerman, D. Norris, F. Rocha-Mendes, S. Frosini de Barros Ferraz, J. P. Villani, and M. Galetti. 2007. Towards New Scenarios for Analysis of Emissions, Climate Change, Impacts, and Response Strategies. Geneva.
+
+García-Martínez, Y. G., C. Ballesteros, H. Bernal, O. Villarreal, L. Jiménez-García, and D. Jiménez-García. 2016. Traditional agroecosystems and global change implications in Mexico. Bulgarian Journal of Agricultural Science.
+
+Guisan, A., and W. Thuiller. 2005. Predicting species distribution: Offering more than simple habitat models. Ecology Letters 8 (9):993–1009.
+
+Hijmans, A. R. J., S. Phillips, J. Leathwick, J. Elith, and M. R. J. Hijmans. 2017. Package “ dismo .”
+
+
+========================================================
+type: section
+Hijmans, R. J., S. E. Cameron, J. L. Parra, G. Jones, and A. Jarvis. 2005. VERY HIGH RESOLUTION INTERPOLATED CLIMATE SURFACES FOR GLOBAL LAND AREAS. 1978:1965–1978.
+
+Hoegh-Guldberg, O.,  and J. F. B. 2010. The Impact of Climate Change on the World’s Marine Ecosystems. Science 328 (5985):1523–1528.
+
+Holt, R. D. 2009. Bringing the Hutchinsonian niche into the 21st century: Ecological and evolutionary perspectives. Proceedings of the National Academy of Sciences 106 (Supplement 2):19659–19665. http://www.pnas.org/content/106/suppl.2/19659.abstract%5Cnhttp://www.pnas.org/content/106/suppl.2/19659.full.pdf.
+
+IPCC. 2007. Mitigation of climate change: Contribution of working group III to the fourth assessment report of the Intergovernmental Panel on Climate Change.
+
+———. 2013. Climate Change 2013.
+
+Kang, Y, S. Khan, X. M. 2009. Climate Change Impacts on Crop Yied, Crop Water, Productivity and Food Secury - A Review. Progress in Natural Science 19 (12):1665–1674.
+
+Llovizna González Martínez, S., L. Arturo, Á. Meléndez, J. Teodoro, S. García, and G. B. Wells. 2015. Comunidades indígenas: Entre la adaptación a alteraciones climáticas locales y el abandono de la agricultura. Enero -Abril :27–48.
+
+=========================================================
+type: section
+Mastrandrea, M. D., K. J. Mach, V. R. Barros, T. E. Bilir, D. J. Dokken, O. Edenhofer, C. B. Field, T. Hiraishi, S. Kadner, T. Krug, J. C. Minx, R. Pichs-madruga, G. Plattner, D. Qin, Y. Sokona, T. F. Stocker, and M. Tignor. 2015. IPCC Expert Meeting on Climate Change , Food , and Agriculture Edited by : IPCC Expert Meeting on Climate Change , Food , and Agriculture.
+
+Miguel B Araújo, A. T. P. 2008. Uses and misuses of bioclimatic envelope modeling. Ecology 89 (10):2712–2724.
+
+Monterroso Rivas, A. I., C. Conde Álvarez, G. Rosales Dorantes, J. D. Gómez Díaz, and C. Gay García. 2011. Assessing current and potential rainfed maize suitability under climate change scenarios in M??xico. Atmosfera 24 (1):53–67.
+
+Nuss, E. T., and S. A. Tanumihardjo. 2010. Maize: A paramount staple crop in the context of global nutrition. Comprehensive Reviews in Food Science and Food Safety 9 (4):417–436.
+
+Peterson, A. T., and J. Soberón. 2012. Species distribution modeling and ecological niche modeling: Getting the Concepts Right. Natureza a Conservacao.
+
+
+========================================================
+type: section
+Ramirez-Cabral, N. Y. Z., L. Kumar, and F. Shabani. 2017. Global alterations in areas of suitability for maize production from climate change and using a mechanistic species distribution model (CLIMEX). Scientific Reports 7 (1):5910. http://www.nature.com/articles/s41598-017-05804-0.
+
+Rivero-Romero, A. D., A. I. Moreno-Calles, A. Casas, A. Castillo, and A. Camou-Guerrero. 2016. Traditional climate knowledge: a case study in a peasant community of Tlaxcala, Mexico. Journal of Ethnobiology and Ethnomedicine 12.
+
+Ruiz Corral, J. A., N. Durán Puga, J. D. J. Sánchez González, J. Ron Parra, D. R. González Eguiarte, J. B. Holland, and G. Medina García. 2008. Climatic adaptation and ecological descriptors of 42 Mexican maize races. Crop Science 48 (4):1502–1512.
+Society, A. O., and T. Auk. 2017. The Niche-Relationships of the California Thrasher Author ( s ): Joseph Grinnell Source : The Auk , Vol . 34 , No . 4 ( Oct ., 1917 ), pp . 427-433 Published by : American Ornithological Society Stable URL : http://www.jstor.org/stable/4072271. 34 (4):427–433.
+
+Thrupp, L. A. 2000. Linking Agricultural Biodiversity and Food Security: The Valuable Role of Sustainable Agriculture. International Affairs (Royal Institute of International Affairs 1944-) 76 (2):265–281. http://www.jstor.org/stable/2626366.
+
+Thuiller, W., B. Lafourcade, R. Engler, and M. B. Araújo. 2009. BIOMOD - A platform for ensemble forecasting of species distributions. Ecography 32 (3):369–373.
+
+=========================================================
+type: section
+Title, P. O., and J. B. Bemmels. 2017. ENVIREM: An expanded set of bioclimatic and topographic variables increases flexibility and improves performance of ecological niche modeling. Ecography (January):1–16.
+Toledo, V., and N. Barrera-Bassols. 2017. Political Agroecology in Mexico: A Path toward Sustainability. Sustainability.
+
+Ureta, C., C. González-Salazar, E. J. González, E. R. Álvarez-Buylla, and E. Martínez-Meyer. 2013. Environmental and social factors account for Mexican maize richness and distribution: A data mining approach. Agriculture, Ecosystems and Environment.
+
+Ureta, C., E. Martínez-Meyer, E. J. González, and E. R. Álvarez-Buylla. 2015. Finding potential high-yield areas for Mexican maize under current and climate change conditions. Journal of Agricultural Science :1–13.
+
+Ureta, C., E. Martínez-Meyer, H. R. Perales, and E. R. Álvarez-Buylla. 2012. Projecting the effects of climate change on the distribution of maize races and their wild relatives in Mexico. Global Change Biology.
+
+Walther, G., E. Post, P. Convey, A. Menzel, C. Parmesan, T. J. C. Beebee, J. Fromentin, O. H. I, and F. Bairlein. 2002. Ecological responses to recent climate change. Nature 416.
+
+Zimmermann, Niklaus E. Thuiller, Wilfried Guisan, A. 2017. Habitat Suitability and Distribution Models with Applications in R 1st ed. ed. J. Usher, Michael Saunders, Denis Peet, Robert Dobson, Andrew Adam, Paul Birks, H. J. B. Gustafsson, Lena McNeely, Jeff Paine, R .T. Richardson, David Wilson. Cambridge, United Kingdom: Cambridge University Press. www.cambridge.org/9780521765138.
+
+
+```{r saveimage, echo=FALSE, results="asis"}
+save.image("presentationImage.RData")
+```
+</font>
